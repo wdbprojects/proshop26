@@ -1,0 +1,41 @@
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+export const formatPrice = (cents: number, currency: string) => {
+  return new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency: (currency ?? "usd").toUpperCase(),
+  }).format(cents / 100);
+};
+
+export const formatOrderWhen = (
+  iso: string,
+  opts: Intl.DateTimeFormatOptions = {},
+) => {
+  const { dateStyle = "medium" } = opts;
+  if (!iso) return "";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: dateStyle,
+    timeStyle: "short",
+  }).format(date);
+};
+
+// format price
+export const formatPriceNew = (price: number, currency: string) => {
+  return new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency: (currency ?? "usd").toUpperCase(),
+  }).format(price);
+};
+
+/* format number with decimal places */
+export const formatNumberWithDecimal = (num: number): string => {
+  const [int, decimal] = num.toString().split(".");
+  return decimal ? `${int}.${decimal.padEnd(2, "0")}` : `${int}.00`;
+};

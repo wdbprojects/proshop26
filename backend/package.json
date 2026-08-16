@@ -1,0 +1,49 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "ecommerce backend: express, typescript, betterauth, drizzle, postgres",
+  "type": "commonjs",
+  "private": true,
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "scripts": {
+    "dev": "nodemon",
+    "build": "tsc",
+    "start": "bun run dist/index.js",
+    "seed": "bun run scripts/seed.ts",
+    "db:push": "bunx drizzle-kit push",
+    "postinstall": "bunx drizzle-kit generate && bunx drizzle-kit migrate"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.6.0",
+    "@types/pg": "^8.20.0",
+    "drizzle-kit": "^0.31.10",
+    "nodemon": "^3.1.14",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0"
+  },
+  "peerDependencies": {
+    "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "@imagekit/nodejs": "^7.5.0",
+    "@sentry/node": "^10.51.0",
+    "@sentry/profiling-node": "^10.51.0",
+    "better-auth": "^1.6.9",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "cron": "^4.4.0",
+    "dotenv": "^17.4.2",
+    "drizzle-orm": "^0.45.2",
+    "express": "^5.2.1",
+    "pg": "^8.20.0",
+    "standardwebhooks": "^1.0.0",
+    "stream-chat": "^9.43.0",
+    "zod": "^4.4.1"
+  }
+}
