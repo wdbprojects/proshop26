@@ -8,6 +8,13 @@
       "when": 1786597442802,
       "tag": "0000_rich_tarot",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1786847034161,
+      "tag": "0001_narrow_mantis",
+      "breakpoints": true
     }
   ]
 }
