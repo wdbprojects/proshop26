@@ -14,7 +14,7 @@ const Providers = ({ children }: LayoutPropsMain) => {
       disableTransitionOnChange
     >
       <div>
-        <NextTopLoader showSpinner={false} color="#7ccf00" />
+        <NextTopLoader showSpinner={false} color="#1447e6" />
         <TanstackProvider>{children}</TanstackProvider>
         <Toaster richColors closeButton position="bottom-right" expand={true} />
       </div>

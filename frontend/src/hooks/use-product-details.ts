@@ -1,5 +1,6 @@
 "use client";
 
+import { ProductFormData } from "@/config/type-schemas";
 import { apiFetch } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 
@@ -8,7 +9,7 @@ export const useProductDetails = (slug: string) => {
     data: productDetails,
     isLoading: loadingProductDetails,
     error: productDetailsError,
-  } = useQuery({
+  } = useQuery<{ product: ProductFormData }>({
     queryKey: ["product", slug],
     queryFn: () => apiFetch(`/api/products/${slug}`, { method: "GET" }),
     enabled: Boolean(slug),
@@ -22,7 +23,7 @@ export const useProductDetails = (slug: string) => {
 };
 
 export const useProductDetailsId = (id: string) => {
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery<{ product: ProductFormData }>({
     queryKey: ["product", id],
     queryFn: () => apiFetch(`/api/admin/products/${id}`, { method: "GET" }),
     enabled: Boolean(id),

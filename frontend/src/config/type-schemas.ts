@@ -20,7 +20,8 @@ export const productCreateSchema = z.object({
     .string()
     .min(10, { message: "Description must be at least 10 characters" }),
   stock: z.coerce.number(),
-  images: z.array(z.string()).min(1, "Product must have at least 1 image"),
+  // images: z.array(z.string()).min(1, "Product must have at least 1 image"),
+  images: z.array(z.string()).optional(),
   isFeatured: z.boolean(),
   banner: z.string().optional(),
   price: currency,
@@ -30,11 +31,21 @@ export const productCreateSchema = z.object({
     .union([z.string().url(), z.literal("")])
     .optional()
     .nullable(),
+  imageFile: z
+    .instanceof(File)
+    .refine((file) => {
+      return (file.size <= 5 * 1024 * 1024, "File must be less than 5MB");
+    })
+    .refine((file) => {
+      return ["image/jpeg", "image/png", "image/jpg"].includes(file.type);
+    })
+    .optional(),
   imageKitFileId: z
     .union([z.string().min(1), z.literal(""), z.null()])
     .optional(),
   active: z.boolean(),
 });
+export type ProductFormData = z.infer<typeof productCreateSchema>;
 export type ProductCreateSchemaType = z.infer<typeof productCreateSchema> & {
   id: string;
   rating: number;
@@ -45,4 +56,28 @@ export const productUpdateSchema = productCreateSchema.partial();
 
 export type ExtendedChannelData = ChannelData & {
   name: string;
+};
+
+export interface CategoriesResponse {
+  categories: string[];
+}
+
+export type OrderDetailsResponse = {
+  items?: Array<Record<string, unknown>>;
+  singleOrder?: {
+    status?: string;
+  };
+};
+
+export type ImageKitAuthResponse = {
+  publicKey: string;
+  token: string;
+  expire: number;
+};
+
+export type ImageKitAuthenticatorType = {
+  signature: string;
+  expire: number;
+  token: string;
+  publicKey: string;
 };

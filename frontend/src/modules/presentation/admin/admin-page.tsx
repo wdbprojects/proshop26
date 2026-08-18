@@ -12,7 +12,7 @@ import { columns } from "@/modules/components/admin/columns";
 import ProductsSkeleton from "@/modules/components/admin/products-skeleton";
 
 import { Button, buttonVariants } from "@/components/ui/button";
-import CreateUpdateProductForm from "@/modules/components/admin/create-update-product-form";
+
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 

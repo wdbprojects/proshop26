@@ -5,11 +5,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/hooks/use-session";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
-import { IAdminProduct, ICreateProduct, IUpdateProduct } from "@/config/types";
+import { CategoriesResponse, ProductFormData } from "@/config/type-schemas";
 
 export const useAdminProduct = () => {
   const [modalOpen, setModalOpen] = useState(false);
-  const [editing, setEditing] = useState<IAdminProduct | null>(null); // check which product we are editing
+  const [editing, setEditing] = useState<ProductFormData | null>(null); // check which product we are editing
 
   const queryClient = useQueryClient();
 
@@ -18,15 +18,20 @@ export const useAdminProduct = () => {
   const isAdmin = session?.user.role === "admin";
 
   /* GET PRODUCTS QUERY */
-  const { data: productsData, isLoading: dataProductsLoading } = useQuery({
+  const { data: productsData, isLoading: dataProductsLoading } = useQuery<{
+    products: ProductFormData[];
+  }>({
     queryKey: ["admin", "products"],
-    queryFn: () => apiFetch("/api/admin/products", { method: "GET" }),
+    queryFn: async () =>
+      (await apiFetch("/api/admin/products", { method: "GET" })) as {
+        products: ProductFormData[];
+      },
     enabled: isAdmin,
   });
 
   /* CREATE PRODUCT MUTATION */
   const createMutation = useMutation({
-    mutationFn: async ({ body }: { body: ICreateProduct }) => {
+    mutationFn: async ({ body }: { body: ProductFormData }) => {
       return apiFetch("/api/admin/products", {
         method: "POST",
         body: body,
@@ -44,10 +49,10 @@ export const useAdminProduct = () => {
 
   /* UPDATE PRODUCT MUTATION */
   const updateMutation = useMutation({
-    mutationFn: async ({ body, id }: { body: ICreateProduct; id: string }) => {
+    mutationFn: async ({ body, id }: { body: ProductFormData; id: string }) => {
       return await apiFetch(`/api/admin/products/${id}`, {
         method: "PATCH",
-        body: body as ICreateProduct,
+        body: body as ProductFormData,
       });
     },
     onSuccess: () => {
@@ -151,10 +156,11 @@ export const useAdminProduct = () => {
   });
 
   /* GET CATEGORIES */
-  const { data: categoriesData, isLoading: loadingCategories } = useQuery({
-    queryKey: ["product-categories"],
-    queryFn: () => apiFetch("/api/products/categories", { method: "GET" }),
-  });
+  const { data: categoriesData, isLoading: loadingCategories } =
+    useQuery<CategoriesResponse>({
+      queryKey: ["product-categories"],
+      queryFn: () => apiFetch("/api/products/categories", { method: "GET" }),
+    });
   const categories = categoriesData?.categories ?? [];
 
   return {

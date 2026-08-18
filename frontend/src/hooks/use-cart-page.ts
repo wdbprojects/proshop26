@@ -6,6 +6,7 @@ import { useCart } from "@/store/cart";
 import { useQuery } from "@tanstack/react-query";
 import { IProducts } from "@/config/types";
 import { useRouter } from "next/navigation";
+import { ProductFormData } from "@/config/type-schemas";
 
 export const useCartPage = () => {
   const [checkoutLoading, startCheckoutTransition] = useTransition();
@@ -25,7 +26,9 @@ export const useCartPage = () => {
     data: productsData,
     isLoading: productsLoading,
     isError: productsError,
-  } = useQuery({
+  } = useQuery<{
+    products: ProductFormData[];
+  }>({
     queryKey: ["products"],
     queryFn: () => {
       return apiFetch("/api/products", { method: "GET" });
@@ -33,10 +36,11 @@ export const useCartPage = () => {
     enabled: items.length > 0,
   });
 
-  const products: IProducts[] = productsData?.products ?? [];
+  const products = productsData?.products ?? [];
   const byId = new Map(
-    products.map((prod: IProducts) => {
-      return [prod.id, prod];
+    products.map((prod: ProductFormData) => {
+      const productId = "id" in prod ? prod.id : prod.slug;
+      return [productId, prod];
     }),
   );
   const lines = items.map((line) => {
@@ -54,12 +58,12 @@ export const useCartPage = () => {
           return { productId: item.productId, quantity: item.quantity };
         }),
       };
-      const response = await apiFetch("/api/checkout", {
+      const response = (await apiFetch("/api/checkout", {
         method: "POST",
         body: body,
-      });
+      })) as { checkoutUrl?: string } | undefined;
       if (response?.checkoutUrl) {
-        router.push(response?.checkoutUrl);
+        router.push(response.checkoutUrl);
         return;
       }
     });

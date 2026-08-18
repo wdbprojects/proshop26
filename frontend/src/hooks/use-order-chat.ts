@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { StreamChat } from "stream-chat";
 import { apiFetch } from "@/lib/api";
@@ -36,10 +36,15 @@ export const useOrderChat = (paid: boolean, orderId: string) => {
         method: "POST",
       });
       // Step 2: Get token
-      const tokenData = await apiFetch("/api/stream/token", {
+      const tokenData = await apiFetch<{
+        apiKey: string;
+        userId: string;
+        name: string;
+        token: string;
+      }>("/api/stream/token", {
         method: "POST",
       });
-      chatClient = StreamChat.getInstance(tokenData?.apiKey);
+      chatClient = StreamChat.getInstance(tokenData.apiKey);
       await chatClient.connectUser(
         { id: tokenData.userId, name: tokenData.name },
         tokenData.token,

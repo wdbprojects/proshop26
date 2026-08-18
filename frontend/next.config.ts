@@ -13,15 +13,16 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  allowedDevOrigins: ["romantic-muskrat-informally.ngrok-free.app"],
   async rewrites() {
     return [
       {
         source: "/api/auth/:path*",
-        destination: "https://pern-ecommerce-26.onrender.com/api/auth/:path*",
+        destination: "https://proshop26.onrender.com/api/auth/:path*",
       },
       {
         source: "/api/:path*",
-        destination: "https://pern-ecommerce-26.onrender.com/api/:path*",
+        destination: "https://proshop26.onrender.com/api/:path*",
       },
     ];
   },

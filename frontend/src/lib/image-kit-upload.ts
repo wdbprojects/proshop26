@@ -1,3 +1,4 @@
+import { ImageKitAuthResponse } from "@/config/type-schemas";
 import { apiFetch } from "@/lib/api";
 
 const UPLOAD_URL: string = "https://upload.imagekit.io/api/v1/files/upload";
@@ -10,7 +11,9 @@ export const uploadImageToImageKit = async (
   const { folder = "products", fileName } = opts;
 
   // get auth tokens from endpoint
-  const auth = await apiFetch("/api/admin/imagekit/auth", { method: "GET" });
+  const auth = (await apiFetch("/api/admin/imagekit/auth", {
+    method: "GET",
+  })) as ImageKitAuthResponse;
 
   const safeName =
     fileName ??

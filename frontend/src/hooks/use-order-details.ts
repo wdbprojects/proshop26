@@ -1,13 +1,16 @@
 "use client";
 
+import { OrderDetailsResponse } from "@/config/type-schemas";
 import { apiFetch } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 
 export const useOrderDetails = (orderId: string) => {
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery<OrderDetailsResponse>({
     queryKey: ["order", orderId],
-    queryFn: () => {
-      return apiFetch(`/api/orders/${orderId}`, { method: "GET" });
+    queryFn: async () => {
+      return apiFetch<OrderDetailsResponse>(`/api/orders/${orderId}`, {
+        method: "GET",
+      });
     },
     enabled: Boolean(orderId),
   });

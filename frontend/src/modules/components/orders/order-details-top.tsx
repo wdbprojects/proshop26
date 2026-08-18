@@ -12,6 +12,13 @@ import Link from "next/link";
 const OrderDetailsTop = ({ orderId }: { orderId: string }) => {
   const { order, items, paid, isLoading, error } = useOrderDetails(orderId);
 
+  // handle loading and error states
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error loading order...</div>;
+  if (!order?.singleOrder) return <div>Order not found...</div>;
+
+  const { singleOrder } = order;
+
   return (
     <div>
       <Link
@@ -33,15 +40,17 @@ const OrderDetailsTop = ({ orderId }: { orderId: string }) => {
                 Order details
               </p>
               <h1 className="text-foreground mt-1 text-2xl font-bold tracking-tight sm:text-3xl">
-                # {order?.singleOrder.id?.slice(0, 8)}
+                # {singleOrder.id?.slice(0, 8) || "N/A"}
               </h1>
               <p className="text-foreground/70 mt-1 text-sm">
-                {formatOrderWhen(order?.singleOrder?.createdAt, {
-                  dateStyle: "full",
-                })}
+                {singleOrder.createdAt
+                  ? formatOrderWhen(singleOrder.createdAt, {
+                      dateStyle: "full",
+                    })
+                  : "Date unavailable"}
               </p>
               <p className="text-foreground/45 mt-1 text-sm">
-                {order?.singleOrder?.id}
+                {singleOrder.id}
               </p>
             </div>
             <div className="border-card/40 flex flex-col gap-3 border-t pt-4 lg:border-t-0 lg:pt-0 lg:text-right">
@@ -65,7 +74,7 @@ const OrderDetailsTop = ({ orderId }: { orderId: string }) => {
                   Order total
                 </p>
                 <p className="text-foreground text-xl font-semibold tabular-nums sm:text-2xl">
-                  {formatPrice(order.singleOrder.totalCents, "usd")}
+                  {formatPrice(singleOrder.totalCents, "usd")}
                 </p>
               </div>
             </div>

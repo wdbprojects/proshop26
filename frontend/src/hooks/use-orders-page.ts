@@ -19,14 +19,18 @@ export const useOrdersPage = () => {
     sessionData?.user?.role === "support" ||
     sessionData?.user?.role === "admin";
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery<{ orders: Array<Record<string, unknown>> }>({
     queryKey: ["orders"],
     queryFn: () => {
-      return apiFetch("/api/orders", { method: "GET" });
+      return apiFetch<{ orders: Array<Record<string, unknown>> }>("/api/orders", {
+        method: "GET",
+      });
     },
     enabled: isAuthenticated && !sessionLoading,
-    retry: (failureCount, error: any) => {
-      if (error?.status === 401 || error?.status === 403) return false;
+    retry: (failureCount: number, error: unknown) => {
+      const status = typeof error === "object" && error !== null && "status" in error ? (error as { status?: number }).status : undefined;
+
+      if (status === 401 || status === 403) return false;
       return failureCount < 3;
     },
   });
