@@ -48,7 +48,6 @@ export const getCategories = async (
     ].sort((a, b) => {
       return a.localeCompare(b);
     });
-    console.log(categories);
     res.json({ categories: categories });
   } catch (event) {
     next(event);

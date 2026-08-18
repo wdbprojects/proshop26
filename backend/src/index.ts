@@ -30,7 +30,10 @@ app.post("/webhooks/polar", rawJson, (req, res) => {
 /* MIDDLEWARES */
 app.use(
   cors({
-    origin: [ENV.FRONTEND_URL, "https://pern-ecommerce-26.vercel.app"],
+    origin: [
+      ENV.FRONTEND_URL,
+      "https://romantic-muskrat-informally.ngrok-free.app",
+    ],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization", "Cookie", "Set-Cookie"],
