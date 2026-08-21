@@ -25,9 +25,9 @@ const getSession = async () => {
 
 const OrdersPageMain = async () => {
   const sessionData = await getSession();
-  if (!sessionData.session) {
-    redirect(routes.login);
-  }
+  // if (!sessionData.session) {
+  //   redirect(routes.login);
+  // }
 
   return <OrdersPage />;
 };

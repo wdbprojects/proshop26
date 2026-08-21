@@ -58,11 +58,21 @@ const HeaderMain = () => {
         {/* // AUTH & BUTTONS */}
         <div className="flex shrink-0 items-center gap-2 p-1">
           {data?.session && (
-            <div>
-              <span className="text-muted-foreground text-xs">Signed as: </span>
-              <span className="text-muted-foreground text-xs font-bold">
-                {data?.user?.role}
-              </span>
+            <div className="flex flex-row items-center justify-end gap-2">
+              <div>
+                <span className="text-muted-foreground text-xs">
+                  Signed as:{" "}
+                </span>
+                <span className="text-muted-foreground text-xs font-bold">
+                  {data?.user?.name}
+                </span>
+              </div>
+              <div>
+                <span className="text-muted-foreground text-xs">Role: </span>
+                <span className="text-muted-foreground text-xs font-bold">
+                  {data?.user?.role}
+                </span>
+              </div>
             </div>
           )}
 
@@ -78,7 +88,7 @@ const HeaderMain = () => {
               <span>Admin</span>
             </Link>
           )}
-          {/* <Link
+          <Link
             href={routes.dashboard}
             className={cn(
               "hidden items-center justify-center gap-2 lg:flex",
@@ -90,23 +100,27 @@ const HeaderMain = () => {
           >
             <Gauge className="size-3.5" />
             <span>Dashboard</span>
-          </Link> */}
-
-          <Button
-            size="sm"
-            variant="outline"
-            className="flex items-center justify-center gap-2"
-          >
-            <ShoppingBag className="size-3.5" />
-            <span>Shop</span>
-          </Button>
+          </Link>
+          <Link href={routes.home}>
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex items-center justify-center gap-2"
+            >
+              <ShoppingBag className="size-3.5" />
+              <span>Shop</span>
+            </Button>
+          </Link>
 
           <Link
-            className={cn(
-              "flex items-center justify-center gap-2",
-              buttonVariants({ size: "sm", variant: "outline" }),
-            )}
             href={routes.orders}
+            className={cn(
+              `indicator relative flex cursor-pointer items-center justify-between gap-2 rounded-md`,
+              buttonVariants({
+                variant: "outline",
+                size: "sm",
+              }),
+            )}
           >
             <Package className="size-3.5" />
             <span>Orders</span>
@@ -124,7 +138,10 @@ const HeaderMain = () => {
             // aria-label={cartCount > 0 ? `Cart, ${cartCount} items.` : "Cart"}
           >
             <ShoppingCart className="mr-0.5 size-4.5" />
-            <Badge variant="default" className="rounded-md px-1! text-xs">
+            <Badge
+              variant="default"
+              className="aspect-square rounded-md px-1! text-xs"
+            >
               {cartCount > 99 ? 99 : cartCount}
               {cartCount > 99 && <sup className="">+</sup>}
             </Badge>

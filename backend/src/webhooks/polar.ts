@@ -1,25 +1,15 @@
 import { Request, Response } from "express";
 import { getEnv } from "../config/env";
-import { checkoutSession, orders, orderItems } from "../drizzle/schema";
+import { checkoutSession, orderItems, orders } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { db } from "../drizzle/db";
 import { Webhook } from "standardwebhooks";
 
-/* HEADER STRING */
 const headerString = (headers: Request["headers"], name: string) => {
   const value = headers[name];
   return Array.isArray(value) ? value[0] : value;
 };
 
-/* CHECKOUT SESSION FROM METADATA */
-const checkoutSessionIdFromMetadata = (order: Record<string, unknown>) => {
-  const metadata = order.metadata;
-  if (!metadata || typeof metadata !== "object") return undefined;
-  const sessionId = (metadata as Record<string, unknown>).checkout_session_id;
-  return typeof sessionId === "string" ? sessionId : undefined;
-};
-
-/* ALREADY PAID */
 const alreadyPaid = async (polarOrderId?: string, checkoutId?: string) => {
   if (polarOrderId) {
     const [row] = await db
@@ -40,12 +30,21 @@ const alreadyPaid = async (polarOrderId?: string, checkoutId?: string) => {
   return false;
 };
 
-/* FULFILLED CHECKOUT SESSION */
+const checkoutSessionIdFromMetadata = async (
+  order: Record<string, unknown>,
+) => {
+  const metadata = order.metadata;
+  if (!metadata || typeof metadata !== "object") return undefined;
+  const sessionId = (metadata as Record<string, unknown>).checkout_session_id;
+  return typeof sessionId === "string" ? sessionId : undefined;
+};
+
 const fulfillCheckoutSession = async (
   sessionId: string,
   polarOrderId: string | undefined,
   checkoutId: string | undefined,
 ) => {
+  // database transaction
   return await db.transaction(async (tx) => {
     const [session] = await tx
       .select()
@@ -80,19 +79,18 @@ const fulfillCheckoutSession = async (
   });
 };
 
-/* POLAR WEBHOOK HANDLER */
 export const polarWebhookHandler = async (req: Request, res: Response) => {
-  const ENV = getEnv();
+  const env = getEnv();
   try {
-    if (!ENV.POLAR_WEBHOOK_SECRET) {
-      res.status(503).send("Polar webhooks not configured");
+    if (!env.POLAR_WEBHOOK_SECRET) {
+      res.status(503).send("Polar webhooks not configured!!");
       return;
     }
+
     const raw =
       req.body instanceof Buffer ? req.body : Buffer.from(String(req.body));
-
     const wh = new Webhook(
-      Buffer.from(ENV.POLAR_WEBHOOK_SECRET, "utf8").toString("base64"),
+      Buffer.from(env.POLAR_WEBHOOK_SECRET, "utf-8").toString("base64"),
     );
 
     const id = headerString(req.headers, "webhook-id");
@@ -100,9 +98,11 @@ export const polarWebhookHandler = async (req: Request, res: Response) => {
     const sig = headerString(req.headers, "webhook-signature");
 
     if (!id || !ts || !sig) {
-      res.status(400).json({ error: "Missing webhoook headers" });
+      res.status(400).json({ error: "Missing webhook headers" });
       return;
     }
+
+    console.log({ id, ts, sig });
 
     wh.verify(raw, {
       "webhook-id": id,
@@ -110,7 +110,7 @@ export const polarWebhookHandler = async (req: Request, res: Response) => {
       "webhook-signature": sig,
     });
 
-    const event = JSON.parse(raw.toString("utf8")) as {
+    const event = JSON.parse(raw.toString("utf-8")) as {
       type: string;
       data?: Record<string, unknown>;
     };
@@ -121,21 +121,20 @@ export const polarWebhookHandler = async (req: Request, res: Response) => {
       const checkoutId =
         typeof data.checkout_id === "string" ? data.checkout_id : undefined;
 
-      // check if the order has already been processed to avoid duplicate processing in case of retries
       if (await alreadyPaid(polarOrderId, checkoutId)) {
         res.json({ ok: true, duplicate: true });
         return;
       }
 
-      const sessionId = checkoutSessionIdFromMetadata(data);
+      const sessionId = await checkoutSessionIdFromMetadata(data);
 
       if (sessionId) {
-        const response = await fulfillCheckoutSession(
+        const ok = await fulfillCheckoutSession(
           sessionId,
           polarOrderId,
           checkoutId,
         );
-        if (response) {
+        if (ok) {
           res.json({ ok: true });
           return;
         }
@@ -144,17 +143,15 @@ export const polarWebhookHandler = async (req: Request, res: Response) => {
           return;
         }
         console.error("Polar order.paid: could not fulfill checkout session", {
-          sessionId: sessionId,
-          checkoutId: checkoutId,
+          sessionId,
+          checkoutId,
         });
-
         res.status(500).json({ error: "Checkout fulfillment failed" });
-        return;
       }
     }
     res.json({ ok: true });
   } catch (err) {
-    console.error("Polar webhook error: ", err);
+    console.error("Polar webhook error", err);
     res.status(400).json({ error: "Invalid webhook" });
   }
 };

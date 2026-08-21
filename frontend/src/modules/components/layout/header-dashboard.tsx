@@ -71,6 +71,24 @@ const HeaderDashboard = () => {
         <AppLogo />
         {/* // AUTH & BUTTONS */}
         <div className="flex shrink-0 items-center gap-4 p-1">
+          {data?.session && (
+            <div className="flex flex-row items-center justify-end gap-2">
+              <div>
+                <span className="text-muted-foreground text-xs">
+                  Signed as:{" "}
+                </span>
+                <span className="text-muted-foreground text-xs font-bold">
+                  {data?.user?.name}
+                </span>
+              </div>
+              <div>
+                <span className="text-muted-foreground text-xs">Role: </span>
+                <span className="text-muted-foreground text-xs font-bold">
+                  {data?.user?.role}
+                </span>
+              </div>
+            </div>
+          )}
           {data?.session && data?.user?.role === "admin" && (
             <Link
               href={routes.admin}
