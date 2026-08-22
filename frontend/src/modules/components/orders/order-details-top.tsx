@@ -10,7 +10,7 @@ import { ArrowLeftIcon } from "lucide-react";
 import Link from "next/link";
 
 const OrderDetailsTop = ({ orderId }: { orderId: string }) => {
-  const { order, items, paid, isLoading, error } = useOrderDetails(orderId);
+  const { order, isLoading, error } = useOrderDetails(orderId);
 
   // handle loading and error states
   if (isLoading) return <div>Loading...</div>;

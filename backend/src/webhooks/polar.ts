@@ -102,8 +102,6 @@ export const polarWebhookHandler = async (req: Request, res: Response) => {
       return;
     }
 
-    console.log({ id, ts, sig });
-
     wh.verify(raw, {
       "webhook-id": id,
       "webhook-timestamp": ts,

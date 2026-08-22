@@ -4,9 +4,8 @@ import { useTransition } from "react";
 import { apiFetch } from "@/lib/api";
 import { useCart } from "@/store/cart";
 import { useQuery } from "@tanstack/react-query";
-import { IProducts } from "@/config/types";
 import { useRouter } from "next/navigation";
-import { ProductFormData } from "@/config/type-schemas";
+import { IProducts } from "@/config/types";
 
 export const useCartPage = () => {
   const [checkoutLoading, startCheckoutTransition] = useTransition();
@@ -27,7 +26,7 @@ export const useCartPage = () => {
     isLoading: productsLoading,
     isError: productsError,
   } = useQuery<{
-    products: ProductFormData[];
+    products: IProducts[];
   }>({
     queryKey: ["products"],
     queryFn: () => {
@@ -38,8 +37,8 @@ export const useCartPage = () => {
 
   const products = productsData?.products ?? [];
   const byId = new Map(
-    products.map((prod: ProductFormData) => {
-      const productId = "id" in prod ? prod.id : prod.slug;
+    products.map((prod: IProducts) => {
+      const productId = prod.id;
       return [productId, prod];
     }),
   );

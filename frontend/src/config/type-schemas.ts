@@ -1,6 +1,7 @@
 import z from "zod";
 import { ChannelData } from "stream-chat";
 import { formatNumberWithDecimal } from "../lib/utils";
+import { IOrder, IOrderItem } from "./types";
 
 export const currency = z
   .string()
@@ -52,6 +53,10 @@ export type ProductCreateSchemaType = z.infer<typeof productCreateSchema> & {
   createdAt: Date;
 };
 
+export type ProductWithId = ProductFormData & {
+  id: string;
+};
+
 export const productUpdateSchema = productCreateSchema.partial();
 
 export type ExtendedChannelData = ChannelData & {
@@ -63,10 +68,8 @@ export interface CategoriesResponse {
 }
 
 export type OrderDetailsResponse = {
-  items?: Array<Record<string, unknown>>;
-  singleOrder?: {
-    status?: string;
-  };
+  items: IOrderItem[];
+  singleOrder: Omit<IOrder, "previewItems">;
 };
 
 export type ImageKitAuthResponse = {

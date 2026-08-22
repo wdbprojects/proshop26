@@ -38,10 +38,14 @@ export const getAllOrders = async (
     const rows = isStaff(user?.role as UserRole)
       ? await db.select().from(orders).orderBy(desc(orders.createdAt))
       : await db.select().from(orders).where(eq(orders.userId, user.id));
+
     const orderIds = rows.map((order) => {
       return order.id;
     });
+
+    // create the order map
     const previewByOrder = new Map();
+
     // generate inner join to get orders & product details
     if (orderIds.length > 0) {
       const itemRows = await db
@@ -56,6 +60,8 @@ export const getAllOrders = async (
         .innerJoin(products, eq(orderItems.productId, products.id))
         .where(inArray(orderItems.orderId, orderIds))
         .orderBy(asc(orderItems.id));
+
+      // generate loop for displaying
       for (const row of itemRows) {
         const list = previewByOrder.get(row.orderId) ?? [];
         list.push({
@@ -68,11 +74,15 @@ export const getAllOrders = async (
       }
     }
     const ordersPayload = rows.map((order) => {
-      return {
+      const result = {
         ...order,
         previewItems: previewByOrder.get(order.id) ?? [],
       };
+      // console.log(result);
+      return result;
     });
+    // console.log({ ordersPayload });
+
     res.status(200).json({ orders: ordersPayload });
   } catch (error) {
     next(error);

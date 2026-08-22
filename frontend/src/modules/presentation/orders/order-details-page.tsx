@@ -82,7 +82,7 @@ const OrderDetailsPage = ({ orderId }: { orderId: string }) => {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="summary">
-            <TabSummary order={order} items={items} />
+            {order && <TabSummary order={order} items={items} />}
           </TabsContent>
           <TabsContent value="chat">
             {!paid ? (

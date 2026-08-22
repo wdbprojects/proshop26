@@ -6,7 +6,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { routes } from "@/config/routes";
-import { IOrderItem, IOrderSum } from "@/config/types";
+import { IOrderItem } from "@/config/types";
+import { OrderDetailsResponse } from "@/config/type-schemas";
 import { IK_PRESETS, imageKitOptimizedUrl } from "@/lib/image-kit-url";
 import { formatPrice } from "@/lib/utils";
 import { ListOrderedIcon, PackageIcon } from "lucide-react";
@@ -17,7 +18,7 @@ const TabSummary = ({
   order,
   items,
 }: {
-  order: IOrderSum;
+  order: Pick<OrderDetailsResponse, "singleOrder">;
   items: IOrderItem[];
 }) => {
 

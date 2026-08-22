@@ -1,15 +1,12 @@
 "use client";
 
-import { ProductCreateSchemaType } from "@/config/type-schemas";
+import {
+  CategoriesResponse,
+  ProductCreateSchemaType,
+} from "@/config/type-schemas";
 import { apiFetch } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-
-type ProductCategory = {
-  _id?: string;
-  name?: string;
-  slug?: string;
-};
 
 export const useHomeCatalog = () => {
   const searchParams = useSearchParams();
@@ -30,10 +27,11 @@ export const useHomeCatalog = () => {
   };
 
   /* GET CATEGORIES */
-  const { data: categoriesData, isLoading: loadingCategories } = useQuery({
-    queryKey: ["product-categories"],
-    queryFn: () => apiFetch("/api/products/categories", { method: "GET" }),
-  });
+  const { data: categoriesData, isLoading: loadingCategories } =
+    useQuery<CategoriesResponse>({
+      queryKey: ["product-categories"],
+      queryFn: () => apiFetch("/api/products/categories", { method: "GET" }),
+    });
 
   /* GET PRODUCTS */
   const {
@@ -51,9 +49,7 @@ export const useHomeCatalog = () => {
       );
     },
   });
-  const categories =
-    (categoriesData as { categories?: ProductCategory[] } | undefined)
-      ?.categories ?? [];
+  const categories = categoriesData?.categories ?? [];
   const products = productsData?.products ?? [];
   const categoryChipsLoading = loadingCategories && categories.length === 0;
 

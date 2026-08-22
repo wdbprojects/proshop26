@@ -3,6 +3,7 @@
 import { authClient } from "@/lib/auth-client";
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
+import { IOrder } from "@/config/types";
 
 export const useOrdersPage = () => {
   // const { data: sessionData } = authClient.useSession();
@@ -19,10 +20,10 @@ export const useOrdersPage = () => {
     sessionData?.user?.role === "support" ||
     sessionData?.user?.role === "admin";
 
-  const { data, isLoading, error } = useQuery<{ orders: Array<Record<string, unknown>> }>({
+  const { data, isLoading, error } = useQuery<{ orders: IOrder[] }>({
     queryKey: ["orders"],
     queryFn: () => {
-      return apiFetch<{ orders: Array<Record<string, unknown>> }>("/api/orders", {
+      return apiFetch<{ orders: IOrder[] }>("/api/orders", {
         method: "GET",
       });
     },

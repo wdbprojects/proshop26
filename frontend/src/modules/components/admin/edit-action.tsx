@@ -1,6 +1,5 @@
 "use client";
 
-import { IAdminProduct } from "@/config/types";
 import { useAdminProduct } from "@/hooks/use-admin-product";
 import CreateUpdateProductForm from "./create-update-product-form";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -8,8 +7,9 @@ import { Pencil } from "lucide-react";
 import Link from "next/link";
 import { routes } from "@/config/routes";
 import { cn } from "@/lib/utils";
+import { ProductWithId } from "@/config/type-schemas";
 
-const EditAction = ({ product }: { product: IAdminProduct }) => {
+const EditAction = ({ product }: { product: ProductWithId }) => {
   const { modalOpen, setModalOpen, setEditing, categories } = useAdminProduct();
 
   return (

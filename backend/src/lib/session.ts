@@ -11,6 +11,6 @@ export const getCurrentSession = async (headers: any) => {
     }
     return session;
   } catch (err) {
-    console.error(`Session retrieval failed: ${err}`);
+    console.error(`Session retrieval failed!!: ${err}`);
   }
 };

@@ -101,14 +101,16 @@ const HeaderDashboard = () => {
               <span>Admin</span>
             </Link>
           )}
-          <Button
-            size="sm"
-            variant="outline"
-            className="flex items-center justify-center gap-2"
-          >
-            <ShoppingBag className="size-3.5" />
-            <span>Shop</span>
-          </Button>
+          <Link href={routes.home}>
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex items-center justify-center gap-2"
+            >
+              <ShoppingBag className="size-3.5" />
+              <span>Shop</span>
+            </Button>
+          </Link>
 
           <Link
             className={cn(

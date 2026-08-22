@@ -20,18 +20,8 @@ const AdminPage = () => {
   const router = useRouter();
   const { session, isLoading } = useSession();
   const user = session?.user;
-  const token = session?.session.token;
 
-  const {
-    modalOpen,
-    setModalOpen,
-    editing,
-    setEditing,
-    products,
-    categories,
-    dataProductsLoading,
-    deleteMutation,
-  } = useAdminProduct();
+  const { products } = useAdminProduct();
 
   useEffect(() => {
     if (isLoading) return;

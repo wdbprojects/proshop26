@@ -45,8 +45,8 @@ export interface IProducts {
 export interface IOrder {
   id: string;
   userId: string;
-  polarCheckoutId: string;
-  polarOrderId: string;
+  polarCheckoutId: string | null;
+  polarOrderId: string | null;
   previewItems: IOrderPreview[];
   status: string;
   totalCents: number;
@@ -60,20 +60,6 @@ export interface IOrderItem {
   quantity: number;
   unitPriceCents: number;
 }
-export interface IOrderSum {
-  items: IOrderItem;
-  singleOrder: {
-    id: string;
-    polarCheckoutId: string;
-    polarOrderId: string;
-    status: string;
-    totalCents: number;
-    updatedAt: Date;
-    createdAt: Date;
-    userId: string;
-  };
-}
-
 export interface IOrderPreview {
   imageUrl: string;
   name: string;

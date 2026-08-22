@@ -3,8 +3,6 @@
 import { useAdminProduct } from "@/hooks/use-admin-product";
 import EditProduct from "@/modules/components/admin/edit-action";
 
-import { IAdminProduct } from "@/config/types";
-
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,8 +18,9 @@ import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
+import { ProductWithId } from "@/config/type-schemas";
 
-const DeleteAction = ({ product }: { product: IAdminProduct }) => {
+const DeleteAction = ({ product }: { product: ProductWithId }) => {
   const { modalOpen, setModalOpen, deleteMutation } = useAdminProduct();
   const id = product?.id;
 

@@ -5,7 +5,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/hooks/use-session";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
-import { CategoriesResponse, ProductFormData } from "@/config/type-schemas";
+import {
+  CategoriesResponse,
+  ProductFormData,
+  ProductWithId,
+} from "@/config/type-schemas";
 
 export const useAdminProduct = () => {
   const [modalOpen, setModalOpen] = useState(false);
@@ -19,12 +23,12 @@ export const useAdminProduct = () => {
 
   /* GET PRODUCTS QUERY */
   const { data: productsData, isLoading: dataProductsLoading } = useQuery<{
-    products: ProductFormData[];
+    products: ProductWithId[];
   }>({
     queryKey: ["admin", "products"],
     queryFn: async () =>
       (await apiFetch("/api/admin/products", { method: "GET" })) as {
-        products: ProductFormData[];
+        products: ProductWithId[];
       },
     enabled: isAdmin,
   });
