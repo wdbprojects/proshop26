@@ -32,6 +32,7 @@ app.use(
   cors({
     origin: [
       ENV.FRONTEND_URL,
+      "https://proshop26.vercel.app/",
       "https://romantic-muskrat-informally.ngrok-free.app",
     ],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
