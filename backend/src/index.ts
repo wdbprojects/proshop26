@@ -33,7 +33,8 @@ app.use(
     origin: [
       ENV.FRONTEND_URL,
       "https://proshop26.vercel.app",
-      "https://romantic-muskrat-informally.ngrok-free.app",
+      "https://proshop26-frontend.onrender.com",
+      // "https://romantic-muskrat-informally.ngrok-free.app",
     ],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     credentials: true,

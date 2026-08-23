@@ -13,7 +13,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  allowedDevOrigins: ["romantic-muskrat-informally.ngrok-free.app"],
   async rewrites() {
     return [
       {

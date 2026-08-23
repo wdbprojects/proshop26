@@ -10,7 +10,7 @@ const Providers = ({ children }: LayoutPropsMain) => {
   return (
     <ThemeProvider
       attribute="class"
-      defaultTheme="dark"
+      defaultTheme="light"
       disableTransitionOnChange
     >
       <div>
