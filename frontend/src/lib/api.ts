@@ -18,6 +18,8 @@ export const apiFetch = async <T = unknown>(
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
+        Accept: "application/json",
+        ...(opts.headers || {}),
       },
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });

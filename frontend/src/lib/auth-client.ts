@@ -20,6 +20,7 @@ export const authClient = createAuthClient({
       headers: {
         ...options.headers,
         "Content-Type": "application/json",
+        Accept: "application/json",
       },
     }),
   plugins: [

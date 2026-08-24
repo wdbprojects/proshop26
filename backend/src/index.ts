@@ -30,28 +30,29 @@ app.post("/webhooks/polar", rawJson, (req, res) => {
 /* CORS ALLOWED ORIGINS */
 const allowedOrigins = [
   "https://proshop26-frontend.onrender.com",
+  "https://proshop26.onrender.com",
+  "https://proshop26.vercel.app",
   "http://localhost:3000",
-  ENV.FRONTEND_URL,
 ];
 
 /* MIDDLEWARES */
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
-        console.log("Blocked origin: ", origin);
-        callback(new Error("Not alloed by CORS"));
-      }
-    },
+    origin: allowedOrigins,
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "Cookie", "Set-Cookie"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "Cookie",
+      "Set-Cookie",
+      "Accept",
+    ],
     exposedHeaders: ["Set-Cookie"],
   }),
 );
+app.options("*", cors());
+
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
@@ -101,4 +102,4 @@ app.listen(ENV.PORT, () => {
   }
 });
 
-export default app;
+// export default app;

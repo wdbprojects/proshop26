@@ -28,11 +28,9 @@ export const auth = betterAuth({
   // },
   cookies: {
     session_token: {
-      name: isProduction
-        ? "__Secure-better-auth.session_token"
-        : "better-auth.session_token",
-      sameSite: isProduction ? "none" : "lax",
-      secure: isProduction ? true : false,
+      name: "session_token",
+      sameSite: "none",
+      secure: true,
       httpOnly: true,
       path: "/",
     },
