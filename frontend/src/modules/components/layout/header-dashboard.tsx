@@ -135,7 +135,10 @@ const HeaderDashboard = () => {
             aria-label={cartCount > 0 ? `Cart, ${cartCount} items.` : "Cart"}
           >
             <ShoppingCart className="mr-0.5 size-4.5" />
-            <Badge variant="default" className="rounded-md px-1! text-xs">
+            <Badge
+              variant="default"
+              className="aspect-square rounded-md px-1! text-xs"
+            >
               {cartCount > 99 ? 99 : cartCount}
               {cartCount > 99 && <sup className="">+</sup>}
             </Badge>
