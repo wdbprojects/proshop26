@@ -15,7 +15,7 @@ export const auth = betterAuth({
   advanced: {
     crossSubDomainCookies: {
       enabled: true,
-      domain: "proshop26-frontend.onrender.com/",
+      domain: "proshop26-frontend.onrender.com",
     },
   },
   trustedOrigins: [
