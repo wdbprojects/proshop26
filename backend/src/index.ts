@@ -27,22 +27,29 @@ app.post("/webhooks/polar", rawJson, (req, res) => {
   void polarWebhookHandler(req, res);
 });
 
+/* CORS ALLOWED ORIGINS */
+const allowedOrigins = [
+  "https://proshop26-frontend.onrender.com",
+  "http://localhost:3000",
+  ENV.FRONTEND_URL,
+];
+
 /* MIDDLEWARES */
 app.use(
   cors({
-    origin: [
-      ENV.FRONTEND_URL,
-      "http://localhost:3000",
-      "https://proshop26.vercel.app",
-      "https://proshop26-frontend.onrender.com",
-      // "https://romantic-muskrat-informally.ngrok-free.app",
-    ],
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        console.log("Blocked origin: ", origin);
+        callback(new Error("Not alloed by CORS"));
+      }
+    },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "Cookie", "Set-Cookie"],
     exposedHeaders: ["Set-Cookie"],
-    preflightContinue: false,
-    optionsSuccessStatus: 204,
   }),
 );
 app.use(express.json());
@@ -50,12 +57,11 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
 /* DEBUG MIDDLEWARE */
-/* app.use((req, res, next) => {
-	console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
-	console.log("Origin:", req.headers.origin);
-	console.log("Cookie header:", req.headers.cookie);
-	next();
-}); */
+app.use((req, res, next) => {
+  console.log("Request Origin:", req.headers.origin);
+  console.log("Request Cookies:", req.headers.cookie);
+  next();
+});
 // http://localhost:5000/api/auth/sign-in/email
 
 /* BETTER AUTH */

@@ -6,6 +6,8 @@ import { getEnv } from "../config/env";
 
 const ENV = getEnv();
 
+const isProduction = ENV.NODE_ENV === "production";
+
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
@@ -18,17 +20,19 @@ export const auth = betterAuth({
     "https://proshop26-frontend.onrender.com",
     "https://proshop26.vercel.app/",
   ],
-  advanced: {
-    crossSubDomainCookies: {
-      enabled: true,
-      domain: ".onrender.com",
-    },
-  },
+  // advanced: {
+  //   crossSubDomainCookies: {
+  //     enabled: true,
+  //     domain: ".onrender.com",
+  //   },
+  // },
   cookies: {
     session_token: {
-      name: "session_token",
-      sameSite: "none",
-      secure: true,
+      name: isProduction
+        ? "__Secure-better-auth.session_token"
+        : "better-auth.session_token",
+      sameSite: isProduction ? "none" : "lax",
+      secure: isProduction ? true : false,
       httpOnly: true,
       path: "/",
     },
