@@ -16,6 +16,7 @@ export const auth = betterAuth({
     ENV.FRONTEND_URL,
     "http://localhost:3000",
     "https://proshop26-frontend.onrender.com",
+    "https://proshop26.vercel.app/",
   ],
   advanced: {
     crossSubDomainCookies: {
