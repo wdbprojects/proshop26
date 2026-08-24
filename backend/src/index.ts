@@ -94,3 +94,5 @@ app.listen(ENV.PORT, () => {
     cronJob.start();
   }
 });
+
+export default app;
