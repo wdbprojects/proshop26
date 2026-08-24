@@ -32,6 +32,7 @@ app.use(
   cors({
     origin: [
       ENV.FRONTEND_URL,
+      "http://localhost:3000",
       "https://proshop26.vercel.app",
       "https://proshop26-frontend.onrender.com",
       // "https://romantic-muskrat-informally.ngrok-free.app",

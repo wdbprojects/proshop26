@@ -9,7 +9,7 @@ const getSession = async () => {
   const cookieHeader = cookieStore.toString();
   try {
     console.log("API URL:", process.env.NEXT_PUBLIC_API_URL);
-    console.log("Document domain:", document.domain);
+    // console.log("Document domain:", document.domain);
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/api/auth/get-session`,
       { headers: { Cookie: cookieHeader } },
@@ -29,9 +29,9 @@ const OrdersPageMain = async () => {
   const sessionData = await getSession();
   console.log(sessionData);
 
-  if (!sessionData.session) {
-    redirect(routes.login);
-  }
+  // if (!sessionData.session) {
+  //   redirect(routes.login);
+  // }
   return <OrdersPage />;
 };
 
