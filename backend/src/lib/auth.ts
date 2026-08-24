@@ -17,12 +17,12 @@ export const auth = betterAuth({
     "http://localhost:3000",
     "https://proshop26-frontend.onrender.com",
   ],
-  // advanced: {
-  //   crossSubDomainCookies: {
-  //     enabled: true,
-  //     domain: "proshop26-backend.onrender.com",
-  //   },
-  // },
+  advanced: {
+    crossSubDomainCookies: {
+      enabled: true,
+      domain: ".onrender.com",
+    },
+  },
   cookies: {
     session_token: {
       name: "session_token",
