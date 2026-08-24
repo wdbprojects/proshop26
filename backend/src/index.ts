@@ -27,18 +27,15 @@ app.post("/webhooks/polar", rawJson, (req, res) => {
   void polarWebhookHandler(req, res);
 });
 
-/* CORS ALLOWED ORIGINS */
-const allowedOrigins = [
-  "https://proshop26-frontend.onrender.com",
-  "https://proshop26.onrender.com",
-  "https://proshop26.vercel.app",
-  "http://localhost:3000",
-];
-
 /* MIDDLEWARES */
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: [
+      "https://proshop26-frontend.onrender.com",
+      "https://proshop26.onrender.com",
+      "https://proshop26.vercel.app",
+      "http://localhost:3000",
+    ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: [
