@@ -13,19 +13,12 @@ export const auth = betterAuth({
   baseUrl: ENV.BETTER_AUTH_URL,
   secret: ENV.BETTER_AUTH_SECRET,
   trustedOrigins: [ENV.FRONTEND_URL],
-
-  cookieOptions: {
+  cookies: {
+    name: "session-cookie",
+    secure: ENV.NODE_ENV === "production",
     sameSite: ENV.NODE_ENV === "production" ? "none" : "lax",
-    secure: true,
-    httpOnly: true,
+    domain: ENV.NODE_ENV === "production" ? ".onrender.com" : undefined,
     path: "/",
-  },
-  advanced: {
-    defaultCookieAttributes: {
-      sameSite: ENV.NODE_ENV === "production" ? "none" : "lax",
-      secure: true,
-      httpOnly: true,
-    },
   },
   emailAndPassword: {
     enabled: true,

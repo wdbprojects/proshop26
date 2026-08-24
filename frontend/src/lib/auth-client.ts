@@ -17,6 +17,10 @@ export const authClient = createAuthClient({
     fetch(url, {
       ...options,
       credentials: "include", // Required for cookies
+      headers: {
+        ...options.headers,
+        "Content-Type": "application/json",
+      },
     }),
   plugins: [
     adminClient(),
