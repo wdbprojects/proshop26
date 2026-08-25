@@ -20,19 +20,13 @@ export const auth = betterAuth({
     "https://proshop26-frontend.onrender.com",
     "https://proshop26.vercel.app/",
   ],
-  // advanced: {
-  //   crossSubDomainCookies: {
-  //     enabled: true,
-  //     domain: ".onrender.com",
-  //   },
-  // },
-  cookies: {
-    session_token: {
-      name: "session_token",
+  advanced: {
+    useSecureCookies: true,
+    defaultCookieAttributes: {
       sameSite: "none",
       secure: true,
       httpOnly: true,
-      path: "/",
+      partitioned: true,
     },
   },
   emailAndPassword: {
