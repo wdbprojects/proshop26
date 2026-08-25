@@ -12,7 +12,7 @@ import OrdersListSkeleton from "@/modules/components/orders/orders-list-skeleton
 import { PackageIcon } from "lucide-react";
 import Link from "next/link";
 
-const OrdersPage = () => {
+const OrdersPage = ({ sessionDataError }: { sessionDataError: string }) => {
   const { isLoading, error, orders, staff } = useOrdersPage();
 
   if (isLoading) {
@@ -24,6 +24,8 @@ const OrdersPage = () => {
       </div>
     );
   }
+
+  alert(sessionDataError);
 
   if (error) {
     return <ErrorCard />;
