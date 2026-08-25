@@ -1,25 +1,22 @@
-// import OrdersPage from "@/modules/presentation/orders/orders-page";
+export const dynamic = "force-dynamic";
+
 import { routes } from "@/config/routes";
 import OrdersPage from "@/modules/presentation/orders/orders-page";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { toast } from "sonner";
 
 const getSession = async () => {
   const cookieStore = await cookies();
   const cookieHeader = cookieStore.toString();
   try {
-    console.log("API URL:", process.env.NEXT_PUBLIC_API_URL);
-
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/api/auth/get-session`,
-      { headers: { Cookie: cookieHeader } },
+      { headers: { Cookie: cookieHeader }, cache: "no-store" },
     );
     if (!response.ok) {
       return null;
     }
-    const data = await response.json();
-    return data;
+    return await response.json();
   } catch (err) {
     console.log(err);
     return null;
@@ -28,11 +25,9 @@ const getSession = async () => {
 
 const OrdersPageMain = async () => {
   const sessionData = await getSession();
-  console.log(sessionData.error);
-
-  // if (!sessionData.session) {
-  //   redirect(routes.login);
-  // }
+  if (!sessionData?.session) {
+    redirect(routes.login);
+  }
   return <OrdersPage sessionDataError={sessionData.error} />;
 };
 
