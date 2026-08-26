@@ -1,4 +1,5 @@
 import { routes } from "@/config/routes";
+// import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 // GET SESSION
@@ -36,3 +37,22 @@ export const requireUnauth = async () => {
   }
   return session;
 };
+
+// USE SESSION MANUAL
+/* export const getSessionManual = async () => {
+  const cookieStore = await cookies();
+  const cookieHeader = cookieStore.toString();
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/auth/get-session`,
+      { headers: { Cookie: cookieHeader }, cache: "no-store" },
+    );
+    if (!response.ok) {
+      return null;
+    }
+    return await response.json();
+  } catch (err) {
+    console.log(err);
+    return null;
+  }
+}; */

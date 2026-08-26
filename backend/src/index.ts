@@ -55,11 +55,11 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
 /* DEBUG MIDDLEWARE */
-app.use((req, res, next) => {
+/* app.use((req, res, next) => {
   console.log("Request Origin:", req.headers.origin);
   console.log("Request Cookies:", req.headers.cookie);
   next();
-});
+}); */
 // http://localhost:5000/api/auth/sign-in/email
 
 /* BETTER AUTH */

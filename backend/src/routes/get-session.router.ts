@@ -5,12 +5,6 @@ import { fromNodeHeaders } from "better-auth/node";
 const router = Router();
 
 router.get("/get-session", async (req, res, next) => {
-  console.log("Full Headers:", req.headers);
-  console.log("Cookie Header:", req.headers.cookie);
-  console.log(
-    "Request URL:",
-    req.protocol + "://" + req.get("host") + req.originalUrl,
-  );
   try {
     const session = await auth.api.getSession({
       headers: fromNodeHeaders(req.headers),
