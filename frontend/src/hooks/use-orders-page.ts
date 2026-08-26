@@ -29,7 +29,10 @@ export const useOrdersPage = () => {
     },
     enabled: isAuthenticated && !sessionLoading,
     retry: (failureCount: number, error: unknown) => {
-      const status = typeof error === "object" && error !== null && "status" in error ? (error as { status?: number }).status : undefined;
+      const status =
+        typeof error === "object" && error !== null && "status" in error
+          ? (error as { status?: number }).status
+          : undefined;
 
       if (status === 401 || status === 403) return false;
       return failureCount < 3;
@@ -37,7 +40,7 @@ export const useOrdersPage = () => {
   });
 
   if (sessionLoading) {
-    return { isLoading: false, error: null, orders: [], staff: false };
+    return { isLoading: true, error: null, orders: [], staff: false };
   }
 
   if (!isAuthenticated) {

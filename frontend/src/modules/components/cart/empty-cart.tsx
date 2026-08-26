@@ -1,7 +1,10 @@
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { routes } from "@/config/routes";
+import { cn } from "@/lib/utils";
+
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardAction, CardContent } from "@/components/ui/card";
-import { ShoppingCartIcon } from "lucide-react";
-import React from "react";
+import { ListOrdered, ShoppingCartIcon } from "lucide-react";
 
 const EmptyCart = () => {
   return (
@@ -14,12 +17,30 @@ const EmptyCart = () => {
         </p>
       </CardContent>
       <CardAction className="flex w-full items-center justify-between gap-4 px-4">
-        <Button variant="default" className="w-full flex-1" size="sm">
-          Browse Catalog
-        </Button>
-        <Button variant="secondary" className="w-full flex-1" size="sm">
-          View Orders
-        </Button>
+        <Link
+          href={routes.home}
+          className={cn(
+            buttonVariants({ variant: "default", size: "sm" }),
+            "w-full flex-1",
+          )}
+        >
+          <div className="flex items-center justify-center gap-2">
+            <ShoppingCartIcon />
+            <span>Browse Catalog</span>
+          </div>
+        </Link>
+        <Link
+          href={routes.orders}
+          className={cn(
+            buttonVariants({ variant: "outline", size: "sm" }),
+            "w-full flex-1",
+          )}
+        >
+          <div className="flex items-center justify-center gap-2">
+            <ListOrdered />
+            <span>View Orders</span>
+          </div>
+        </Link>
       </CardAction>
     </Card>
   );
