@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DM_Sans, Roboto } from "next/font/google";
+import { Roboto, Oxanium } from "next/font/google";
 import "./globals.css";
 import Providers from "@/app/providers";
 import { cn } from "@/lib/utils";
@@ -9,7 +9,7 @@ const robotoHeading = Roboto({
   variable: "--font-heading",
 });
 
-const dmSans = DM_Sans({ subsets: ["latin"], variable: "--font-sans" });
+const oxanium = Oxanium({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   title: "ProShop26",
@@ -26,7 +26,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn("font-sans", dmSans.variable, robotoHeading.variable)}
+      className={cn("font-sans", oxanium.variable, robotoHeading.variable)}
     >
       <body className={`antialiased`}>
         <Providers>{children}</Providers>

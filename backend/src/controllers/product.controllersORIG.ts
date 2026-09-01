@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { db } from "../drizzle/db";
-import { productImages, products } from "../drizzle/schema";
+import { products } from "../drizzle/schema";
 import { asc, desc, eq, and } from "drizzle-orm";
 
 /* GET ALL PRODUCTS */
@@ -16,16 +16,12 @@ export const getAllProducts = async (
     const whereClause = cat
       ? and(activeOnly, eq(products.category, cat))
       : activeOnly;
-    const rows = await db.query.products.findMany({
-      where: whereClause,
-      orderBy: desc(products.createdAt),
-      limit: 8,
-      with: {
-        images: {
-          orderBy: asc(productImages.order),
-        },
-      },
-    });
+    const rows = await db
+      .select()
+      .from(products)
+      .where(whereClause)
+      .orderBy(desc(products.createdAt))
+      .limit(8);
     res.json({ products: rows });
   } catch (error) {
     next(error);
@@ -65,15 +61,11 @@ export const getProductBySlug = async (
   next: NextFunction,
 ) => {
   try {
-    const row = await db.query.products.findFirst({
-      where: eq(products.slug, req.params.slug as string),
-      with: {
-        images: {
-          orderBy: asc(productImages.order),
-        },
-      },
-    });
-
+    const [row] = await db
+      .select()
+      .from(products)
+      .where(eq(products.slug, req.params.slug as string))
+      .limit(1);
     if (!row || !row.active) {
       return res.status(404).json({ error: "Not found" });
     }

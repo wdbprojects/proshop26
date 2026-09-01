@@ -22,19 +22,21 @@ const CreateUpdateProductForm = ({
 }) => {
   const form = useForm({
     resolver: zodResolver(productCreateSchema),
-    defaultValues: {
+    defaultValues: product ?? {
       name: "",
       slug: "",
       category: "",
       brand: "",
       description: "",
+      longDescription: "",
       stock: 0,
-      images: [],
       isFeatured: false,
       banner: "",
       price: "",
       priceCents: 0,
+      active: true,
       currency: "usd",
+      numReviews: 0,
     },
   });
 

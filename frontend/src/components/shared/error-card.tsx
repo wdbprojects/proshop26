@@ -1,5 +1,8 @@
 import { Card, CardAction, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { routes } from "@/config/routes";
 
 const ErrorCard = () => {
   return (
@@ -15,12 +18,24 @@ const ErrorCard = () => {
           </p>
         </CardContent>
         <CardAction className="flex w-full items-center justify-between gap-4 px-4">
-          <Button variant="default" className="w-full flex-1" size="sm">
+          <Link
+            href={routes.home}
+            className={cn(
+              "w-full flex-1",
+              buttonVariants({ size: "sm", variant: "default" }),
+            )}
+          >
             Browse Catalog
-          </Button>
-          <Button variant="secondary" className="w-full flex-1" size="sm">
+          </Link>
+          <Link
+            href={routes.orders}
+            className={cn(
+              "w-full flex-1",
+              buttonVariants({ size: "sm", variant: "secondary" }),
+            )}
+          >
             View Orders
-          </Button>
+          </Link>
         </CardAction>
       </Card>
     </div>

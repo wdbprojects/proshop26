@@ -28,6 +28,10 @@ const CatalogProductCard = ({
     return state.addItem;
   });
 
+  const primaryImage = product.images?.find((img) => {
+    return img?.isPrimary ?? product.images?.[0] ?? null;
+  });
+
   return (
     <Card className="bg-muted relative mx-auto h-full w-full gap-2 rounded-md px-0 pt-0 ring-0 transition-all hover:shadow-xl">
       <div className="p-0">
@@ -36,10 +40,10 @@ const CatalogProductCard = ({
           className="overflow-hidden"
         >
           <figure className="bg-background aspect-5/3">
-            {product.imageUrl ? (
+            {primaryImage ? (
               <Image
                 src={imageKitOptimizedUrl(
-                  product.imageUrl,
+                  primaryImage.url,
                   IK_PRESETS.catalogCard,
                 )}
                 width={IK_PRESETS.catalogCard.w}

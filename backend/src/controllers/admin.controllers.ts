@@ -52,7 +52,7 @@ export const listAdminProducts = async (
 };
 
 /* CREATE PRODUCT */
-export const createAdminProduct = async (
+/* export const createAdminProduct = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -78,7 +78,7 @@ export const createAdminProduct = async (
   } catch (error) {
     next(error);
   }
-};
+}; */
 
 /* UPDATE PRODUCT */
 export const updateAdminProduct = async (
@@ -119,7 +119,7 @@ export const updateAdminProduct = async (
 };
 
 /* DELETE PRODUCT */
-export const deleteAdminProduct = async (
+/* export const deleteAdminProduct = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -154,10 +154,10 @@ export const deleteAdminProduct = async (
   } catch (error) {
     next(error);
   }
-};
+}; */
 
 /* DELETE IMAGES */
-export const deleteProductImage = async (
+/* export const deleteProductImage = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -205,7 +205,7 @@ export const deleteProductImage = async (
   } catch (err) {
     next(err);
   }
-};
+}; */
 
 /* DELETE IMAGES FROM IMAGEKIT ONLY */
 export const deleteProductImageUpload = async (
