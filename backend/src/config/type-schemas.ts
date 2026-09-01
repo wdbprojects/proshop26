@@ -19,8 +19,10 @@ export const productCreateSchema = z.object({
   description: z
     .string()
     .min(10, { message: "Description must be at least 10 characters" }),
+  longDescription: z
+    .string()
+    .min(10, { message: "Description must be at least 10 characters" }),
   stock: z.coerce.number(),
-  images: z.array(z.string()).min(1, "Product must have at least 1 image"),
   isFeatured: z.boolean(),
   banner: z.string().optional(),
   price: currency,

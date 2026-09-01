@@ -20,18 +20,17 @@ export const productCreateSchema = z.object({
   description: z
     .string()
     .min(10, { message: "Description must be at least 10 characters" }),
+  longDescription: z
+    .string()
+    .min(10, { message: "Long description must be at least 10 characters" }),
   stock: z.coerce.number(),
-  // images: z.array(z.string()).min(1, "Product must have at least 1 image"),
-  images: z.array(z.string()).optional(),
+  // images: z.array(z.string()).optional(),
   isFeatured: z.boolean(),
   banner: z.string().optional(),
   price: currency,
   priceCents: z.number().int().positive(),
   currency: z.string().min(1).default("usd"),
-  imageUrl: z
-    .union([z.string().url(), z.literal("")])
-    .optional()
-    .nullable(),
+  numReviews: z.number().optional(),
   imageFile: z
     .instanceof(File)
     .refine((file) => {
@@ -47,10 +46,19 @@ export const productCreateSchema = z.object({
   active: z.boolean(),
 });
 export type ProductFormData = z.infer<typeof productCreateSchema>;
+export type ProductImage = {
+  id: string;
+  url: string;
+  alt: string | null;
+  order: number;
+  isPrimary: boolean;
+  imageKitFileId: string | null;
+};
 export type ProductCreateSchemaType = z.infer<typeof productCreateSchema> & {
   id: string;
   rating: number;
   createdAt: Date;
+  images?: ProductImage[];
 };
 
 export type ProductWithId = ProductFormData & {

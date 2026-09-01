@@ -9,7 +9,7 @@ export const formatPrice = (cents: number, currency: string) => {
   return new Intl.NumberFormat(undefined, {
     style: "currency",
     currency: (currency ?? "usd").toUpperCase(),
-  }).format(cents);
+  }).format(cents / 100);
 };
 
 export const formatOrderWhen = (

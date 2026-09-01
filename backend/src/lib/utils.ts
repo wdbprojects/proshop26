@@ -15,11 +15,11 @@ export const buildProductUpdateSet = (
   if (body.description !== undefined) data.description = body.description;
   if (body.priceCents !== undefined) data.priceCents = body.priceCents;
   if (body.currency !== undefined) data.currency = body.currency;
-  if (body.imageUrl !== undefined)
-    data.imageUrl = body.imageUrl === "" ? null : body.imageUrl;
-  if (body.imageKitFileId !== undefined)
-    data.imageKitFileId =
-      body.imageKitFileId === "" ? null : body.imageKitFileId;
+  // if (body.imageUrl !== undefined)
+  //   data.imageUrl = body.imageUrl === "" ? null : body.imageUrl;
+  // if (body.imageKitFileId !== undefined)
+  //   data.imageKitFileId =
+  //     body.imageKitFileId === "" ? null : body.imageKitFileId;
   if (body.active !== undefined) data.active = body.active;
 
   return data;

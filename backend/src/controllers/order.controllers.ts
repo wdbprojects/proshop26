@@ -54,7 +54,7 @@ export const getAllOrders = async (
           quantity: orderItems.quantity,
           name: products.name,
           slug: products.slug,
-          imageUrl: products.imageUrl,
+          // imageUrl: products.imageUrl,
         })
         .from(orderItems)
         .innerJoin(products, eq(orderItems.productId, products.id))
@@ -67,7 +67,7 @@ export const getAllOrders = async (
         list.push({
           name: row.name,
           slug: row.slug,
-          imageUrl: row.imageUrl,
+          // imageUrl: row.imageUrl,
           quantity: row.quantity,
         });
         previewByOrder.set(row.orderId, list);
