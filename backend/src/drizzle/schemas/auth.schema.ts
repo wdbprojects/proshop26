@@ -1,6 +1,7 @@
 import { pgTable, text, timestamp, boolean, index } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { orders } from "./orders.schema";
+import { jsonb } from "drizzle-orm/pg-core";
 
 export type UserRole = "customer" | "support" | "admin";
 
@@ -10,6 +11,8 @@ export const user = pgTable("users", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").default(false).notNull(),
   image: text("image"),
+  address: jsonb("address").$type<Record<string, unknown>>().default({}),
+  paymentMethod: text("payment_method"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()

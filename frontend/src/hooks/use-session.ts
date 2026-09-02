@@ -3,7 +3,6 @@ import { authClient } from "@/lib/auth-client";
 
 export const useSession = () => {
   const queryClient = useQueryClient();
-
   const {
     data: session,
     isLoading,
@@ -39,7 +38,6 @@ export const useSession = () => {
     await queryClient.invalidateQueries({ queryKey: ["session", "user"] });
     return refetch();
   };
-
   return {
     session: session,
     isLoading: isLoading,

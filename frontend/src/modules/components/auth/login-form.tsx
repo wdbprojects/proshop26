@@ -2,6 +2,7 @@
 
 import { ComponentProps } from "react";
 import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, LoginSchemaType } from "@/schemas/auth-schemas";
@@ -23,7 +24,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, LogIn } from "lucide-react";
 import { toast } from "sonner";
-import { useMutation } from "@tanstack/react-query";
 
 /* Login Mutation Function */
 const loginUser = async (data: LoginSchemaType) => {
