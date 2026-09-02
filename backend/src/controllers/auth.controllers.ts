@@ -2,6 +2,21 @@ import { Request, Response } from "express";
 import { fromNodeHeaders } from "better-auth/node";
 import { auth } from "../lib/auth";
 
+const getErrorDetails = (err: unknown) => {
+  const body =
+    typeof err === "object" && err !== null && "body" in err
+      ? (err as { body?: { message?: string; code?: string } }).body
+      : undefined;
+
+  return {
+    message:
+      body?.message ??
+      (err instanceof Error ? err.message : undefined) ??
+      "An unexpected error occurred",
+    code: body?.code,
+  };
+};
+
 /* BETTER AUTH SIGN UP CONTROLLER */
 export const signUpController = async (req: Request, res: Response) => {
   try {
@@ -18,10 +33,13 @@ export const signUpController = async (req: Request, res: Response) => {
       message: "User created successfully!!",
     });
   } catch (err) {
+    const { message, code } = getErrorDetails(err);
     console.log(err);
-    return res
-      .status(400)
-      .json({ success: false, message: "Internal Server Error!!!" });
+    return res.status(400).json({
+      success: false,
+      message: message || "Registration failed",
+      code,
+    });
   }
 };
 
@@ -55,10 +73,12 @@ export const signInController = async (req: Request, res: Response) => {
       });
     }
   } catch (err) {
+    const { message } = getErrorDetails(err);
     console.log(err);
-    return res
-      .status(400)
-      .json({ success: false, message: "Internal Server Error!!!" });
+    return res.status(400).json({
+      success: false,
+      message: message || "Internal Server Error!!!",
+    });
   }
 };
 
@@ -78,9 +98,11 @@ export const logoutController = async (req: Request, res: Response) => {
       message: "User signed out successfully!!",
     });
   } catch (err) {
+    const { message } = getErrorDetails(err);
     console.log(err);
-    return res
-      .status(400)
-      .json({ success: false, message: "Sign out failed!!!" });
+    return res.status(400).json({
+      success: false,
+      message: message || "Sign out failed!!!",
+    });
   }
 };
