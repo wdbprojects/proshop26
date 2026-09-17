@@ -32,7 +32,6 @@ const CreateUpdateProductForm = ({
       stock: 0,
       isFeatured: false,
       banner: "",
-      price: "",
       priceCents: 0,
       active: true,
       currency: "usd",

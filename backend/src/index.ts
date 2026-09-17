@@ -14,6 +14,7 @@ import authRouter from "./routes/auth.router";
 import productRouter from "./routes/product.router";
 import streamRouter from "./routes/stream.router";
 import checkoutRouter from "./routes/checkout.router";
+import cartRouter from "./routes/cart.router";
 import adminRouter from "./routes/admin.router";
 import orderRouter from "./routes/order.router";
 import { notFoundMiddleware } from "./middlewares/not-found";
@@ -71,6 +72,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/products", productRouter);
 app.use("/api/stream", streamRouter);
 app.use("/api/checkout", checkoutRouter);
+app.use("/api/cart", cartRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/orders", orderRouter);
 

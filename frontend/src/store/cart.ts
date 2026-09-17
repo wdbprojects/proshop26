@@ -1,4 +1,5 @@
-import { CartItem, CartState } from "@/config/types";
+import { CartItem } from "@/config/types";
+import { CartState } from "@/types/cart";
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 
@@ -8,7 +9,7 @@ export const useCart = create<CartState>()(
       (set, get) => {
         return {
           items: [],
-          /* ADD ITEMS */
+          /* ADD ITEMS - optimistic local update. The caller (e.g.) is responsible for firing the actual POST /api/cart/items request and calling replaceItems() with the server's response once it resolves. */
           addItem: (productId: string, qty: number = 1) => {
             const items = [...get().items];
             const index = items.findIndex((item) => {
@@ -55,6 +56,11 @@ export const useCart = create<CartState>()(
           /* CLEAR ITEMS */
           clearCart: () => {
             return set({ items: [] });
+          },
+
+          /* REPLACE ITEMS - reconcile local state with the server's response after any mutation, so an optimistic update that got clamped (e.g. stock limit) doesn't silently drift from what's actually in the DB. */
+          replaceItems: (items: CartItem[]) => {
+            return set({ items: items });
           },
         };
       },

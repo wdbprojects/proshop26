@@ -27,6 +27,11 @@ export interface ICategories {
   loadingCategories: boolean;
 }
 
+export type imagesType = {
+  id: string;
+  url: string;
+};
+
 export interface IProducts {
   active: boolean;
   category: string;
@@ -34,8 +39,7 @@ export interface IProducts {
   currency: string;
   description: string;
   id: string;
-  imageKitFileId: string | null;
-  imageUrl: string;
+  images: imagesType[];
   name: string;
   price: number;
   priceCents: number;

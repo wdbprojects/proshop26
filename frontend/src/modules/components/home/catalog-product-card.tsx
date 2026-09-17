@@ -1,5 +1,15 @@
 "use client";
 
+import { routes } from "@/config/routes";
+import { IK_PRESETS, imageKitOptimizedUrl } from "@/lib/image-kit-url";
+import { formatPriceNew } from "@/lib/utils";
+import { useCart } from "@/store/cart";
+import { Ban, PlusIcon } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { toast } from "sonner";
+import { ProductCreateSchemaType } from "@/config/type-schemas";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,28 +19,21 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { routes } from "@/config/routes";
-import { ProductCreateSchemaType } from "@/config/type-schemas";
-import { IK_PRESETS, imageKitOptimizedUrl } from "@/lib/image-kit-url";
-import { formatPriceNew } from "@/lib/utils";
-import { useCart } from "@/store/cart";
-import { PlusIcon } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { toast } from "sonner";
+import { useAddToCart } from "@/hooks/use-add-to-cart";
+import { Spinner } from "@/components/ui/spinner";
 
 const CatalogProductCard = ({
   product,
 }: {
   product: ProductCreateSchemaType;
 }) => {
-  const addItem = useCart((state) => {
-    return state.addItem;
-  });
+  const addToCart = useAddToCart();
 
   const primaryImage = product.images?.find((img) => {
     return img?.isPrimary ?? product.images?.[0] ?? null;
   });
+
+  const outOfStock = product.stock <= 0;
 
   return (
     <Card className="bg-muted relative mx-auto h-full w-full gap-2 rounded-md px-0 pt-0 ring-0 transition-all hover:shadow-xl">
@@ -78,20 +81,35 @@ const CatalogProductCard = ({
         </div>
         <CardAction className="mt-2 flex w-full flex-row items-center justify-between px-2">
           <span className="text-lg font-bold tabular-nums">
-            {formatPriceNew(Number(product.price), product.currency)}
+            {formatPriceNew(Number(product.priceCents), product.currency)}
           </span>
           <Button
             onClick={() => {
-              addItem(product.id, 1);
-              toast.success(
-                `Product "${product.name}" added to cart successfully`,
-              );
+              addToCart.mutate({ productId: product.id, quantity: 1 });
+              // toast.success(
+              //   `Product "${product.name}" added to cart successfully`,
+              // );
             }}
-            variant="default"
+            variant={outOfStock ? "destructive" : "default"}
             size="sm"
+            disabled={addToCart.isPending || outOfStock}
           >
-            <PlusIcon className="size-4" aria-hidden />
-            <span className="font-bold">Add</span>
+            {outOfStock ? (
+              <div className="flex min-w-18 items-center justify-center gap-1">
+                <Ban className="size-3" aria-hidden />
+                <span className="font-bold">Out of stock</span>
+              </div>
+            ) : addToCart.isPending ? (
+              <div className="flex min-w-18 items-center justify-center gap-1">
+                <Spinner />
+                <span className="font-bold">Adding...</span>
+              </div>
+            ) : (
+              <div className="flex min-w-18 items-center justify-center gap-1">
+                <PlusIcon className="size-3" aria-hidden />
+                <span className="font-bold">Add</span>
+              </div>
+            )}
           </Button>
         </CardAction>
       </div>

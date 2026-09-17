@@ -1,21 +1,20 @@
 "use client";
 
 import DarkMode from "@/components/shared/dark-mode";
+import { useCartCount } from "@/hooks/use-cart-count";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { routes } from "@/config/routes";
-
 import { getSession } from "@/lib/auth-utils";
 import LoginButton from "@/modules/components/auth/login-button";
 import SignOutButton from "../auth/sign-out-button";
-
 import { cn } from "@/lib/utils";
 import AppLogo from "@/components/shared/app-logo";
+
+import { Gauge, Lock, Package, ShoppingBag, ShoppingCart } from "lucide-react";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Gauge, Lock, Package, ShoppingBag, ShoppingCart } from "lucide-react";
-import { useCart } from "@/store/cart";
 
 const HeaderMain = () => {
   const { data, isLoading, error, refetch } = useQuery({
@@ -27,11 +26,7 @@ const HeaderMain = () => {
     enabled: true,
   });
 
-  const cartCount = useCart((state) => {
-    return state.items.reduce((num, line) => {
-      return num + line.quantity;
-    }, 0);
-  });
+  const { count: cartCount, isLoading: cartCountLoading } = useCartCount();
 
   if (isLoading) {
     return (
@@ -138,13 +133,17 @@ const HeaderMain = () => {
             // aria-label={cartCount > 0 ? `Cart, ${cartCount} items.` : "Cart"}
           >
             <ShoppingCart className="mr-0.5 size-4.5" />
-            <Badge
-              variant="default"
-              className="aspect-square rounded-md px-1! text-xs"
-            >
-              {cartCount > 99 ? 99 : cartCount}
-              {cartCount > 99 && <sup className="">+</sup>}
-            </Badge>
+            {cartCountLoading ? (
+              <Skeleton className="h-4 w-4 rounded-md" />
+            ) : (
+              <Badge
+                variant="default"
+                className="aspect-square rounded-md px-1! text-xs"
+              >
+                {(cartCount ?? 0) > 99 ? 99 : (cartCount ?? 0)}
+                {(cartCount ?? 0) > 99 && <sup className="">+</sup>}
+              </Badge>
+            )}
           </Link>
 
           {!data?.session ? (

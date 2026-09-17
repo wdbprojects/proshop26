@@ -4,7 +4,6 @@ import { useProductDetails } from "@/hooks/use-product-details";
 import ProductDetailsSkeleton from "@/modules/components/products/product-details-skeleton";
 import ErrorCard from "@/components/shared/error-card";
 import ProductDetailsContent from "@/modules/components/products/product-details-content";
-import { notFound } from "next/navigation";
 
 const ProductDetailsPage = ({ slug }: { slug: string }) => {
   const { product, loadingProductDetails, productDetailsError } =
@@ -13,10 +12,6 @@ const ProductDetailsPage = ({ slug }: { slug: string }) => {
   if (loadingProductDetails) {
     return <ProductDetailsSkeleton />;
   }
-
-  /* if (!product) {
-    return notFound()
-  } */
 
   if (productDetailsError || !product) {
     return <ErrorCard />;
