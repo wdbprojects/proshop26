@@ -2,7 +2,8 @@
 
 import { TanstackProvider } from "@/components/tanstack-provider";
 import { ThemeProvider } from "@/components/theme-provider";
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toast";
+// import { Toaster } from "@/components/ui/sonner";
 import { LayoutPropsMain } from "@/config/types";
 import NextTopLoader from "nextjs-toploader";
 
@@ -14,9 +15,15 @@ const Providers = ({ children }: LayoutPropsMain) => {
       disableTransitionOnChange
     >
       <div>
-        <NextTopLoader showSpinner={false} color="#005f78" />
+        <NextTopLoader showSpinner={false} color="#fcac00" />
         <TanstackProvider>{children}</TanstackProvider>
-        <Toaster richColors closeButton position="bottom-right" expand={true} />
+        {/* <Toaster
+          richColors
+          closeButton
+          position="bottom-right"
+          expand={true}
+        /> */}
+        <Toaster />
       </div>
     </ThemeProvider>
   );

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useCart } from "@/store/cart";
-
+import { routes } from "@/config/routes";
+import { Separator } from "@/components/ui/separator";
+import LongDescription from "@/modules/components/products/description";
 import ProductBreadcrumb from "@/modules/components/products/product-breadcrumb";
 import { PriceTag } from "./pricetag";
 import Image from "next/image";
@@ -12,25 +13,17 @@ import {
   imageKitWatermarkedUrl,
 } from "@/lib/image-kit-url";
 import Link from "next/link";
-import { cn, formatPrice } from "@/lib/utils";
-import AddToCart from "@/modules/components/products/add-to-cart";
-import ProductRatings from "./product-ratings";
+import { cn, formatPriceNew } from "@/lib/utils";
 import { ProductCreateSchemaType, ProductImage } from "@/config/type-schemas";
+import ProductRatings from "./product-ratings";
 import { HIGHLIGHTS } from "@/config/data";
+import AddToCart from "@/modules/components/products/add-to-cart";
+import AddToCartNew from "@/modules/components/cart/add-to-cart-new";
 
-import { Button, buttonVariants } from "@/components/ui/button";
-import {
-  ArrowLeft,
-  CheckIcon,
-  ExternalLinkIcon,
-  ShoppingCartIcon,
-} from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
+import { ArrowLeft, CheckIcon } from "lucide-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { routes } from "@/config/routes";
-import { toast } from "sonner";
-import { Separator } from "@/components/ui/separator";
-import LongDescription from "@/modules/components/products/description";
 
 const ProductDetailsContent = ({
   product,
@@ -44,15 +37,11 @@ const ProductDetailsContent = ({
     primaryImage?.url ?? "",
   );
 
-  const addToCart = useCart((state) => {
-    return state.addItem;
-  });
-
   const category = product.category ?? "All";
 
-  const watermarkedFullUrl = primaryImage?.url
+  /* const watermarkedFullUrl = primaryImage?.url
     ? imageKitWatermarkedUrl(primaryImage?.url, IK_PRESETS.productHero)
-    : null;
+    : null; */
 
   return (
     <div className="p-4 px-1 pb-4 sm:p-2 lg:p-4">
@@ -64,7 +53,7 @@ const ProductDetailsContent = ({
       <div className="mt-6 grid grid-cols-12 justify-between gap-6 p-2 sm:p-4">
         {/* LEFT */}
         <div className="col-span-12 w-full p-0 sm:order-1 sm:col-span-12 lg:order-2 lg:col-span-5">
-          <Card className="bg-muted gap-0 space-y-0 overflow-hidden border-none py-2 ring-0">
+          <Card className="bg-muted gap-0 space-y-0 overflow-hidden rounded-none border-none py-2 ring-0">
             <CardContent className="px-2">
               <figure className="bg-background mb-0 aspect-square">
                 {primaryImage ? (
@@ -154,7 +143,7 @@ const ProductDetailsContent = ({
           </div>
           <Separator className="my-2" />
           {/* RATINGS */}
-          <PriceTag price={product?.price} currency={product?.currency} />
+          <PriceTag price={product?.priceCents} currency={product?.currency} />
           <Separator className="my-2" />
           {/* LONG DESCRIPTION */}
           <LongDescription longDescription={product?.longDescription} />
@@ -178,11 +167,12 @@ const ProductDetailsContent = ({
               </li>
             </ul>
           </div>
+          <Separator className="my-2" />
         </div>
         {/*  RIGHT */}
         <div className="col-span-12 w-full border px-4 py-0 pb-2 sm:order-2 sm:col-span-5 lg:order-3 lg:col-span-3">
           <div className="text-foreground mt-3 text-3xl font-semibold tabular-nums md:text-4xl">
-            {formatPrice(Number(product?.price), product.currency)}
+            {formatPriceNew(Number(product?.priceCents), product.currency)}
           </div>
           <Separator className="mt-2" />
           <div className={cn("text-s mt-2 mb-0 w-full px-0")}>
@@ -200,12 +190,9 @@ const ProductDetailsContent = ({
               </Badge>
             )}
           </div>
-          {product?.stock > 0 && (
-            <div className="mt-3">
-              <AddToCart />
-            </div>
-          )}
           <Separator className="my-3" />
+          {/* ADD TO CART WITH QUANTITY SELECTOR */}
+          <AddToCart productId={product.id} stock={product.stock} />
           {/* HIGHLIGHTS */}
           <ul className="border-muted/30 bg-muted/40 mt-2 space-y-2 rounded-none border px-2 py-3 shadow-sm">
             {HIGHLIGHTS.map((item) => {

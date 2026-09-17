@@ -1,9 +1,11 @@
+export { cn } from "cn";
+
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+// export function cn(...inputs: ClassValue[]) {
+//   return twMerge(clsx(inputs));
+// }
 
 export const formatPrice = (cents: number, currency: string) => {
   return new Intl.NumberFormat(undefined, {
@@ -31,7 +33,7 @@ export const formatPriceNew = (price: number, currency: string) => {
   return new Intl.NumberFormat(undefined, {
     style: "currency",
     currency: (currency ?? "usd").toUpperCase(),
-  }).format(price);
+  }).format(price / 100);
 };
 
 /* format number with decimal places */

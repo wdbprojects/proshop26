@@ -7,35 +7,46 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const Quantity = () => {
+interface QuantityProps {
+  value: number;
+  onChange: (value: number) => void;
+  max: number;
+  disabled: boolean;
+}
+
+/* Cap the dropdown length even for high-stock items - nobody needs to scroll through 500 options to buy 2 of something */
+
+const MAX_SELECTABLE = 10;
+
+const Quantity = ({ value, onChange, max, disabled }: QuantityProps) => {
+  const optionsCount = Math.max(0, Math.min(max, MAX_SELECTABLE));
+  const options = Array.from({ length: optionsCount }, (_, i) => {
+    return i + 1;
+  });
+
   return (
     <div>
-      <Select>
+      <Select
+        value={String(value)}
+        onValueChange={(val) => onChange(Number(val))}
+        disabled={disabled || optionsCount === 0}
+      >
         <SelectTrigger className="w-full">
-          <SelectValue placeholder="Quantity" />
+          <SelectValue placeholder="Quantity">
+            <span className="text-xs">QTY:</span>{" "}
+            <span className="font-semibold">{value}</span>
+          </SelectValue>
         </SelectTrigger>
         <SelectContent className="bg-background">
           <SelectGroup>
-            <SelectItem>
-              <span className="text-xs">QTY:</span>
-              <span className="font-semibold">1</span>
-            </SelectItem>
-            <SelectItem>
-              <span className="text-xs">QTY:</span>
-              <span className="font-semibold">2</span>
-            </SelectItem>
-            <SelectItem>
-              <span className="text-xs">QTY:</span>
-              <span className="font-semibold">3</span>
-            </SelectItem>
-            <SelectItem>
-              <span className="text-xs">QTY:</span>
-              <span className="font-semibold">4</span>
-            </SelectItem>
-            <SelectItem>
-              <span className="text-xs">QTY:</span>
-              <span className="font-semibold">5</span>
-            </SelectItem>
+            {options.map((num) => {
+              return (
+                <SelectItem key={num} value={String(num)}>
+                  <span className="text-xs">QTY:</span>&nbsp;
+                  <span className="font-semibold">{num}</span>
+                </SelectItem>
+              );
+            })}
           </SelectGroup>
         </SelectContent>
       </Select>

@@ -2,53 +2,97 @@
 
 import { useTransition } from "react";
 import { apiFetch } from "@/lib/api";
-import { useCart } from "@/store/cart";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { IProducts } from "@/config/types";
+import { ICart } from "@/types/cart";
+import {
+  CART_QUERY_KEY,
+  CartResponse,
+  useCartQuery,
+} from "@/hooks/use-cart-query";
 
 export const useCartPage = () => {
   const [checkoutLoading, startCheckoutTransition] = useTransition();
   const router = useRouter();
-
-  const items = useCart((state) => {
-    return state.items;
-  });
-  const setQuantity = useCart((state) => {
-    return state.setQuantity;
-  });
-  const removeItem = useCart((state) => {
-    return state.removeItem;
-  });
+  const queryClient = useQueryClient();
 
   const {
-    data: productsData,
-    isLoading: productsLoading,
-    isError: productsError,
-  } = useQuery<{
-    products: IProducts[];
-  }>({
-    queryKey: ["products"],
-    queryFn: () => {
-      return apiFetch("/api/products", { method: "GET" });
-    },
-    enabled: items.length > 0,
+    data: cartData,
+    isLoading: cartLoading,
+    isError: cartError,
+  } = useCartQuery();
+
+  const items = cartData?.cart.items ?? [];
+
+  /* Shared optimistic-update helper: apply a local change to the cached cart immediately, roll back on failure, and adopt the server's response as the new truth on success. Both mutations below use this same pattern so a stock-limit clamp from the server always wins.  */
+  const applyOptimisticUpdate = async (updater: (previous: ICart) => ICart) => {
+    await queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
+    const previous = queryClient.getQueryData<CartResponse>(CART_QUERY_KEY);
+    if (previous) {
+      queryClient.setQueryData<CartResponse>(CART_QUERY_KEY, {
+        cart: updater(previous.cart),
+      });
+    }
+    return { previous: previous };
+  };
+
+  const rollback = (previous?: CartResponse) => {
+    if (previous) {
+      queryClient.setQueryData(CART_QUERY_KEY, previous);
+    }
+  };
+
+  const setQuantityMutation = useMutation({
+    mutationFn: ({
+      cartItemId,
+      quantity,
+    }: {
+      cartItemId: string;
+      quantity: number;
+    }) =>
+      apiFetch<CartResponse>(`/api/cart/items/${cartItemId}`, {
+        method: "PATCH",
+        body: { quantity: quantity },
+      }),
+    onMutate: ({ cartItemId, quantity }) =>
+      applyOptimisticUpdate((previousCart) => ({
+        ...previousCart,
+        items:
+          quantity <= 0
+            ? previousCart.items.filter((item) => item.id !== cartItemId)
+            : previousCart.items.map((item) =>
+                item.id === cartItemId ? { ...item, quantity: quantity } : item,
+              ),
+      })),
+    onError: (_err, _vars, context) => rollback(context?.previous),
+    onSuccess: (data) => queryClient.setQueryData(CART_QUERY_KEY, data),
   });
 
-  const products = productsData?.products ?? [];
-  const byId = new Map(
-    products.map((prod: IProducts) => {
-      const productId = prod.id;
-      return [productId, prod];
-    }),
-  );
-  const lines = items.map((line) => {
-    return { line: line, product: byId.get(line.productId) ?? null };
+  const removeItemMutation = useMutation({
+    mutationFn: (cartItemId: string) =>
+      apiFetch<CartResponse>(`/api/cart/items/${cartItemId}`, {
+        method: "DELETE",
+      }),
+    onMutate: (cartItemId) =>
+      applyOptimisticUpdate((previousCart) => ({
+        ...previousCart,
+        items: previousCart.items.filter((item) => item.id !== cartItemId),
+      })),
+    onError: (_err, _vars, context) => rollback(context?.previous),
+    onSuccess: (data) => queryClient.setQueryData(CART_QUERY_KEY, data),
   });
 
-  const subTotal = lines.reduce((sum, { line, product }) => {
-    return sum + line.quantity * (product?.priceCents ?? 0);
-  }, 0);
+  /* Kept the same (productId, quantity) signature the component already calls with, since cart-items.tsx passes line.productId today  */
+  const setQuantity = (cartItemId: string, quantity: number) => {
+    setQuantityMutation.mutate({ cartItemId, quantity: Math.max(0, quantity) });
+  };
+
+  const removeItem = (cartItemId: string) => {
+    removeItemMutation.mutate(cartItemId);
+  };
+
+  /* Comes straight from the server's denormalized total - no more client-side reduce() over a locally-joined product list */
+  const subTotal = cartData?.cart.itemsPriceCents ?? 0;
 
   const checkout = () => {
     startCheckoutTransition(async () => {
@@ -67,13 +111,13 @@ export const useCartPage = () => {
       }
     });
   };
+
   return {
     items: items,
     setQuantity: setQuantity,
     removeItem: removeItem,
-    productsLoading: productsLoading,
-    productsError: productsError,
-    lines: lines,
+    cartLoading: cartLoading,
+    cartError: cartError,
     subTotal: subTotal,
     checkout: checkout,
     checkoutLoading: checkoutLoading,

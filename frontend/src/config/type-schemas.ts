@@ -27,11 +27,10 @@ export const productCreateSchema = z.object({
   // images: z.array(z.string()).optional(),
   isFeatured: z.boolean(),
   banner: z.string().optional(),
-  price: currency,
   priceCents: z.number().int().positive(),
   currency: z.string().min(1).default("usd"),
   numReviews: z.number().optional(),
-  imageFile: z
+  /*   imageFile: z
     .instanceof(File)
     .refine((file) => {
       return (file.size <= 5 * 1024 * 1024, "File must be less than 5MB");
@@ -39,10 +38,7 @@ export const productCreateSchema = z.object({
     .refine((file) => {
       return ["image/jpeg", "image/png", "image/jpg"].includes(file.type);
     })
-    .optional(),
-  imageKitFileId: z
-    .union([z.string().min(1), z.literal(""), z.null()])
-    .optional(),
+    .optional(), */
   active: z.boolean(),
 });
 export type ProductFormData = z.infer<typeof productCreateSchema>;
@@ -58,7 +54,7 @@ export type ProductCreateSchemaType = z.infer<typeof productCreateSchema> & {
   id: string;
   rating: number;
   createdAt: Date;
-  images?: ProductImage[];
+  images: ProductImage[];
 };
 
 export type ProductWithId = ProductFormData & {
@@ -92,3 +88,15 @@ export type ImageKitAuthenticatorType = {
   token: string;
   publicKey: string;
 };
+
+export const cartItemsSchema = z.object({
+  // id: z.string(),
+  productId: z.string(),
+  name: z.string(),
+  slug: z.string(),
+  image: z.string(),
+  quantity: z.number().int().nonnegative(),
+  price: z.number().int().nonnegative,
+});
+
+export type CartItemsSchemaType = z.infer<typeof cartItemsSchema>;

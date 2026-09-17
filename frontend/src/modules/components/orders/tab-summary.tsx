@@ -21,7 +21,6 @@ const TabSummary = ({
   order: Pick<OrderDetailsResponse, "singleOrder">;
   items: IOrderItem[];
 }) => {
-
   return (
     <Card>
       <CardHeader>
@@ -46,10 +45,10 @@ const TabSummary = ({
                       className="group border-muted/30 ring-muted/30 hover:ring-primary/40 relative shrink-0 overflow-hidden rounded-xl border shadow-sm ring-1 transition"
                     >
                       <div className="h-24 w-24 sm:h-28 sm:w-28">
-                        {row.product.imageUrl ? (
+                        {row.product.images ? (
                           <Image
                             src={imageKitOptimizedUrl(
-                              row.product.imageUrl,
+                              row.product.images[0].url,
                               IK_PRESETS.orderLineThumb,
                             )}
                             alt=""

@@ -1,10 +1,10 @@
-import { formatPrice } from "@/lib/utils";
+import { formatPriceNew } from "@/lib/utils";
 
 export const PriceTag = ({
   price,
   currency,
 }: {
-  price: string;
+  price: number;
   currency: string;
 }) => {
   const realPrice = Number(price) * 1.15;
@@ -15,11 +15,13 @@ export const PriceTag = ({
         -15%
       </span>
       <span className="text-foreground mt-3 text-3xl font-semibold tabular-nums md:text-4xl">
-        {formatPrice(Number(price), currency)}
+        {formatPriceNew(Number(price), currency)}
       </span>
       <div className="mt-1 text-xs font-medium text-zinc-700 dark:text-zinc-400">
         List Price:{" "}
-        <span className="line-through">{formatPrice(realPrice, currency)}</span>
+        <span className="line-through">
+          {formatPriceNew(realPrice, currency)}
+        </span>
       </div>
     </div>
   );

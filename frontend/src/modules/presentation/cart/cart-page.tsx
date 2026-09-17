@@ -13,9 +13,8 @@ const CartPage = () => {
     checkout,
     checkoutLoading,
     items,
-    lines,
-    productsError,
-    productsLoading,
+    cartLoading,
+    cartError,
     removeItem,
     setQuantity,
     subTotal,
@@ -28,19 +27,19 @@ const CartPage = () => {
           <ShoppingCartIcon className="text-primary size-8" />
           <span>Cart</span>
         </h1>
-        {items.length <= 0 ? (
-          <div className="flex h-full w-full items-center justify-center">
-            <EmptyCart />
-          </div>
-        ) : productsLoading ? (
-          <CartSkeleton lines={items.length} />
-        ) : productsError ? (
+        {cartLoading ? (
+          <CartSkeleton lines={3} />
+        ) : cartError ? (
           <div className="flex h-full w-full items-center justify-center">
             <ErrorCard />
           </div>
+        ) : items.length <= 0 ? (
+          <div className="flex h-full w-full items-center justify-center">
+            <EmptyCart />
+          </div>
         ) : (
           <CartItems
-            lines={lines}
+            items={items}
             setQuantity={setQuantity}
             removeItem={removeItem}
             subTotal={subTotal}

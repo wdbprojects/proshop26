@@ -9,7 +9,7 @@ export const formatPrice = (cents: number, currency: string) => {
   return new Intl.NumberFormat(undefined, {
     style: "currency",
     currency: (currency ?? "usd").toUpperCase(),
-  }).format(cents / 100);
+  }).format(cents);
 };
 
 export const formatOrderWhen = (
@@ -31,7 +31,7 @@ export const formatPriceNew = (price: number, currency: string) => {
   return new Intl.NumberFormat(undefined, {
     style: "currency",
     currency: (currency ?? "usd").toUpperCase(),
-  }).format(price);
+  }).format(price / 100);
 };
 
 /* format number with decimal places */
