@@ -49,8 +49,8 @@ export interface IProducts {
 export interface IOrder {
   id: string;
   userId: string;
-  polarCheckoutId: string | null;
-  polarOrderId: string | null;
+  providerCheckoutId: string | null;
+  providerOrderId: string | null;
   previewItems: IOrderPreview[];
   status: string;
   totalCents: number;

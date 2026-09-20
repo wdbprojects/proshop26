@@ -1,5 +1,5 @@
 {
-  "id": "a9dae253-5a2a-4e5d-bf75-d9a64eeeaa1e",
+  "id": "1e681b13-8ccf-459d-87d3-7fc5104be830",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -612,9 +612,16 @@
           "primaryKey": false,
           "notNull": true
         },
-        "polar_checkout_id": {
-          "name": "polar_checkout_id",
-          "type": "uuid",
+        "payment_provider": {
+          "name": "payment_provider",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'polar'"
+        },
+        "provider_checkout_id": {
+          "name": "provider_checkout_id",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -644,7 +651,29 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "checkout_sessions_provider_checkout_idx": {
+          "name": "checkout_sessions_provider_checkout_idx",
+          "columns": [
+            {
+              "expression": "payment_provider",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "provider_checkout_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "checkout_sessions_user_id_users_id_fk": {
           "name": "checkout_sessions_user_id_users_id_fk",
@@ -661,15 +690,7 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "checkout_sessions_polar_checkout_id_unique": {
-          "name": "checkout_sessions_polar_checkout_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "polar_checkout_id"
-          ]
-        }
-      },
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -698,15 +719,28 @@
           "notNull": true,
           "default": "'pending'"
         },
-        "polar_checkout_id": {
-          "name": "polar_checkout_id",
+        "payment_provider": {
+          "name": "payment_provider",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'polar'"
+        },
+        "provider_checkout_id": {
+          "name": "provider_checkout_id",
           "type": "text",
           "primaryKey": false,
           "notNull": false
         },
-        "polar_order_id": {
-          "name": "polar_order_id",
+        "provider_order_id": {
+          "name": "provider_order_id",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "provider_reference": {
+          "name": "provider_reference",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": false
         },
@@ -732,7 +766,29 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "orders_provider_order_idx": {
+          "name": "orders_provider_order_idx",
+          "columns": [
+            {
+              "expression": "payment_provider",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "provider_order_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "orders_user_id_users_id_fk": {
           "name": "orders_user_id_users_id_fk",
@@ -749,15 +805,7 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "orders_polar_order_id_unique": {
-          "name": "orders_polar_order_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "polar_order_id"
-          ]
-        }
-      },
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false

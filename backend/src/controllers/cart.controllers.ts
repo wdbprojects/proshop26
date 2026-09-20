@@ -12,7 +12,8 @@ import {
 import z from "zod";
 
 // Find the cart request's identity, creating one if needed
-const getOrCreateCart = async (cartContext: CartContext) => {
+/* Exported: checkout.controller.ts needs the exact same cart resolution logic cart endpoints use, so checkout always operates on the caller's real persisted cart rather than re-implemented this lookup. */
+export const getOrCreateCart = async (cartContext: CartContext) => {
   const { userId, sessionCartId } = cartContext;
   const existing = userId
     ? await db.query.cart.findFirst({ where: eq(cart.userId, userId) })
@@ -96,6 +97,34 @@ const getHydratedCart = async (cartId: string) => {
     taxPriceCents: cartRow.taxPriceCents,
     items: items,
   };
+};
+
+/* Cart rows shaped for checkout: current product price/stock/active state joined against each cart line, so checkout.controller.ts can build its order lines and validate stock form one query instead of re-querying products itself. Deliberately NOT the same shape as getHydratedCart - checkout doesn't need images, and it does need `active`/`stock` per row to reject checkout before ever calling out to a payment provider. */
+export const getCartItemsForCheckout = async (cartId: string) => {
+  const rows = await db
+    .select({
+      cartItemId: cartItems.id,
+      productId: cartItems.productId,
+      quantity: cartItems.quantity,
+      priceCents: products.priceCents,
+      stock: products.stock,
+      active: products.active,
+      name: products.name,
+    })
+    .from(cartItems)
+    .innerJoin(products, eq(cartItems.productId, products.id))
+    .where(eq(cartItems.cartId, cartId));
+  return rows;
+};
+
+/* Empties a user's cart after their order has been paid, so React Query's ["cart"] cache (once refetched/invalidated on the frontend) stops showing items they already bought. Looked up by userId, not cartId, because the webhook handler only ever knows the checkout session's userId. No-op if the user has no cart row (shouldn't happen for a completed checkout, but defensive) */
+export const clearCartForUser = async (userId: string) => {
+  const existing = await db.query.cart.findFirst({
+    where: eq(cart.userId, userId),
+  });
+  if (!existing) return;
+  await db.delete(cartItems).where(eq(cartItems.cartId, existing.id));
+  await recalculateCartTotals(existing.id);
 };
 
 /* Reconciles a guest's pre-login cart into their account cart. Called once by resolveCart the moment a request is both authenticated AND still carrying a guest cart cookie from before login. */

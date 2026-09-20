@@ -1,29 +1,46 @@
 import { Request, Response } from "express";
 import { getEnv } from "../config/env";
 import { checkoutSession, orderItems, orders } from "../drizzle/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { db } from "../drizzle/db";
 import { Webhook } from "standardwebhooks";
+import { clearCartForUser } from "../controllers/cart.controllers";
+
+/* This file stays Polar-specific (signature verification, event shape, Polar's field names). The provider-agnostic part - "given a checkout session id and a provider order/checkout id, create the order and clear the cart" - lives in fullfillCheckoutSession below and only needs the literal PROVIDER swapped for a future provider's own webhook handler to reuse the same shape */
+const PROVIDER = "polar" as const;
 
 const headerString = (headers: Request["headers"], name: string) => {
   const value = headers[name];
   return Array.isArray(value) ? value[0] : value;
 };
 
-const alreadyPaid = async (polarOrderId?: string, checkoutId?: string) => {
-  if (polarOrderId) {
+const alreadyPaid = async (
+  providerOrderId?: string,
+  providerCheckoutId?: string,
+) => {
+  if (providerOrderId) {
     const [row] = await db
       .select()
       .from(orders)
-      .where(eq(orders.polarOrderId, polarOrderId))
+      .where(
+        and(
+          eq(orders.paymentProvider, PROVIDER),
+          eq(orders.providerOrderId, providerOrderId),
+        ),
+      )
       .limit(1);
     if (row?.status === "paid") return true;
   }
-  if (checkoutId) {
+  if (providerCheckoutId) {
     const [row] = await db
       .select()
       .from(orders)
-      .where(eq(orders.polarCheckoutId, checkoutId))
+      .where(
+        and(
+          eq(orders.paymentProvider, PROVIDER),
+          eq(orders.providerCheckoutId, providerCheckoutId),
+        ),
+      )
       .limit(1);
     if (row?.status === "paid") return true;
   }
@@ -41,26 +58,28 @@ const checkoutSessionIdFromMetadata = async (
 
 const fulfillCheckoutSession = async (
   sessionId: string,
-  polarOrderId: string | undefined,
-  checkoutId: string | undefined,
+  providerOrderId: string | undefined,
+  providerCheckoutId: string | undefined,
 ) => {
-  // database transaction
-  return await db.transaction(async (tx) => {
+  // database transaction - returns the userId to clear the cart for on success, or null if there was no matching session to fulfill
+  const fulfilledForUserId = await db.transaction(async (tx) => {
     const [session] = await tx
       .select()
       .from(checkoutSession)
       .where(eq(checkoutSession.id, sessionId))
       .for("update");
-    if (!session) return false;
+    if (!session) return null;
 
     const [orderResp] = await tx
       .insert(orders)
       .values({
         userId: session.userId,
         status: "paid",
+        paymentProvider: PROVIDER,
         totalCents: session.totalCents,
-        polarCheckoutId: checkoutId ?? session.polarCheckoutId ?? null,
-        ...(polarOrderId ? { polarOrderId: polarOrderId } : {}),
+        providerCheckoutId:
+          providerCheckoutId ?? session.providerCheckoutId ?? null,
+        ...(providerOrderId ? { providerOrderId } : {}),
       })
       .returning();
 
@@ -75,8 +94,18 @@ const fulfillCheckoutSession = async (
       );
     }
     await tx.delete(checkoutSession).where(eq(checkoutSession.id, sessionId));
-    return true;
+    return session.userId;
   });
+
+  if (fulfilledForUserId) {
+    /* Best-effort: the order is already paid and committed at this point, so a failure here should never look like a failed webhook (Polar would retry and we would double-process). Just log it - the customer's cart being briefly stale is a much smaller problem than that. */
+    try {
+      await clearCartForUser(fulfilledForUserId);
+    } catch (err) {
+      console.error("Failed to clear cart after order fullfillment", err);
+    }
+  }
+  return fulfilledForUserId !== null;
 };
 
 export const polarWebhookHandler = async (req: Request, res: Response) => {

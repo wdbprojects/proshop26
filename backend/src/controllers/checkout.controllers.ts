@@ -5,22 +5,18 @@ import { getCurrentSession } from "../lib/session";
 import {
   checkoutSession,
   CheckoutSessionLine,
+  PaymentProvider,
   products,
 } from "../drizzle/schema";
 import { db } from "../drizzle/db";
 import { and, inArray, eq } from "drizzle-orm";
 import { polarCreateCheckout } from "../lib/polar";
+import { getCartItemsForCheckout, getOrCreateCart } from "./cart.controllers";
 
 const ENV = getEnv();
 
-const cartSchema = z.object({
-  items: z.array(
-    z.object({
-      productId: z.string().uuid(),
-      quantity: z.number().int().positive(),
-    }),
-  ),
-});
+/* Only "polar" is wired up. When the Bolivia QR method lands, this becomes e.g. `req.body.paymentMethod` validated against a small zod enum, and the logic below branches on it before the provider-specific checkout call - the cart loading/stock validation above that point stays provider-agnostic and unchanged */
+const PROVIDER: PaymentProvider = "polar";
 
 export const createCheckout = async (
   req: Request,
@@ -35,70 +31,53 @@ export const createCheckout = async (
       return;
     }
 
-    const parsed = cartSchema.safeParse(req.body);
-    if (!parsed.success) {
-      res
-        .status(400)
-        .json({ error: "Invalid cart!!!", details: parsed.error.flatten() });
-      return;
-    }
     // polar access token required
     if (!ENV.POLAR_ACCESS_TOKEN) {
       res.status(503).json({ error: "Payments are not configured" });
       return;
     }
-    const ids = parsed.data.items.map((id) => {
-      return id.productId;
-    });
-    // load all products from database
-    const prodRows = await db
-      .select()
-      .from(products)
-      .where(and(inArray(products.id, ids), eq(products.active, true)));
 
-    if (prodRows.length !== ids.length) {
-      res.status(400).json({ error: "One or more products are invalid" });
+    /* Checkout always operates on the caller's persisted cart - never on items posted in the request body. This keeps it consistent with whatever the cart badge/mini-cart page are showing (all backed by the same React Query ["cart"] cache), and means a stale or tempered client payload can no longer choose what gets charged. `resolveCart` middleware (mounted on this router) populates req.cartContext the same way it does for every cart endpoint. */
+    const cartRow = await getOrCreateCart(req.cartContext!);
+    const cartItemRows = await getCartItemsForCheckout(cartRow.id);
+
+    if (cartItemRows.length === 0) {
+      res.status(400).json({ error: "Your cart is empty" });
       return;
     }
 
-    // calculate price (on the server side always)
-    const byId = new Map(
-      prodRows.map((prod) => {
-        return [prod.id, prod];
-      }),
-    );
+    /* Recompute price AND validate stock server-side, from the current product rows - never trust priceCentsAtAdd (a snapshot only) amd never trust the client sent */
     let totalCents = 0;
     const lines: CheckoutSessionLine[] = [];
 
-    for (const line of parsed.data.items) {
-      const prod = byId.get(line.productId)!;
-      const unitPriceCents = prod.priceCents;
-
-      if (unitPriceCents === null) {
-        res.status(400).json({ error: "One or more products are invalid" });
+    for (const row of cartItemRows) {
+      if (!row.active) {
+        res.status(409).json({
+          error: `"${row.name}" is no longer available. Remove it from yout cart to continue.`,
+        });
         return;
       }
-
-      totalCents += unitPriceCents * line.quantity;
+      totalCents += row.priceCents * row.quantity;
       lines.push({
-        productId: prod.id,
-        quantity: line.quantity,
-        unitPriceCents: unitPriceCents,
+        productId: row.productId,
+        quantity: row.quantity,
+        unitPriceCents: row.priceCents,
       });
     }
     if (totalCents < 10) {
       res.status(400).json({
         error:
-          "Total below Polar minimum (e.g. USD required at least 10 cents)",
+          "Total below Polar minimum (e.g. USD requires at least 10 cents)",
       });
       return;
     }
 
-    // create checkout session in database
+    /* CREATE CHECKOUT SESSION IN DATABASE */
     const [session] = await db
       .insert(checkoutSession)
       .values({
-        userId: userSession?.user?.id as string,
+        userId: userSession.user.id,
+        paymentProvider: PROVIDER,
         lines: lines,
         totalCents: totalCents,
         currency: "usd",
@@ -126,15 +105,14 @@ export const createCheckout = async (
         checkout_session_id: session.id,
       },
     });
-
     await db
       .update(checkoutSession)
-      .set({ polarCheckoutId: checkout.id })
+      .set({ providerCheckoutId: checkout.id })
       .where(eq(checkoutSession.id, session.id));
     res.json({
       checkoutUrl: checkout.url,
     });
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    next(err);
   }
 };

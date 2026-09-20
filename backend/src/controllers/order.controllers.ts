@@ -54,7 +54,6 @@ export const getAllOrders = async (
           quantity: orderItems.quantity,
           name: products.name,
           slug: products.slug,
-          // imageUrl: products.imageUrl,
         })
         .from(orderItems)
         .innerJoin(products, eq(orderItems.productId, products.id))
@@ -67,7 +66,6 @@ export const getAllOrders = async (
         list.push({
           name: row.name,
           slug: row.slug,
-          // imageUrl: row.imageUrl,
           quantity: row.quantity,
         });
         previewByOrder.set(row.orderId, list);
@@ -78,14 +76,11 @@ export const getAllOrders = async (
         ...order,
         previewItems: previewByOrder.get(order.id) ?? [],
       };
-      // console.log(result);
       return result;
     });
-    // console.log({ ordersPayload });
-
     res.status(200).json({ orders: ordersPayload });
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    next(err);
   }
 };
 
@@ -117,6 +112,7 @@ export const getSingleOrder = async (
       res
         .status(403)
         .json({ error: "Forbidden: You don't have access to this order" });
+      return;
     }
     // inner join to get the product information
     const items = await db
@@ -156,6 +152,7 @@ export const createStreamChannel = async (
       .limit(1);
     if (!orderDetail) {
       res.status(404).json({ error: "Order not found!" });
+      return;
     }
     const isOwner = orderDetail.userId === user.id;
     if (!isOwner && !isStaff(user.role as UserRole)) {

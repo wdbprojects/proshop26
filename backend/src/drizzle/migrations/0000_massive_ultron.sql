@@ -76,24 +76,25 @@ CREATE TABLE "products" (
 CREATE TABLE "checkout_sessions" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" text NOT NULL,
-	"polar_checkout_id" uuid,
+	"payment_provider" text DEFAULT 'polar' NOT NULL,
+	"provider_checkout_id" text,
 	"lines" jsonb NOT NULL,
 	"total_cents" integer NOT NULL,
 	"currency" text NOT NULL,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	CONSTRAINT "checkout_sessions_polar_checkout_id_unique" UNIQUE("polar_checkout_id")
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "orders" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" text NOT NULL,
 	"status" text DEFAULT 'pending' NOT NULL,
-	"polar_checkout_id" text,
-	"polar_order_id" text,
+	"payment_provider" text DEFAULT 'polar' NOT NULL,
+	"provider_checkout_id" text,
+	"provider_order_id" text,
+	"provider_reference" jsonb,
 	"total_cents" integer DEFAULT 0 NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
-	CONSTRAINT "orders_polar_order_id_unique" UNIQUE("polar_order_id")
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "order_items" (
@@ -153,13 +154,11 @@ CREATE INDEX "products_category_idx" ON "products" USING btree ("category");--> 
 CREATE INDEX "products_brand_idx" ON "products" USING btree ("brand");--> statement-breakpoint
 CREATE INDEX "products_active_idx" ON "products" USING btree ("active");--> statement-breakpoint
 CREATE INDEX "products_id_featured_idx" ON "products" USING btree ("is_featured");--> statement-breakpoint
+CREATE UNIQUE INDEX "checkout_sessions_provider_checkout_idx" ON "checkout_sessions" USING btree ("payment_provider","provider_checkout_id");--> statement-breakpoint
+CREATE UNIQUE INDEX "orders_provider_order_idx" ON "orders" USING btree ("payment_provider","provider_order_id");--> statement-breakpoint
 CREATE INDEX "product_images_product_id_idx" ON "product_images" USING btree ("product_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "product_images_one_primary_idx" ON "product_images" USING btree ("product_id") WHERE "product_images"."is_primary" = true;--> statement-breakpoint
 CREATE INDEX "cart_user_is_idx" ON "cart" USING btree ("user_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "cart_session_cart_id_idx" ON "cart" USING btree ("session_cart_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "cart_item_cart_product_idx" ON "cart_items" USING btree ("cart_id","product_id");--> statement-breakpoint
 CREATE INDEX "cart_item_cart_id_idx" ON "cart_items" USING btree ("cart_id");
-
--- RWD CHECK CONSTRAINT FROM CLAUDE
-ALTER TABLE cart ADD CONSTRAINT cart_owner_check
-	CHECK (user_id IS NOT NULL OR session_cart_id IS NOT NULL);

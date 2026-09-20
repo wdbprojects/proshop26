@@ -15,7 +15,7 @@ const Providers = ({ children }: LayoutPropsMain) => {
       disableTransitionOnChange
     >
       <div>
-        <NextTopLoader showSpinner={false} color="#fcac00" />
+        <NextTopLoader showSpinner={false} color="#fcac00x`" />
         <TanstackProvider>{children}</TanstackProvider>
         {/* <Toaster
           richColors
@@ -23,7 +23,7 @@ const Providers = ({ children }: LayoutPropsMain) => {
           position="bottom-right"
           expand={true}
         /> */}
-        <Toaster />
+        <Toaster position="top-center" />
       </div>
     </ThemeProvider>
   );
