@@ -1,118 +1,78 @@
+/* Category rows get seeded first (categories table), then each product below references one by `categorySlug`. This is a slug, not a free-text category name - it must match one of CATEGORIES exactly, and seed.ts will throw a clear error at seed time if it doesn't (rather than silently  failing the FK insert) */
+
+export const CATEGORIES = [
+  { name: "Men's Dress Shirts", slug: "mens-dress-shirts" },
+  { name: "Men's Sweatshirts", slug: "mens-sweatshirts" },
+  { name: "Electronics", slug: "electronics" },
+  { name: "Home & Kitchen", slug: "home-kitchen" },
+  { name: "Sportswear", slug: "sportswear" },
+];
+
+const pexelsUrl = (id: number) => {
+  return `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto-compress&&cs=tinysrgb&w=800&h=480&fit=crop`;
+};
+
+const CATEGORY_IMAGES: Record<string, string[]> = {
+  "mens-dress-shirts": [pexelsUrl(4443831), pexelsUrl(250288)],
+  "mens-sweatshirts": [pexelsUrl(36700284), pexelsUrl(4192904)],
+  electronics: [pexelsUrl(30845148), pexelsUrl(14263441)],
+  "home-kitchen": [pexelsUrl(31737857), pexelsUrl(5824492)],
+  sportswear: [pexelsUrl(29242410), pexelsUrl(4099878)],
+};
+
+export type SampleProduct = {
+  name: string;
+  slug: string;
+  categorySlug: string;
+  brand: string;
+  description: string;
+  longDescription: string;
+  stock: number;
+  priceCents: number;
+  images: string[];
+  rating: number;
+  numReviews: number;
+  isFeatured: boolean;
+};
+
+const BASE_PRODUCT: SampleProduct = {
+  name: "Polo Sporting Stretch Shirt",
+  slug: "polo-sporting-stretch-shirt",
+  categorySlug: "mens-dress-shirts",
+  brand: "Polo",
+  description: "Classic Polo style with modern comfort",
+  longDescription:
+    "Classic Polo tailoring meets a modern stretch fabric blend for a shirt that moves with you all day. The wrinkle-resistant weave keeps its crisp look from morning meetings through evening plans, while a tailored cut through the chest and shoulders avoids the boxy fit of a standard dress shirt. Machine washable and built to hold color and shape wash after wash, this is the shirt you reach for when you need to look sharp without the ironing.",
+  stock: 5,
+  priceCents: 5999,
+  images: CATEGORY_IMAGES["mens-dress-shirts"],
+  rating: 4.5,
+  numReviews: 10,
+  isFeatured: true,
+};
+
+/* Generates `count` additional products cloned from BASE_PRODUCT, cycling through CATEGORIES (so category filtering/pagination has something real to chew on), with a few deliberately out-of-stock and a few genuinely isFeatured (so the home page's featured teaser exercises its real curated path, not just the "nothing featured yet" fallback).
+
+These are placehoder test products, not real catalog data - swap in real names/descriptions/images once there's an admin CRUD to manage products properly.
+*/
+
+export const generateSampleProducts = (count: number): SampleProduct[] => {
+  return Array.from({ length: count }, (_, i) => {
+    const n = i + 1;
+    const category = CATEGORIES[n % CATEGORIES.length];
+    return {
+      ...BASE_PRODUCT,
+      name: `${BASE_PRODUCT.name} (Sample ${n})`,
+      slug: `${BASE_PRODUCT.slug}-sample-${n}`,
+      categorySlug: category.slug,
+      images: CATEGORY_IMAGES[category.slug],
+      stock: n % 7 === 0 ? 0 : (n % 5) + 1,
+      isFeatured: n % 6 === 0,
+      priceCents: BASE_PRODUCT.priceCents + n * 150,
+    };
+  });
+};
+
 export const CATALOG = {
-  products: [
-    {
-      name: "Polo Sporting Stretch Shirt",
-      slug: "polo-sporting-stretch-shirt",
-      category: "Men's Dress Shirts",
-      description: "Classic Polo style with modern comfort",
-      longDescription:
-        "Experience audio like never before with the Apex Wireless Headphones. Engineered for the discerning listener, these headphones deliver a rich, balanced soundstage with deep, resonant bass and crystal-clear highs. The active noise cancellation technology immerses you in your music, blocking out the chaos of the outside world. With a battery life that lasts up to 40 hours and a luxurious, memory foam ear cushion design, the Apex is built for all-day comfort and premium performance. Whether you are commuting or relaxing at home, elevate your auditory journey.",
-      images: [
-        "/images/sample-products/p1-1.jpg",
-        "/images/sample-products/p1-2.jpg",
-      ],
-      price: 59.99,
-      brand: "Polo",
-      rating: 4.5,
-      numReviews: 10,
-      stock: 5,
-      isFeatured: true,
-      banner: "banner-1.jpg",
-    },
-    {
-      name: "Brooks Brothers Long Sleeved Shirt",
-      slug: "brooks-brothers-long-sleeved-shirt",
-      category: "Men's Dress Shirts",
-      description: "Timeless style and premium comfort",
-      longDescription:
-        "Illuminate your workspace with the Luminara Smart LED Desk Lamp, a masterpiece of form and function. This sleek, modern lamp offers a spectrum of color temperatures, from a warm, comforting glow to a crisp, cool light that enhances focus and productivity. Its intuitive touch controls and adjustable, flexible neck allow you to direct light exactly where you need it. Designed with energy-efficient LEDs, the Luminara reduces eye strain and lasts for years. It is the perfect addition to any office or study, combining elegance with brilliant, customizable lighting.",
-      images: [
-        "/images/sample-products/p2-1.jpg",
-        "/images/sample-products/p2-2.jpg",
-      ],
-      price: 85.9,
-      brand: "Brooks Brothers",
-      rating: 4.2,
-      numReviews: 8,
-      stock: 10,
-      isFeatured: true,
-      banner: "banner-2.jpg",
-    },
-    {
-      name: "Tommy Hilfiger Classic Fit Dress Shirt",
-      slug: "tommy-hilfiger-classic-fit-dress-shirt",
-      category: "Men's Dress Shirts",
-      description: "A perfect blend of sophistication and comfort",
-      longDescription:
-        "Stay hydrated and healthy with the Vitalis Smart Water Bottle, your intelligent hydration companion. This innovative bottle not only keeps your drinks at the perfect temperature for 24 hours but also tracks your daily water intake via a connected app. A subtle, glowing reminder system ensures you never miss a sip, helping you reach your wellness goals. Crafted from durable, eco-friendly stainless steel, the Vitalis is leak-proof and perfect for the gym, office, or on-the-go. Embrace a smarter way to hydrate and feel the difference in your energy levels.",
-      images: [
-        "/images/sample-products/p3-1.jpg",
-        "/images/sample-products/p3-2.jpg",
-      ],
-      price: 99.95,
-      brand: "Tommy Hilfiger",
-      rating: 4.9,
-      numReviews: 3,
-      stock: 0,
-      isFeatured: false,
-      banner: null,
-    },
-    {
-      name: "Calvin Klein Slim Fit Stretch Shirt",
-      slug: "calvin-klein-slim-fit-stretch-shirt",
-      category: "Men's Dress Shirts",
-      description: "Streamlined design with flexible stretch fabric",
-      longDescription:
-        "Discover the joy of cooking with the Artisan Cast Iron Skillet, a timeless kitchen essential built to last a lifetime. Perfectly seasoned and ready to use, this versatile skillet delivers superior heat retention and even cooking, creating a beautiful sear on steaks and a perfect crust on bread. Its sturdy design transitions flawlessly from stovetop to oven, making it ideal for a variety of recipes. The Artisan skillet is more than just cookware; it's a culinary investment. With proper care, its natural non-stick surface will only improve with every use.",
-      images: [
-        "/images/sample-products/p4-1.jpg",
-        "/images/sample-products/p4-2.jpg",
-      ],
-      price: 39.95,
-      brand: "Calvin Klein",
-      rating: 3.6,
-      numReviews: 5,
-      stock: 10,
-      isFeatured: false,
-      banner: null,
-    },
-    {
-      name: "Polo Ralph Lauren Oxford Shirt",
-      slug: "polo-ralph-lauren-oxford-shirt",
-      category: "Men's Dress Shirts",
-      description: "Iconic Polo design with refined oxford fabric",
-      longDescription:
-        "Find your center with the Zenith Premium Yoga Mat, designed for ultimate comfort and stability during your practice. Crafted from eco-friendly, non-slip material, this mat provides superior grip and cushioning to protect your joints on any surface. Its durable construction ensures it will withstand the rigors of daily practice, while the moisture-resistant surface is easy to clean and maintain. Whether you're a beginner or a seasoned yogi, the Zenith offers the perfect balance of support and resilience. Enhance your flow and achieve a deeper connection to your practice.",
-      images: [
-        "/images/sample-products/p5-1.jpg",
-        "/images/sample-products/p5-2.jpg",
-      ],
-      price: 79.99,
-      brand: "Polo",
-      rating: 4.7,
-      numReviews: 18,
-      stock: 6,
-      isFeatured: false,
-      banner: null,
-    },
-    {
-      name: "Polo Classic Pink Hoodie",
-      slug: "polo-classic-pink-hoodie",
-      category: "Men's Sweatshirts",
-      description: "Soft, stylish, and perfect for laid-back days",
-      longDescription:
-        "Breathe easier wherever you go with the Aeris Portable Air Purifier, your personal shield against airborne pollutants. This compact yet powerful device utilizes a true HEPA filter to capture 99.9% of dust, pollen, pet dander, and smoke particles, ensuring the air around you is consistently clean and fresh. Whisper-quiet operation and a long-lasting battery make it perfect for the office, bedroom, or travel. With its sleek, minimalist design and simple one-touch controls, the Aeris delivers pure, revitalizing air, helping you feel more focused and energized throughout the day.",
-      images: [
-        "/images/sample-products/p6-1.jpg",
-        "/images/sample-products/p6-2.jpg",
-      ],
-      price: 99.99,
-      brand: "Polo",
-      rating: 4.6,
-      numReviews: 12,
-      stock: 8,
-      isFeatured: true,
-      banner: null,
-    },
-  ],
+  products: [BASE_PRODUCT, ...generateSampleProducts(29)],
 };

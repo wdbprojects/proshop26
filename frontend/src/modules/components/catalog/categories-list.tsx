@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CategorySchemaType } from "@/config/type-schemas";
 
 const CategoriesList = ({
   categoryFilter,
@@ -11,7 +12,7 @@ const CategoriesList = ({
 }: {
   categoryFilter: string;
   categoryChipsLoading: boolean;
-  categories: string[];
+  categories: CategorySchemaType[];
   setCategory: (category: string) => void;
 }) => {
   return (
@@ -30,18 +31,17 @@ const CategoriesList = ({
               <Skeleton key={i} className="h-7 w-20 rounded-lg" aria-hidden />
             );
           })
-        : categories.map((category, index) => {
-            const cat = category.toLowerCase();
+        : categories.map((category) => {
             return (
               <Button
-                key={index}
+                key={category.id}
                 size="sm"
-                variant={`${categoryFilter && categoryFilter === cat ? "default" : "secondary"}`}
+                variant={`${categoryFilter === category.slug ? "default" : "secondary"}`}
                 onClick={() => {
-                  setCategory(category);
+                  setCategory(category.slug);
                 }}
               >
-                {category}
+                {category.name}
               </Button>
             );
           })}

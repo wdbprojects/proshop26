@@ -14,11 +14,10 @@ import {
 } from "@/lib/image-kit-url";
 import Link from "next/link";
 import { cn, formatPriceNew } from "@/lib/utils";
-import { ProductCreateSchemaType, ProductImage } from "@/config/type-schemas";
+import { ProductImageType, ProductType } from "@/config/type-schemas";
 import ProductRatings from "./product-ratings";
 import { HIGHLIGHTS } from "@/config/data";
 import AddToCart from "@/modules/components/products/add-to-cart";
-import AddToCartNew from "@/modules/components/cart/add-to-cart-new";
 
 import { buttonVariants } from "@/components/ui/button";
 import { ArrowLeft, CheckIcon } from "lucide-react";
@@ -29,8 +28,8 @@ const ProductDetailsContent = ({
   product,
   primaryImage,
 }: {
-  product: ProductCreateSchemaType;
-  primaryImage: ProductImage;
+  product: ProductType;
+  primaryImage: ProductImageType;
 }) => {
   const [ratings, setRatings] = useState<number | null>(2.5);
   const [mainPhotoUrl, setMainPhotoUrl] = useState<string>(
@@ -120,7 +119,7 @@ const ProductDetailsContent = ({
         <div className="dark:bg-muted/40! bg-muted! col-span-12 flex h-full w-full flex-col px-4 py-2 text-left sm:order-3 lg:order-2 lg:col-span-4">
           {/* HEADER & TITLE */}
           <div className="flex flex-wrap items-center gap-0">
-            <Badge variant="secondary">{category}</Badge>
+            <Badge variant="secondary">{category.name}</Badge>
             <span className="text-muted-foreground/45 ml-2 font-mono text-xs">
               {product.slug}
             </span>
@@ -155,7 +154,8 @@ const ProductDetailsContent = ({
                 <span className="font-bold">Seller:</span> Amazon
               </li>
               <li className="mb-1 grid grid-cols-[125px_1fr]">
-                <span className="font-bold">Category:</span> {product?.category}
+                <span className="font-bold">Category:</span>{" "}
+                {product?.category?.name}
               </li>
               <li className="mb-1 grid grid-cols-[125px_1fr]">
                 <span className="font-bold">Dimensions:</span> 59&quot;D x
@@ -211,7 +211,7 @@ const ProductDetailsContent = ({
           {/* OTHER ACTIONS */}
           <div>
             <Link
-              href={routes.home}
+              href={routes.products}
               className={cn(
                 buttonVariants({ size: "lg", variant: "secondary" }),
                 "text-foreground/70 flex min-w-50 items-center justify-center",

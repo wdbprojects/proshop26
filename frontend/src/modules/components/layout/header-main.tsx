@@ -96,14 +96,14 @@ const HeaderMain = () => {
             <Gauge className="size-3.5" />
             <span>Dashboard</span>
           </Link>
-          <Link href={routes.home}>
+          <Link href={routes.products}>
             <Button
               size="sm"
               variant="outline"
               className="flex items-center justify-center gap-2"
             >
               <ShoppingBag className="size-3.5" />
-              <span>Shop</span>
+              <span>Products</span>
             </Button>
           </Link>
 

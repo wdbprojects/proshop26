@@ -14,15 +14,15 @@ const ProductDetailsSkeleton = () => {
         </div>
 
         <Skeleton className="col-span-12 flex h-full w-full flex-col space-y-4 rounded-md p-4 text-left sm:order-3 lg:order-2 lg:col-span-5">
-          <Skeleton className="h-8 w-3/4 bg-white" />
-          <Skeleton className="h-12 w-1/2 bg-white" />
-          <Skeleton className="h-40 w-full bg-white" />
+          <Skeleton className="bg-card h-8 w-3/4" />
+          <Skeleton className="bg-card h-12 w-1/2" />
+          <Skeleton className="bg-card h-40 w-full" />
         </Skeleton>
 
         <div className="bg-muted col-span-12 w-full rounded-md px-4 py-4 sm:order-2 sm:col-span-5 lg:order-3 lg:col-span-3">
           <Skeleton className="aspect-square h-full w-full space-y-6 rounded-md">
-            <Skeleton className="h-8 w-3/4 bg-white" />
-            <Skeleton className="h-12 w-full bg-white" />
+            <Skeleton className="bg-card h-8 w-3/4" />
+            <Skeleton className="bg-card h-12 w-full" />
           </Skeleton>
         </div>
       </div>

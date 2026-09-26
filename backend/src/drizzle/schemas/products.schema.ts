@@ -11,6 +11,7 @@ import { uuid } from "drizzle-orm/pg-core";
 import { integer } from "drizzle-orm/pg-core";
 import { orderItems } from "./orderItems.schema";
 import { productImages } from "./product.images.schema";
+import { categories } from "./categories.schema";
 
 export const products = pgTable(
   "products",
@@ -18,7 +19,9 @@ export const products = pgTable(
     id: uuid("id").defaultRandom().primaryKey(),
     name: text("name").notNull(),
     slug: text("slug").notNull().unique(),
-    category: text("category").notNull().default("General"),
+    categoryId: uuid("category_id")
+      .notNull()
+      .references(() => categories.id, { onDelete: "restrict" }),
     brand: text("brand"),
     description: text("description").notNull().default(""),
     longDescription: text("long_description").notNull().default(""),
@@ -40,7 +43,7 @@ export const products = pgTable(
       .$onUpdate(() => new Date()),
   },
   (table) => ({
-    categoryIdx: index("products_category_idx").on(table.category),
+    categoryIdx: index("products_category_idx").on(table.categoryId),
     brandIdx: index("products_brand_idx").on(table.brand),
     activeIdx: index("products_active_idx").on(table.active),
     isFeaturedIdx: index("products_id_featured_idx").on(table.isFeatured),
@@ -48,7 +51,11 @@ export const products = pgTable(
 );
 
 /* RELATIONS */
-export const productRelations = relations(products, ({ many }) => ({
+export const productRelations = relations(products, ({ one, many }) => ({
   orderItems: many(orderItems),
   images: many(productImages),
+  category: one(categories, {
+    fields: [products.categoryId],
+    references: [categories.id],
+  }),
 }));

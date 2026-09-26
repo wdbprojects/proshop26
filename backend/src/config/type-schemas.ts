@@ -12,9 +12,7 @@ export const currency = z
 export const productCreateSchema = z.object({
   name: z.string().min(3, { message: "Name must be at least 3 characters" }),
   slug: z.string().min(3, { message: "Slug must be at least 3 characters" }),
-  category: z
-    .string()
-    .min(3, { message: "Category must be at least 3 characters" }),
+  categoryId: z.string().uuid({ message: "Category is required" }),
   brand: z.string().min(1, { message: "Brand must be at least 1 character" }),
   description: z
     .string()

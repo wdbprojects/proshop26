@@ -4,13 +4,19 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { routes } from "@/config/routes";
-import { ICategories } from "@/config/types";
+import { CategorySchemaType } from "@/config/type-schemas";
 import { cn } from "@/lib/utils";
 
 import { ArrowRightIcon, ShoppingCart, SparkleIcon } from "lucide-react";
 import Link from "next/link";
 
-const HomeHero = ({ categories, loadingCategories }: ICategories) => {
+const HomeHero = ({
+  categories,
+  loadingCategories,
+}: {
+  categories: CategorySchemaType[];
+  loadingCategories: boolean;
+}) => {
   return (
     <section className="border-base-300 from-base-100 via-base-100 to-primary/10 relative overflow-hidden rounded-md border bg-linear-to-br shadow-lg">
       <div
