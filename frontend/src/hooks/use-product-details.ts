@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  ProductCreateSchemaType,
-  ProductFormData,
-} from "@/config/type-schemas";
+import { ProductFormData, ProductType } from "@/config/type-schemas";
 import { apiFetch } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 
@@ -12,7 +9,7 @@ export const useProductDetails = (slug: string) => {
     data: productDetails,
     isLoading: loadingProductDetails,
     error: productDetailsError,
-  } = useQuery<{ product: ProductCreateSchemaType }>({
+  } = useQuery<{ product: ProductType }>({
     queryKey: ["product", slug],
     queryFn: () => apiFetch(`/api/products/${slug}`, { method: "GET" }),
     enabled: Boolean(slug),

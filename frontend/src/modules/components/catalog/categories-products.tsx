@@ -1,7 +1,7 @@
 import ErrorCard from "@/components/shared/error-card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ProductCreateSchemaType } from "@/config/type-schemas";
-import CatalogProductCard from "@/modules/components/home/catalog-product-card";
+import { ProductType } from "@/config/type-schemas";
+import CatalogProductCard from "@/modules/components/catalog/catalog-product-card";
 
 const CategoriesProducts = ({
   loadingProducts,
@@ -10,14 +10,14 @@ const CategoriesProducts = ({
 }: {
   loadingProducts: boolean;
   error: Error | null;
-  products: ProductCreateSchemaType[];
+  products: ProductType[];
 }) => {
   return loadingProducts ? (
     <ul className="grid auto-rows-fr gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => {
         return (
           <li key={item}>
-            <Skeleton className="h-96 w-full rounded-md" />
+            <Skeleton className="h-64 w-full rounded-md" />
           </li>
         );
       })}

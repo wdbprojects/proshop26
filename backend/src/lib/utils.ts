@@ -11,7 +11,7 @@ export const buildProductUpdateSet = (
   const data: Partial<typeof products.$inferInsert> = {};
   if (body.slug !== undefined) data.slug = body.slug;
   if (body.name !== undefined) data.name = body.name;
-  if (body.category !== undefined) data.category = body.category;
+  if (body.categoryId !== undefined) data.categoryId = body.categoryId;
   if (body.description !== undefined) data.description = body.description;
   if (body.priceCents !== undefined) data.priceCents = body.priceCents;
   if (body.currency !== undefined) data.currency = body.currency;

@@ -30,13 +30,13 @@ export const formatOrderWhen = (
 
 // format price
 export const formatPriceNew = (price: number, currency: string) => {
-  return new Intl.NumberFormat(undefined, {
+  return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: (currency ?? "usd").toUpperCase(),
   }).format(price / 100);
 };
 
-/* format number with decimal places */
+// format number with decimal places
 export const formatNumberWithDecimal = (num: number): string => {
   const [int, decimal] = num.toString().split(".");
   return decimal ? `${int}.${decimal.padEnd(2, "0")}` : `${int}.00`;

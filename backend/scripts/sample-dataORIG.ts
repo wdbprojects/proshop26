@@ -1,0 +1,118 @@
+export const CATALOG = {
+  products: [
+    {
+      name: "Polo Sporting Stretch Shirt",
+      slug: "polo-sporting-stretch-shirt",
+      category: "Men's Dress Shirts",
+      brand: "Polo",
+      description: "Classic Polo style with modern comfort",
+      longDescription:
+        "Experience audio like never before with the Apex Wireless Headphones. Engineered for the discerning listener, these headphones deliver a rich, balanced soundstage with deep, resonant bass and crystal-clear highs. The active noise cancellation technology immerses you in your music, blocking out the chaos of the outside world. With a battery life that lasts up to 40 hours and a luxurious, memory foam ear cushion design, the Apex is built for all-day comfort and premium performance. Whether you are commuting or relaxing at home, elevate your auditory journey.",
+      stock: 5,
+      priceCents: 5999,
+      images: [
+        "/images/sample-products/p1-1.jpg",
+        "/images/sample-products/p1-2.jpg",
+      ],
+      rating: 4.5,
+      numReviews: 10,
+      isFeatured: true,
+      banner: "banner-1.jpg",
+    },
+    /* {
+      name: "Brooks Brothers Long Sleeved Shirt",
+      slug: "brooks-brothers-long-sleeved-shirt",
+      category: "Men's Dress Shirts",
+      description: "Timeless style and premium comfort",
+      longDescription:
+        "Illuminate your workspace with the Luminara Smart LED Desk Lamp, a masterpiece of form and function. This sleek, modern lamp offers a spectrum of color temperatures, from a warm, comforting glow to a crisp, cool light that enhances focus and productivity. Its intuitive touch controls and adjustable, flexible neck allow you to direct light exactly where you need it. Designed with energy-efficient LEDs, the Luminara reduces eye strain and lasts for years. It is the perfect addition to any office or study, combining elegance with brilliant, customizable lighting.",
+      images: [
+        "/images/sample-products/p2-1.jpg",
+        "/images/sample-products/p2-2.jpg",
+      ],
+      price: 85.9,
+      brand: "Brooks Brothers",
+      rating: 4.2,
+      numReviews: 8,
+      stock: 10,
+      isFeatured: true,
+      banner: "banner-2.jpg",
+    },
+    {
+      name: "Tommy Hilfiger Classic Fit Dress Shirt",
+      slug: "tommy-hilfiger-classic-fit-dress-shirt",
+      category: "Men's Dress Shirts",
+      description: "A perfect blend of sophistication and comfort",
+      longDescription:
+        "Stay hydrated and healthy with the Vitalis Smart Water Bottle, your intelligent hydration companion. This innovative bottle not only keeps your drinks at the perfect temperature for 24 hours but also tracks your daily water intake via a connected app. A subtle, glowing reminder system ensures you never miss a sip, helping you reach your wellness goals. Crafted from durable, eco-friendly stainless steel, the Vitalis is leak-proof and perfect for the gym, office, or on-the-go. Embrace a smarter way to hydrate and feel the difference in your energy levels.",
+      images: [
+        "/images/sample-products/p3-1.jpg",
+        "/images/sample-products/p3-2.jpg",
+      ],
+      price: 99.95,
+      brand: "Tommy Hilfiger",
+      rating: 4.9,
+      numReviews: 3,
+      stock: 0,
+      isFeatured: false,
+      banner: null,
+    },
+    {
+      name: "Calvin Klein Slim Fit Stretch Shirt",
+      slug: "calvin-klein-slim-fit-stretch-shirt",
+      category: "Men's Dress Shirts",
+      description: "Streamlined design with flexible stretch fabric",
+      longDescription:
+        "Discover the joy of cooking with the Artisan Cast Iron Skillet, a timeless kitchen essential built to last a lifetime. Perfectly seasoned and ready to use, this versatile skillet delivers superior heat retention and even cooking, creating a beautiful sear on steaks and a perfect crust on bread. Its sturdy design transitions flawlessly from stovetop to oven, making it ideal for a variety of recipes. The Artisan skillet is more than just cookware; it's a culinary investment. With proper care, its natural non-stick surface will only improve with every use.",
+      images: [
+        "/images/sample-products/p4-1.jpg",
+        "/images/sample-products/p4-2.jpg",
+      ],
+      price: 39.95,
+      brand: "Calvin Klein",
+      rating: 3.6,
+      numReviews: 5,
+      stock: 10,
+      isFeatured: false,
+      banner: null,
+    },
+    {
+      name: "Polo Ralph Lauren Oxford Shirt",
+      slug: "polo-ralph-lauren-oxford-shirt",
+      category: "Men's Dress Shirts",
+      description: "Iconic Polo design with refined oxford fabric",
+      longDescription:
+        "Find your center with the Zenith Premium Yoga Mat, designed for ultimate comfort and stability during your practice. Crafted from eco-friendly, non-slip material, this mat provides superior grip and cushioning to protect your joints on any surface. Its durable construction ensures it will withstand the rigors of daily practice, while the moisture-resistant surface is easy to clean and maintain. Whether you're a beginner or a seasoned yogi, the Zenith offers the perfect balance of support and resilience. Enhance your flow and achieve a deeper connection to your practice.",
+      images: [
+        "/images/sample-products/p5-1.jpg",
+        "/images/sample-products/p5-2.jpg",
+      ],
+      price: 79.99,
+      brand: "Polo",
+      rating: 4.7,
+      numReviews: 18,
+      stock: 6,
+      isFeatured: false,
+      banner: null,
+    },
+    {
+      name: "Polo Classic Pink Hoodie",
+      slug: "polo-classic-pink-hoodie",
+      category: "Men's Sweatshirts",
+      description: "Soft, stylish, and perfect for laid-back days",
+      longDescription:
+        "Breathe easier wherever you go with the Aeris Portable Air Purifier, your personal shield against airborne pollutants. This compact yet powerful device utilizes a true HEPA filter to capture 99.9% of dust, pollen, pet dander, and smoke particles, ensuring the air around you is consistently clean and fresh. Whisper-quiet operation and a long-lasting battery make it perfect for the office, bedroom, or travel. With its sleek, minimalist design and simple one-touch controls, the Aeris delivers pure, revitalizing air, helping you feel more focused and energized throughout the day.",
+      images: [
+        "/images/sample-products/p6-1.jpg",
+        "/images/sample-products/p6-2.jpg",
+      ],
+      price: 99.99,
+      brand: "Polo",
+      rating: 4.6,
+      numReviews: 12,
+      stock: 8,
+      isFeatured: true,
+      banner: null,
+    }, */
+  ],
+};

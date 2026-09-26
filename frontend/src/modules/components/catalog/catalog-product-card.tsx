@@ -3,12 +3,10 @@
 import { routes } from "@/config/routes";
 import { IK_PRESETS, imageKitOptimizedUrl } from "@/lib/image-kit-url";
 import { formatPriceNew } from "@/lib/utils";
-import { useCart } from "@/store/cart";
 import { Ban, PlusIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { toast } from "sonner";
-import { ProductCreateSchemaType } from "@/config/type-schemas";
+import { ProductType } from "@/config/type-schemas";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,11 +20,7 @@ import {
 import { useAddToCart } from "@/hooks/use-add-to-cart";
 import { Spinner } from "@/components/ui/spinner";
 
-const CatalogProductCard = ({
-  product,
-}: {
-  product: ProductCreateSchemaType;
-}) => {
+const CatalogProductCard = ({ product }: { product: ProductType }) => {
   const addToCart = useAddToCart();
 
   const primaryImage = product.images?.find((img) => {
@@ -59,7 +53,7 @@ const CatalogProductCard = ({
             ) : null}
           </figure>
           <Badge className="absolute top-3 left-3" variant="secondary">
-            {product?.category ?? "General"}
+            {product?.category?.name ?? "General"}
           </Badge>
         </Link>
       </div>
