@@ -18,9 +18,9 @@ import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
-import { ProductWithId } from "@/config/type-schemas";
+import { ProductType } from "@/config/type-schemas";
 
-const DeleteAction = ({ product }: { product: ProductWithId }) => {
+const DeleteAction = ({ product }: { product: ProductType }) => {
   const { modalOpen, setModalOpen, deleteMutation } = useAdminProduct();
   const id = product?.id;
 

@@ -1,8 +1,9 @@
 "use client";
 
-import { Controller, useForm } from "react-hook-form";
+import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { productCreateSchema, ProductFormData } from "@/config/type-schemas";
+import z from "zod";
 
 /* SHADCN UI */
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -15,27 +16,27 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
+type ProductFormValues = z.input<typeof productCreateSchema>;
+
 const CreateUpdateProductForm = ({
   product,
 }: {
   product?: ProductFormData;
 }) => {
-  const form = useForm({
+  const form = useForm<ProductFormValues>({
     resolver: zodResolver(productCreateSchema),
     defaultValues: product ?? {
       name: "",
       slug: "",
-      category: "",
+      categoryId: "",
       brand: "",
       description: "",
       longDescription: "",
       stock: 0,
       isFeatured: false,
-      banner: "",
       priceCents: 0,
       active: true,
       currency: "usd",
-      numReviews: 0,
     },
   });
 
@@ -46,7 +47,7 @@ const CreateUpdateProductForm = ({
     formState: { isValid, isSubmitting, isDirty },
   } = form;
 
-  const onSubmitForm = (data: ProductFormData) => {
+  const onSubmitForm: SubmitHandler<ProductFormValues> = (data) => {
     console.log(data);
   };
 

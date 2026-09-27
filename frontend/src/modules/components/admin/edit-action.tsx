@@ -7,9 +7,9 @@ import { Pencil } from "lucide-react";
 import Link from "next/link";
 import { routes } from "@/config/routes";
 import { cn } from "@/lib/utils";
-import { ProductWithId } from "@/config/type-schemas";
+import { ProductType } from "@/config/type-schemas";
 
-const EditAction = ({ product }: { product: ProductWithId }) => {
+const EditAction = ({ product }: { product: ProductType }) => {
   const { modalOpen, setModalOpen, setEditing, categories } = useAdminProduct();
 
   return (

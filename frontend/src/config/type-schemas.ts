@@ -1,6 +1,7 @@
 import z from "zod";
 import { ChannelData } from "stream-chat";
 import { formatNumberWithDecimal } from "../lib/utils";
+import { IOrder, IOrderItem } from "./types";
 
 export const currency = z
   .string()
@@ -114,4 +115,23 @@ export type InsertCartSchemaType = z.infer<typeof insertCartSchema>;
 
 export type ProductFormData = ProductCreateSchemaType & {
   images: ProductImageType[];
+};
+
+/*  CHECK TO REMOVE LATER */
+export type OrderDetailsResponse = {
+  items: IOrderItem[];
+  singleOrder: Omit<IOrder, "previewItems">;
+};
+
+export type ImageKitAuthResponse = {
+  publicKey: string;
+  token: string;
+  expire: number;
+};
+
+export type ImageKitAuthenticatorType = {
+  signature: string;
+  expire: number;
+  token: string;
+  publicKey: string;
 };

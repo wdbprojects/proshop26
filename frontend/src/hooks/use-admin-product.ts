@@ -7,8 +7,9 @@ import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 import {
   CategoriesResponse,
+  ProductCreateSchemaType,
   ProductFormData,
-  ProductWithId,
+  ProductType,
 } from "@/config/type-schemas";
 
 export const useAdminProduct = () => {
@@ -23,12 +24,12 @@ export const useAdminProduct = () => {
 
   /* GET PRODUCTS QUERY */
   const { data: productsData, isLoading: dataProductsLoading } = useQuery<{
-    products: ProductWithId[];
+    products: ProductType[];
   }>({
     queryKey: ["admin", "products"],
     queryFn: async () =>
       (await apiFetch("/api/admin/products", { method: "GET" })) as {
-        products: ProductWithId[];
+        products: ProductType[];
       },
     enabled: isAdmin,
   });

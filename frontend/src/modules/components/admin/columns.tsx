@@ -11,7 +11,7 @@ import EditAction from "@/modules/components/admin/edit-action";
 import DeleteAction from "@/modules/components/admin/delete-action";
 import { IK_PRESETS, imageKitOptimizedUrl } from "@/lib/image-kit-url";
 import { formatPrice } from "@/lib/utils";
-import { ProductWithId } from "@/config/type-schemas";
+import { ProductType } from "@/config/type-schemas";
 
 export type Product = {
   id: string;
@@ -23,7 +23,7 @@ export type Product = {
   active: "yes" | "no";
 };
 
-export const columns: ColumnDef<ProductWithId>[] = [
+export const columns: ColumnDef<ProductType>[] = [
   {
     accessorKey: "imageUrl",
     header: "Preview",
