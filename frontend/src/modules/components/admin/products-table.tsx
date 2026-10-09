@@ -17,21 +17,38 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import PaginationControls from "@/modules/components/catalog/pagination-controls";
 
+interface ServerPagination {
+  page: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  /* When provided, `data` is treated as already being just the current page (as /api/admin/products returns it) - TanStack Table's own pagination feature is disabled, since having it slice an already-server-paginated array would make Previous/Next silently useless (there's nothing left locally to page into). The shared PaginationControls (same component the customer catalog page uses) renders instead of the built-in Prev/Next buttons. Omit this prop to keep the original fully-client-side behaviour for any other table using this component. */
+  pagination?: ServerPagination;
 }
 
 export const DataTable = <TData, TValue>({
   columns,
   data,
+  pagination,
 }: DataTableProps<TData, TValue>) => {
+  const isManual = Boolean(pagination);
+
   const table = useReactTable({
-    data,
-    columns,
+    data: data,
+    columns: columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    ...(isManual
+      ? { manualPagination: true, pageCount: pagination!.totalPages }
+      : {
+          getPaginationRowModel: getPaginationRowModel(),
+          initialState: { pagination: { pageSize: 10 } },
+        }),
     initialState: {
       pagination: {
         pageSize: 10,
@@ -97,26 +114,34 @@ export const DataTable = <TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <Button
-          className="w-20"
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          Previous
-        </Button>
-        <Button
-          className="w-20"
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Next
-        </Button>
-      </div>
+      {isManual ? (
+        <PaginationControls
+          page={pagination!.page}
+          totalPages={pagination!.totalPages}
+          onPageChange={pagination!.onPageChange}
+        />
+      ) : (
+        <div className="flex items-center justify-end space-x-2 py-4">
+          <Button
+            className="w-20"
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            Previous
+          </Button>
+          <Button
+            className="w-20"
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            Next
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

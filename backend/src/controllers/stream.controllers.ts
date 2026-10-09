@@ -9,20 +9,16 @@ import { getCurrentSession } from "../lib/session";
 
 const ENV = getEnv();
 
+/* requireAuth (stream.router.ts) guarantees req.session  is set below. This also fixes a real bug from the previous version: the old manual check did `res.status(401).json(....) without returning, do sn unauthenticated request fell through and tried to build a token for an undefined user , then called res.json(...) a second time - which throws "headers already sent". That code path can no longer be reached now that the router rejects unauthenticated requests first.`*/
+
 export const createStreamToken = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const session = await getCurrentSession(req.headers);
-    if (!session) {
-      res.status(401).json({ error: " Unauthorized!!" });
-    }
-
+    const user = req.session!.user;
     const server = getStreamChatServer(ENV);
-
-    const user = session?.user;
 
     const name = streamChatDisplayName(
       user?.role,
@@ -36,7 +32,12 @@ export const createStreamToken = async (
 
     const token = server.createToken(sid);
 
-    res.json({ token: token, apiKey: ENV.STREAM_API_KEY, name: name, userId: sid });
+    res.json({
+      token: token,
+      apiKey: ENV.STREAM_API_KEY,
+      name: name,
+      userId: sid,
+    });
   } catch (error) {
     next(error);
   }

@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import {
+  getSessionController,
   logoutController,
   signInController,
   signUpController,
@@ -16,5 +17,8 @@ router.post("/sign-in/email", signInController);
 
 /* BETTER AUTH SIGN OUT */
 router.post("/sign-out", logoutController);
+
+/* GET SESSION */
+router.get("/get-session", getSessionController);
 
 export default router;

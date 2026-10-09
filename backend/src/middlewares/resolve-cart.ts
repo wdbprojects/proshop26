@@ -3,6 +3,7 @@ import { auth } from "../lib/auth";
 import { fromNodeHeaders } from "better-auth/node";
 import { randomUUID } from "crypto";
 import { mergeGuestCartIntoUserCart } from "../controllers/cart.controllers";
+import { getCurrentSession } from "../lib/session";
 
 const CART_COOKIE_NAME = "cart_session_id";
 const CART_COOKIE_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 30;
@@ -26,9 +27,8 @@ export const resolveCart = async (
   next: NextFunction,
 ) => {
   try {
-    const session = await auth.api.getSession({
-      headers: fromNodeHeaders(req.headers),
-    });
+    /* If requireAuth already ran on this router (e.g. checkout.router.ts: requireAuth then resolveCart), req.session is already populated — reuse it instead of validating the session a second time. On cart.router.ts, which allows guest carts and never runs requireAuth, req.session is undefined here, so this falls back to looking the session up directly, same as before. */
+    const session = req.session ?? (await getCurrentSession(req.headers));
     const userId = session?.user?.id ?? null;
     let sessionCartId: string | null = req.cookies?.[CART_COOKIE_NAME] ?? null;
 

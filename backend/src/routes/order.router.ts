@@ -5,8 +5,10 @@ import {
   getAllOrders,
   getSingleOrder,
 } from "../controllers/order.controllers";
+import { requireAuth } from "../middlewares/authorization";
 
 const router = Router();
+router.use(requireAuth);
 
 router.get("/", getAllOrders);
 router.get("/:id", getSingleOrder);

@@ -9,7 +9,6 @@ import cronJob from "./lib/cron";
 import { polarWebhookHandler } from "./webhooks/polar";
 
 /* ROUTES IMPORTS */
-import getSession from "./routes/get-session.router";
 import authRouter from "./routes/auth.router";
 import productRouter from "./routes/product.router";
 import streamRouter from "./routes/stream.router";
@@ -19,6 +18,7 @@ import adminRouter from "./routes/admin.router";
 import orderRouter from "./routes/order.router";
 import { notFoundMiddleware } from "./middlewares/not-found";
 import { errorHandlerMiddleware } from "./middlewares/error-handler";
+import { allowedOrigins } from "./config/origins";
 
 const ENV = getEnv();
 const rawJson = express.raw({ type: "application/json", limit: "1mb" });
@@ -31,12 +31,7 @@ app.post("/webhooks/polar", rawJson, (req, res) => {
 /* MIDDLEWARES */
 app.use(
   cors({
-    origin: [
-      "https://proshop26-frontend.onrender.com",
-      "https://proshop26.onrender.com",
-      "https://proshop26.vercel.app",
-      "http://localhost:3000",
-    ],
+    origin: allowedOrigins,
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: [
@@ -67,7 +62,6 @@ app.use(express.urlencoded({ extended: true }));
 app.all("api/auth/*splat", toNodeHandler(auth));
 
 /* ROUTES */
-app.use("/api/auth", getSession);
 app.use("/api/auth", authRouter);
 app.use("/api/products", productRouter);
 app.use("/api/stream", streamRouter);

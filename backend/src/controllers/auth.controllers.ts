@@ -1,6 +1,7 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { fromNodeHeaders } from "better-auth/node";
 import { auth } from "../lib/auth";
+import { getCurrentSession } from "../lib/session";
 
 const getErrorDetails = (err: unknown) => {
   const body =
@@ -15,6 +16,22 @@ const getErrorDetails = (err: unknown) => {
       "An unexpected error occurred",
     code: body?.code,
   };
+};
+
+/* GET SESSION CONTROLLER */
+/* Optional-auth endpoint: "logged out" is a normal start, not an error, so it returns 200 with JSON `null` rather than 401 */
+export const getSessionController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const session = await getCurrentSession(req.headers);
+    res.setHeader("Cache-Control", "no-store");
+    return res.status(200).json(session);
+  } catch (err) {
+    next(err);
+  }
 };
 
 /* BETTER AUTH SIGN UP CONTROLLER */

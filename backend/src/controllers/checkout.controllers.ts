@@ -18,18 +18,14 @@ const ENV = getEnv();
 /* Only "polar" is wired up. When the Bolivia QR method lands, this becomes e.g. `req.body.paymentMethod` validated against a small zod enum, and the logic below branches on it before the provider-specific checkout call - the cart loading/stock validation above that point stays provider-agnostic and unchanged */
 const PROVIDER: PaymentProvider = "polar";
 
+/* requireAuth (checkout.router.ts) guarantees req.session is set below - checkout.router.ts is the one place besides admin.router.ts that requires login, since cart.router.ts allows guest carts */
 export const createCheckout = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    // only sign-in users can start checkout (session)
-    const userSession = await getCurrentSession(req.headers);
-    if (!userSession) {
-      res.status(401).json({ error: "Unauthorized!!" });
-      return;
-    }
+    const userSession = req.session!;
 
     // polar access token required
     if (!ENV.POLAR_ACCESS_TOKEN) {

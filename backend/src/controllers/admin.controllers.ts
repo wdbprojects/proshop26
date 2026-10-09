@@ -1,16 +1,47 @@
 import { NextFunction, Request, Response } from "express";
 import ImageKit from "@imagekit/nodejs";
-import { orderItems, products } from "../drizzle/schema";
-import { count, desc, eq } from "drizzle-orm";
+import { orderItems, productImages, products } from "../drizzle/schema";
+import { and, asc, count, desc, eq, ilike, inArray, sql } from "drizzle-orm";
 import { db } from "../drizzle/db";
 import {
-  productCreateSchema,
-  productUpdateSchema,
-} from "../config/type-schemas";
-import { buildProductUpdateSet, deleteImageKitAsset } from "../lib/utils";
+  buildProductUpdateSet,
+  deleteImageKitAsset,
+  isForeignKeyViolation,
+  isUniqueViolation,
+  getPgErrorCode,
+} from "../lib/utils";
 import { getEnv } from "../config/env";
+import { ApiError } from "../lib/api-error";
+import {
+  productCreateSchema,
+  productIdParamSchema,
+  productUpdateSchema,
+} from "../validators/product.validators";
+import { isPrimary } from "node:cluster";
 
 const ENV = getEnv();
+const DEFAULT_LIMIT = 20;
+const MAX_LIMIT = 100;
+
+const parsePositiveInt = (value: unknown, fallback: number, max?: number) => {
+  const num = typeof value === "string" ? parseInt(value, 10) : NaN;
+  if (!Number.isFinite(num) || num <= 0) return fallback;
+  return max ? Math.min(num, max) : num;
+};
+
+/* Best-effort ImageKit cleanup. Always called AFTER the HTTP response has been sent, so a slow or failing third-party call can leave an orphaned asset but can never hang a request. */
+const cleanupImageKitAssets = async (fileIds: string[], context: string) => {
+  for (const fileId of fileIds) {
+    try {
+      await deleteImageKitAsset(ENV, fileId);
+    } catch (cleanupErr) {
+      console.error(
+        `Failed to delete ImageKit asset ${fileId} (${context}):`,
+        cleanupErr,
+      );
+    }
+  }
+};
 
 /* IMAGE KIT AUTH ENDPOINT */
 export const getImageKitAuth = (
@@ -31,54 +62,134 @@ export const getImageKitAuth = (
   }
 };
 
-/* UPLOAD IMAGE TO IMAGEKIT (AVOID CORS) */
-// export const uploadImageToImageKit = async () => {};
-
-/* LIST ALL PRODUCTS */
-export const listAdminProducts = async (
-  _req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const rows = await db
-      .select()
-      .from(products)
-      .orderBy(desc(products.createdAt));
-    res.json({ products: rows });
-  } catch (error) {
-    next(error);
-  }
-};
-
-/* CREATE PRODUCT */
-/* export const createAdminProduct = async (
+/* DELETE AN UPLOADED-BUT-NOT-YET-SAVED IMAGE FROM IMAGEKIT
+  Not scoped to any product - this covers the case where an admin uploads an image while building a product, then removes it before even saving, so it never becomes a product_images row at all. */
+export const deleteProductImageUpload = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const parsed = productCreateSchema.safeParse(req.body);
-    if (!parsed.success) {
-      res
-        .status(400)
-        .json({ error: "Invalid body", details: parsed.error.flatten() });
-      return;
+    const imageKitFileId = req.params.fileId;
+    if (!imageKitFileId) {
+      throw new ApiError(400, "Missing ImageKit file id");
     }
-    const { imageUrl, imageKitFileId, ...rest } = parsed.data;
-    const [row] = await db
-      .insert(products)
-      .values({
-        ...rest,
-        imageUrl: imageUrl || null,
-        imageKitFileId: imageKitFileId || null,
-      })
-      .returning();
-    res.status(201).json({ product: row });
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    next(err);
   }
-}; */
+};
+
+/* LIST ALL PRODUCTS (paginated, with images + category, admin filters) */
+
+export const listAdminProducts = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const page = parsePositiveInt(req.query.page, 1);
+    const limit = parsePositiveInt(req.query.limit, DEFAULT_LIMIT, MAX_LIMIT);
+    const offset = (page - 1) * limit;
+
+    const search =
+      typeof req.query.search === "string" ? req.query.search.trim() : "";
+    const categoryId =
+      typeof req.query.categoryId === "string"
+        ? req.query.categoryId
+        : undefined;
+    const activeFilter =
+      req.query.active === "true"
+        ? true
+        : req.query.active === "false"
+          ? false
+          : undefined;
+
+    const conditions = [];
+    if (search) conditions.push(ilike(products.name, `%${search}%`));
+    if (categoryId) conditions.push(eq(products.categoryId, categoryId));
+    if (activeFilter !== undefined)
+      conditions.push(eq(products.active, activeFilter));
+    const where = conditions.length > 0 ? and(...conditions) : undefined;
+
+    const [rows, [{ total }]] = await Promise.all([
+      db.query.products.findMany({
+        where: where,
+        orderBy: desc(products.createdAt),
+        limit: limit,
+        offset: offset,
+        with: {
+          images: { orderBy: asc(productImages.order) },
+          category: true,
+        },
+      }),
+      db
+        .select({ total: sql<number>`count(*)::int` })
+        .from(products)
+        .where(where),
+    ]);
+    res.json({
+      products: rows,
+      pagination: {
+        page: page,
+        limit: limit,
+        total: total,
+        totalPages: Math.max(1, Math.ceil(total / limit)),
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/* CREATE PRODUCT */
+export const createAdminProduct = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const parsed = productCreateSchema.parse(req.body);
+    const { images, ...productFields } = parsed;
+    const created = await db.transaction(async (tx) => {
+      const [product] = await tx
+        .insert(products)
+        .values(productFields)
+        .returning();
+
+      await tx.insert(productImages).values(
+        images.map((image, index) => {
+          return {
+            productId: product.id,
+            url: image.url,
+            imageKitFileId: image.imageKitFileId,
+            alt: image.alt ?? null,
+            order: index,
+            isPrimary: index === 0,
+          };
+        }),
+      );
+      return product;
+    });
+
+    const productWithRelations = await db.query.products.findFirst({
+      where: eq(products.id, created.id),
+      with: {
+        images: { orderBy: asc(productImages.order) },
+        category: true,
+      },
+    });
+
+    res.status(201).json({ product: productWithRelations });
+  } catch (err) {
+    if (isUniqueViolation(err)) {
+      return next(new ApiError(409, "A product with this slug already exists"));
+    }
+    if (isForeignKeyViolation(err)) {
+      return next(new ApiError(400, "Invalid category"));
+    }
+    next(err);
+  }
+};
 
 /* UPDATE PRODUCT */
 export const updateAdminProduct = async (
@@ -87,149 +198,205 @@ export const updateAdminProduct = async (
   next: NextFunction,
 ) => {
   try {
-    const parsed = productUpdateSchema.safeParse(req.body);
-    if (!parsed.success) {
-      res
-        .status(400)
-        .json({ error: "Invalid body", details: parsed.error.flatten() });
-      return;
-    }
-    const data = buildProductUpdateSet(parsed.data);
-    if (Object.keys(data).length === 0) {
-      res.status(400).json({ error: "No fields to update" });
-      return;
-    }
-    const [row] = await db
-      .update(products)
-      .set(data)
-      .where(eq(products.id, req.params.id as string))
-      .returning();
+    const { id } = productIdParamSchema.parse(req.params);
+    const parsed = productUpdateSchema.parse(req.body);
+    const { images, ...scalarFields } = parsed;
+    const data = buildProductUpdateSet(scalarFields);
 
-    if (!row) {
-      res.status(404).json({ error: "Not found" });
-      return;
+    if (Object.keys(data).length === 0 && images === undefined) {
+      throw new ApiError(400, "No fields to update");
     }
-    res.status(201).json({
-      message: "Product updated successfully!!",
-      product: row,
+
+    let removedImageKitFileIds: string[] = [];
+
+    const updated = await db.transaction(async (tx) => {
+      if (Object.keys(data).length > 0) {
+        const [row] = await tx
+          .update(products)
+          .set(data)
+          .where(eq(products.id, id))
+          .returning({ id: products.id });
+
+        if (!row) {
+          throw new ApiError(404, "Product not found");
+        }
+      } else {
+        const [existing] = await tx
+          .select({ id: products.id })
+          .from(products)
+          .where(eq(products.id, id))
+          .limit(1);
+        if (!existing) {
+          throw new ApiError(404, "Product not found");
+        }
+      }
+
+      if (images !== undefined) {
+        const existingImages = await tx.query.productImages.findMany({
+          where: eq(productImages.productId, id),
+        });
+        const existingIds = new Set(
+          existingImages.map((image) => {
+            return image.id;
+          }),
+        );
+        const keptIds = new Set(
+          images
+            .filter((image) => {
+              return image.id;
+            })
+            .map((image) => {
+              return image.id;
+            }),
+        );
+        const idsToRemove = existingImages
+          .filter((image) => {
+            return !keptIds.has(image.id);
+          })
+          .map((image) => {
+            return image.id;
+          });
+
+        /* Unset every row's primary flag first - product_images has a partial unique index allowing only one isPrimary=true row per product, checked per-statement (not deferred). Updating rows one at a time without this step could transiently try to set a new primary while the old one is still true and violate it.  */
+        await tx
+          .update(productImages)
+          .set({ isPrimary: false })
+          .where(eq(productImages.productId, id));
+
+        if (idsToRemove.length > 0) {
+          await tx
+            .delete(productImages)
+            .where(inArray(productImages.id, idsToRemove));
+        }
+
+        for (let index = 0; index < images.length; index++) {
+          const image = images[index];
+          const primary = index === 0;
+          if (image.id && existingIds.has(image.id)) {
+            await tx
+              .update(productImages)
+              .set({
+                alt: image.alt ?? null,
+                order: index,
+                isPrimary: primary,
+              })
+              .where(eq(productImages.id, image.id));
+          } else {
+            await tx.insert(productImages).values({
+              productId: id,
+              url: image.url,
+              imageKitFileId: image.imageKitFileId,
+              alt: image.alt ?? null,
+              order: index,
+              isPrimary: primary,
+            });
+          }
+        }
+
+        removedImageKitFileIds = existingImages
+          .filter((image) => {
+            return idsToRemove.includes(image.id) && image.imageKitFileId;
+          })
+          .map((image) => {
+            return image.imageKitFileId as string;
+          });
+      }
+      return tx.query.products.findFirst({
+        where: eq(products.id, id),
+        with: {
+          images: { orderBy: asc(productImages.order) },
+          category: true,
+        },
+      });
     });
-  } catch (error) {
-    next(error);
+
+    res.status(200).json({
+      message: "Product updated successfully",
+      product: updated,
+    });
+
+    /* After the response and after the commit: a failed or slow ImageKit delete leaves an orphaned asset, never a hung request or a rolled-back DB change. */
+    void cleanupImageKitAssets(
+      removedImageKitFileIds,
+      `product ${req.params.id}`,
+    );
+  } catch (err) {
+    /* Every path out of this block must end in a next() call - an error that matches none of the branches below and isn't forwarded leaves the request without any response, which hangs the client forever with nothing lagged. */
+    const pgCode = getPgErrorCode(err);
+    if (pgCode === "55P03" || pgCode === "57014") {
+      return next(
+        new ApiError(
+          503,
+          "This product is being modified by another request. Please try again in a moment",
+        ),
+      );
+    }
+    if (isUniqueViolation(err, "product_images_one_primary_idx")) {
+      return next(
+        new ApiError(409, "Could not update product images. Please try again"),
+      );
+    }
+    if (isUniqueViolation(err)) {
+      return next(new ApiError(409, "A product with this slug already exists"));
+    }
+    if (isForeignKeyViolation(err)) {
+      return next(new ApiError(400, "Invalid category"));
+    }
+    next(err);
   }
 };
 
 /* DELETE PRODUCT */
-/* export const deleteAdminProduct = async (
+export const deleteAdminProduct = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const id = req.params.id as string;
+    const { id } = productIdParamSchema.parse(req.params);
+
     const [existing] = await db
-      .select()
+      .select({ id: products.id })
       .from(products)
       .where(eq(products.id, id))
       .limit(1);
     if (!existing) {
-      res.status(404).json({ error: "Product not found" });
-      return;
+      throw new ApiError(404, "Product not found");
     }
-    const [countRow] = await db
-      .select({ count: count() })
+
+    const [{ orderCount }] = await db
+      .select({ orderCount: count() })
       .from(orderItems)
       .where(eq(orderItems.productId, id));
-    if (Number(countRow?.count ?? 0) > 0) {
-      res.status(409).json({
-        error:
-          "This product is on one or more orders and cannot be deleted. Deactivate it instead.",
-      });
-      return;
-    }
-    await deleteImageKitAsset(ENV, existing.imageKitFileId);
-    await db.delete(products).where(eq(products.id, id));
-    res
-      .status(200)
-      .json({ success: true, message: "Product deleted successfully" });
-  } catch (error) {
-    next(error);
-  }
-}; */
-
-/* DELETE IMAGES */
-/* export const deleteProductImage = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const id = req.params.id as string;
-    // get the product to check if it exists and get the fileId
-    const [existing] = await db
-      .select({
-        id: products.id,
-        imageKitFileId: products.imageKitFileId,
-        imageUrl: products.imageUrl,
-      })
-      .from(products)
-      .where(eq(products.id, id))
-      .limit(1);
-
-    if (!existing) {
-      res.status(404).json({ error: "Product not found" });
-      return;
+    if (Number(orderCount) > 0) {
+      throw new ApiError(
+        409,
+        "This product is on one or more orders and cannot be deleted. Deactivate it instead",
+      );
     }
 
-    // check if there's actually an image to delete
-    if (!existing.imageKitFileId) {
-      res.status(400).json({
-        error: "This product doesn't have an associated image to delete",
-      });
-      return;
-    }
-
-    // delete the image from imagejkit
-    await deleteImageKitAsset(ENV, existing.imageKitFileId);
-
-    // Update the product to remove image references
-    await db
-      .update(products)
-      .set({ imageUrl: null, imageKitFileId: null })
-      .where(eq(products.id, id));
-
-    // update the product record to remove the image references
-    res.status(200).json({
-      success: true,
-      message: "Image deleted successfully from ImageKit",
+    const images = await db.query.productImages.findMany({
+      where: eq(productImages.productId, id),
     });
-  } catch (err) {
-    next(err);
-  }
-}; */
 
-/* DELETE IMAGES FROM IMAGEKIT ONLY */
-export const deleteProductImageUpload = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const imageKitFileId = req.params.id as string;
+    // product_images cascade-deletes with the product (FK onDelete: cascade)
+    await db.delete(products).where(eq(products.id, id));
 
-    // check if there's actually an image to delete
-    if (!imageKitFileId) {
-      res.status(400).json({
-        error: "There is no image in ImageKit with that ID",
-      });
-      return;
+    for (const image of images) {
+      if (!image.imageKitFileId) continue;
+      try {
+        await deleteImageKitAsset(ENV, image.imageKitFileId);
+      } catch (cleanupErr) {
+        console.error(
+          `Failed to delete ImageKit asset ${image.imageKitFileId} for product ${id}`,
+          cleanupErr,
+        );
+      }
     }
-
-    // delete the image from imagejkit
-    await deleteImageKitAsset(ENV, imageKitFileId);
 
     res.status(200).json({
       success: true,
-      message: "Image deleted successfully from ImageKit",
+      message: "Image deleted successfully",
     });
   } catch (err) {
     next(err);
@@ -243,16 +410,19 @@ export const getProductById = async (
   next: NextFunction,
 ) => {
   try {
-    const [row] = await db
-      .select()
-      .from(products)
-      .where(eq(products.id, req.params.id as string))
-      .limit(1);
+    const { id } = productIdParamSchema.parse(req.params);
+    const row = await db.query.products.findFirst({
+      where: eq(products.id, id),
+      with: {
+        images: { orderBy: asc(productImages.order) },
+        category: true,
+      },
+    });
     if (!row) {
-      return res.status(404).json({ error: "Not found" });
+      throw new ApiError(404, "Product not found");
     }
     res.json({ product: row });
-  } catch (event) {
-    next(event);
+  } catch (err) {
+    next(err);
   }
 };

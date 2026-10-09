@@ -3,6 +3,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "../drizzle/db";
 import { admin } from "better-auth/plugins";
 import { getEnv } from "../config/env";
+import { allowedOrigins } from "../config/origins";
 
 const ENV = getEnv();
 
@@ -14,12 +15,7 @@ export const auth = betterAuth({
   }),
   baseURL: ENV.BETTER_AUTH_URL,
   secret: ENV.BETTER_AUTH_SECRET,
-  trustedOrigins: [
-    ENV.FRONTEND_URL,
-    "http://localhost:3000",
-    "https://proshop26-frontend.onrender.com",
-    "https://proshop26.vercel.app/",
-  ],
+  trustedOrigins: allowedOrigins,
   advanced: {
     useSecureCookies: true,
     defaultCookieAttributes: {
