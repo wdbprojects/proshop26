@@ -28,22 +28,23 @@ export const getAllOrders = async (
   next: NextFunction,
 ) => {
   try {
-    const session = await getCurrentSession(req.headers);
-    if (!session) {
-      res.status(401).json({ error: "Unauthorized" });
-      return;
-    }
-    const user = session?.user;
+    const user = req.session!.user;
 
     const rows = isStaff(user?.role as UserRole)
       ? await db.select().from(orders).orderBy(desc(orders.createdAt))
       : await db.select().from(orders).where(eq(orders.userId, user.id));
 
+    const session = await getCurrentSession(req.headers);
+    if (!session) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
     const orderIds = rows.map((order) => {
       return order.id;
     });
 
-    // create the order map
+    // create the order Map
     const previewByOrder = new Map();
 
     // generate inner join to get orders & product details
@@ -85,18 +86,14 @@ export const getAllOrders = async (
 };
 
 /* GET SINGLE ORDER BY ID */
+/* requireAuth (order.router.ts) guarantees req.session is set below. Ownership-or-staff still has to happen here: it needs the order row first to know who owns it, which requireStaff/requireRole can't check. */
 export const getSingleOrder = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const session = await getCurrentSession(req.headers);
-    if (!session) {
-      res.status(401).json({ error: "Unauthorized" });
-      return;
-    }
-    const user = session?.user;
+    const user = req.session!.user;
     const [singleOrder] = await db
       .select()
       .from(orders)
@@ -132,18 +129,14 @@ export const getSingleOrder = async (
 };
 
 /* CREATE STREAM CHANNEL */
+/* requireAuth (order.router.ts) guarantees req.session is set below. Owner-or-staff still has to happen here, same reasoning as getSingleOrder. */
 export const createStreamChannel = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const session = await getCurrentSession(req.headers);
-    if (!session) {
-      res.status(401).json({ error: "Unauthorized" });
-      return;
-    }
-    const user = session?.user;
+    const user = req.session!.user;
     const server = getStreamChatServer(ENV);
     const [orderDetail] = await db
       .select()
@@ -179,7 +172,7 @@ export const createStreamChannel = async (
     await channel.addMembers([streamChatUserId]);
     res.json({
       channelType: "messaging",
-      channelId,
+      channelId: channelId,
       streamUserId: streamChatUserId,
     });
   } catch (error) {
@@ -188,26 +181,16 @@ export const createStreamChannel = async (
 };
 
 /* VIDEO INVITE */
+/* requireAuth + requireStaff (order.router.ts) guarantee req.session is set and the caller is staff — no ownership check needed, so nothing to re-verify here beyond what the route already gated. */
 export const createVideoInvite = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const session = await getCurrentSession(req.headers);
-    if (!session) {
-      res.status(401).json({ error: "Unauthorized" });
-      return;
-    }
-    const userData = session?.user;
+    const userData = req.session!.user;
     const server = getStreamChatServer(ENV);
 
-    if (!isStaff(userData?.role as UserRole)) {
-      res
-        .status(403)
-        .json({ error: "Only support or admin can send a video invite" });
-      return;
-    }
     const [orderDetails] = await db
       .select()
       .from(orders)

@@ -10,25 +10,24 @@ import Image from "next/image";
 import EditAction from "@/modules/components/admin/edit-action";
 import DeleteAction from "@/modules/components/admin/delete-action";
 import { IK_PRESETS, imageKitOptimizedUrl } from "@/lib/image-kit-url";
-import { formatPrice } from "@/lib/utils";
+import { formatPriceNew } from "@/lib/utils";
 import { ProductType } from "@/config/type-schemas";
-
-export type Product = {
-  id: string;
-  name: string;
-  category: string;
-  slug: string;
-  priceCents: number;
-  currency: string;
-  active: "yes" | "no";
-};
 
 export const columns: ColumnDef<ProductType>[] = [
   {
-    accessorKey: "imageUrl",
+    id: "thumbnail",
+    accessorFn: (row) => {
+      return (
+        row.images?.find((img) => {
+          return img.isPrimary;
+        })?.url ??
+        row.images?.[0]?.url ??
+        null
+      );
+    },
     header: "Preview",
-    cell: ({ row }) => {
-      const url: string = row.getValue("imageUrl");
+    cell: ({ getValue }) => {
+      const url = getValue<string | null>();
       return (
         <div className="border-muted bg-background/30 ring-muted/50 relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border shadow-sm ring-1 sm:h-18 sm:w-18">
           {url ? (
@@ -53,16 +52,19 @@ export const columns: ColumnDef<ProductType>[] = [
     header: "Name",
   },
   {
-    accessorKey: "category",
+    id: "category",
+    accessorFn: (row) => {
+      return row.category?.name ?? "Uncategorized";
+    },
     header: () => {
       return <div className="text-center">Category</div>;
     },
-    cell: ({ row }) => {
-      const category: string = row.getValue("category");
+    cell: ({ getValue }) => {
+      const categoryName = getValue<string>();
       return (
         <div className="flex w-full items-center justify-center">
           <Badge variant="outline" className="rounded-lg p-3 text-xs">
-            {category}
+            {categoryName}
           </Badge>
         </div>
       );
@@ -72,16 +74,16 @@ export const columns: ColumnDef<ProductType>[] = [
     accessorKey: "slug",
     header: "Slug",
   },
-  {
+  /* {
     accessorKey: "description",
     header: "Description",
     cell: ({ row }) => {
-      const category: string = row.getValue("description");
+      const category: string = row.getValue("description") ?? "";
       return (
         <div className="w-full text-wrap">{category.slice(0, 100) + ""}</div>
       );
     },
-  },
+  }, */
   {
     accessorKey: "active",
     header: () => {
@@ -107,15 +109,11 @@ export const columns: ColumnDef<ProductType>[] = [
       return <div className="text-right">Amount</div>;
     },
     cell: ({ row }) => {
-      const amount: number = parseFloat(row.getValue("priceCents"));
+      const amount: number = row.getValue("priceCents");
       const currency: string = row.original.currency;
-      // const formattedAmount = new Intl.NumberFormat("en-US", {
-      //   style: "currency",
-      //   currency: "USD",
-      // }).format(amount);
       return (
         <div className="text-right font-medium">
-          {formatPrice(amount, currency)}
+          {formatPriceNew(amount, currency)}
         </div>
       );
     },

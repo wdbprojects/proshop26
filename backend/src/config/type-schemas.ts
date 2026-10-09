@@ -9,35 +9,6 @@ export const currency = z
     { message: "Price must have exactly two decimal places" },
   );
 
-export const productCreateSchema = z.object({
-  name: z.string().min(3, { message: "Name must be at least 3 characters" }),
-  slug: z.string().min(3, { message: "Slug must be at least 3 characters" }),
-  categoryId: z.string().uuid({ message: "Category is required" }),
-  brand: z.string().min(1, { message: "Brand must be at least 1 character" }),
-  description: z
-    .string()
-    .min(10, { message: "Description must be at least 10 characters" }),
-  longDescription: z
-    .string()
-    .min(10, { message: "Long description must be at least 10 characters" }),
-  stock: z.coerce
-    .number()
-    .int()
-    .nonnegative({ message: "Stock mus be zero or a positive whole number" }),
-  isFeatured: z.boolean(),
-  banner: z.string().optional(),
-  priceCents: z.number().int().positive(),
-  currency: z.string().min(1).default("usd"),
-  active: z.boolean(),
-});
-export type ProductCreateSchemaType = z.infer<typeof productCreateSchema> & {
-  id: string;
-  rating: number;
-  createdAt: Date;
-};
-
-export const productUpdateSchema = productCreateSchema.partial();
-
 export type ExtendedChannelData = ChannelData & {
   name: string;
 };
@@ -70,7 +41,6 @@ export const cartItemsSchema = z.object({
   quantity: z.number().int().nonnegative(),
   priceCentsAtAdd: z.number().int().nonnegative,
 });
-
 export type CartItemsSchemaType = z.infer<typeof cartItemsSchema>;
 
 export const insertCartSchema = z.object({

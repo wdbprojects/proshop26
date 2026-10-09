@@ -1,6 +1,6 @@
 "use client";
 
-import { ProductFormData, ProductType } from "@/config/type-schemas";
+import { ProductType } from "@/config/type-schemas";
 import { apiFetch } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 
@@ -23,8 +23,8 @@ export const useProductDetails = (slug: string) => {
 };
 
 export const useProductDetailsId = (id: string) => {
-  const { data, isLoading, error } = useQuery<{ product: ProductFormData }>({
-    queryKey: ["product", id],
+  const { data, isLoading, error } = useQuery<{ product: ProductType }>({
+    queryKey: ["admin", "product", id],
     queryFn: () => apiFetch(`/api/admin/products/${id}`, { method: "GET" }),
     enabled: Boolean(id),
   });

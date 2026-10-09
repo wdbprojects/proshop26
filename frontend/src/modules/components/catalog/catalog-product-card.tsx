@@ -63,13 +63,13 @@ const CatalogProductCard = ({ product }: { product: ProductType }) => {
             <CardTitle className="px-0">
               <Link
                 href={routes.productDetails(product.slug)}
-                className="hover:text-primary line-clamp-2 text-base font-light transition-all"
+                className="hover:text-primary line-clamp-2 text-base leading-4.5 font-light transition-all"
               >
                 {product.name}
               </Link>
             </CardTitle>
           </CardHeader>
-          <CardDescription className="text-muted-foreground line-clamp-3 px-2 text-sm leading-tight">
+          <CardDescription className="text-muted-foreground mt-2 line-clamp-3 px-2 text-sm leading-tight">
             {product?.description}
           </CardDescription>
         </div>

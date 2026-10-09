@@ -1,7 +1,6 @@
 "use client";
 
 import { useAdminProduct } from "@/hooks/use-admin-product";
-import EditProduct from "@/modules/components/admin/edit-action";
 
 import {
   AlertDialog,
