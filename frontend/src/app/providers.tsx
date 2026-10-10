@@ -23,7 +23,7 @@ const Providers = ({ children }: LayoutPropsMain) => {
           position="bottom-right"
           expand={true}
         /> */}
-        <Toaster position="top-center" />
+        <Toaster />
       </div>
     </ThemeProvider>
   );
