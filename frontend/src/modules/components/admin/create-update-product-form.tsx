@@ -330,6 +330,7 @@ const CreateUpdateProductForm = ({ product }: { product?: ProductType }) => {
         }),
       ];
     });
+    setImagesDirty(true);
   };
 
   const hasPendingUploads = images.some((img) => {

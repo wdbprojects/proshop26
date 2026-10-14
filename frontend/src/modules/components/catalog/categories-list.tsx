@@ -16,35 +16,42 @@ const CategoriesList = ({
   setCategory: (category: string) => void;
 }) => {
   return (
-    <div className="flex flex-wrap gap-1">
-      <Button
-        variant={`${!categoryFilter ? "default" : "secondary"}`}
-        size="sm"
-        className=""
-        onClick={() => setCategory("")}
-      >
-        All
-      </Button>
-      {categoryChipsLoading
-        ? [1, 2, 3, 4, 5, 6].map((i) => {
-            return (
-              <Skeleton key={i} className="h-7 w-20 rounded-lg" aria-hidden />
-            );
-          })
-        : categories.map((category) => {
-            return (
-              <Button
-                key={category.id}
-                size="sm"
-                variant={`${categoryFilter === category.slug ? "default" : "secondary"}`}
-                onClick={() => {
-                  setCategory(category.slug);
-                }}
-              >
-                {category.name}
-              </Button>
-            );
-          })}
+    <div className="space-y-2">
+      <h3 className="text-sm font-semibold">Categories</h3>
+      <div className="flex flex-col flex-wrap gap-1 text-xs!">
+        <Button
+          variant={`${!categoryFilter ? "default" : "secondary"}`}
+          size="sm"
+          className="text-xs"
+          onClick={() => setCategory("")}
+        >
+          All Categories
+        </Button>
+        {categoryChipsLoading
+          ? [1, 2, 3, 4, 5].map((i) => {
+              return (
+                <Skeleton
+                  key={i}
+                  className="h-6 w-full rounded-full"
+                  aria-hidden
+                />
+              );
+            })
+          : categories?.map((category) => {
+              return (
+                <Button
+                  key={category.id}
+                  size="xs"
+                  variant={`${categoryFilter === category.slug ? "default" : "secondary"}`}
+                  onClick={() => {
+                    setCategory(category.slug);
+                  }}
+                >
+                  {category.name}
+                </Button>
+              );
+            })}
+      </div>
     </div>
   );
 };

@@ -70,10 +70,10 @@ export const columns: ColumnDef<ProductType>[] = [
       );
     },
   },
-  {
+  /*  {
     accessorKey: "slug",
     header: "Slug",
-  },
+  }, */
   /* {
     accessorKey: "description",
     header: "Description",

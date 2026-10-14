@@ -5,7 +5,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { routes } from "@/config/routes";
 import { useOrderDetails } from "@/hooks/use-order-details";
-import { cn, formatOrderWhen, formatPrice } from "@/lib/utils";
+import { cn, formatOrderWhen, formatPriceNew } from "@/lib/utils";
 import { ArrowLeftIcon } from "lucide-react";
 import Link from "next/link";
 
@@ -74,7 +74,7 @@ const OrderDetailsTop = ({ orderId }: { orderId: string }) => {
                   Order total
                 </p>
                 <p className="text-foreground text-xl font-semibold tabular-nums sm:text-2xl">
-                  {formatPrice(singleOrder.totalCents, "usd")}
+                  {formatPriceNew(singleOrder.totalCents, singleOrder.currency)}
                 </p>
               </div>
             </div>

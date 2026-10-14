@@ -54,6 +54,7 @@ export interface IOrder {
   previewItems: IOrderPreview[];
   status: string;
   totalCents: number;
+  currency: string;
   updatedAt: string;
   createdAt: string;
 }

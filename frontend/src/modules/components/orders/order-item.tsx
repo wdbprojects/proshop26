@@ -6,7 +6,7 @@ import { IOrder } from "@/config/types";
 import Link from "next/link";
 import OrderPreview from "@/modules/components/orders/order-preview";
 import { Badge } from "@/components/ui/badge";
-import { formatOrderWhen, formatPrice } from "@/lib/utils";
+import { formatOrderWhen, formatPriceNew } from "@/lib/utils";
 import { ChevronRightIcon } from "lucide-react";
 
 const OrderItem = ({ order, summary }: { order: IOrder; summary: string }) => {
@@ -50,7 +50,7 @@ const OrderItem = ({ order, summary }: { order: IOrder; summary: string }) => {
                   Total
                 </p>
                 <p className="text-foreground text-lg font-bold tabular-nums sm:text-xl">
-                  {formatPrice(order.totalCents, "usd")}
+                  {formatPriceNew(order.totalCents, order.currency)}
                 </p>
               </div>
               <ChevronRightIcon

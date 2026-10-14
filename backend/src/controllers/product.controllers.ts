@@ -11,8 +11,10 @@ import {
   gte,
   lte,
   isNotNull,
+  ilike,
+  or,
 } from "drizzle-orm";
-import { truncateText } from "../lib/utils";
+import { escapeLike, tokenize, truncateText } from "../lib/utils";
 
 const DEFAULT_LIMIT = 8;
 const MAX_LIMIT = 48;
@@ -108,8 +110,28 @@ export const getAllProducts = async (
     }
 
     /* Full-text match OR trigram similarity fallback - the latter is what still returns results for a typo'd query that full-text (exact lexeme matching) would otherwise miss entirely */
+    const tokens = tokenize(q);
     const searchCondition = q
-      ? sql`(search_vector @@ websearch_to_tsquery('english', ${q}) OR ${products.name} % ${q})`
+      ? or(
+          sql`search_vector @@ websearch_to_tsquery('english', ${q})`,
+          /* partial words, anywhere in name/brand/description/category */
+          and(
+            ...tokens.map((token) => {
+              const pattern = `%${escapeLike(token)}%`;
+              return or(
+                ilike(products.name, pattern),
+                ilike(products.brand, pattern),
+                ilike(products.description, pattern),
+                sql`exists (
+                select 1 from categories c
+                where c.id = products.category_id
+                and c.name ilike ${pattern}
+              )`,
+              );
+            }),
+          ),
+          sql`${products.name} % ${q}`,
+        )
       : undefined;
 
     const allConditions = searchCondition
@@ -259,7 +281,23 @@ export const suggestProducts = async (
       return;
     }
 
-    const prefixPattern = `${q}%`;
+    const tokens = tokenize(q);
+    const prefixPattern = `${escapeLike(q)}%`;
+    const containsPattern = `%${escapeLike(q)}%`;
+
+    /* CONTINUE HERE.... */
+
+    const tokenMatch = and(
+      ...tokens.map((token) => {
+        const pattern = `%${escapeLike(token)}%`;
+        return or(
+          ilike(products.name, pattern),
+          ilike(products.brand, pattern),
+          ilike(products.description, pattern),
+          ilike(categories.name, pattern),
+        );
+      }),
+    );
 
     const rows = await db
       .select({
@@ -271,20 +309,27 @@ export const suggestProducts = async (
         currency: products.currency,
         thumbnail: sql<string | null>`(
         select pi.url from product_images pi
-        where pi.product_id = ${products.id}
+        where pi.product_id = "products"."id"
         order by pi.is_primary desc, pi."order" asc
         limit 1
       )`,
       })
       .from(products)
+      .innerJoin(categories, eq(products.categoryId, categories.id))
       .where(
         and(
           eq(products.active, true),
-          sql`(${products.name} ilike ${prefixPattern} OR ${products.name} % ${q})`,
+          /* word match OR trigram (keep typo tolerance, e.g. "wireless") */
+          // sql`(${products.name} ilike ${prefixPattern} OR ${products.name} % ${q})`,
+          or(tokenMatch, sql`${products.name} % ${q}`),
         ),
       )
       .orderBy(
         sql`(${products.name} ilike ${prefixPattern}) DESC`,
+<<<<<<< HEAD
+=======
+        sql`(${products.name} ilike ${containsPattern}) DESC`,
+>>>>>>> 9-catalog-filters-search-fixed
         sql`similarity(${products.name}, ${q}) DESC`,
       )
       .limit(SUGGEST_LIMIT);
