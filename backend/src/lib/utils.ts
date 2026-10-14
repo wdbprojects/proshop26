@@ -80,3 +80,19 @@ export const truncateText = (text: string, maxLength: number): string => {
   if (text.length <= maxLength) return text;
   return `${text.slice(0, maxLength).trimEnd()}…`;
 };
+
+/* Escape LIKE wildcards so a user typing "50%" or "a_b" doesn't act as a pattern */
+export const escapeLike = (value: string) => {
+  return value.replace(/[\\%_]/g, "\\$&");
+};
+
+export const tokenize = (query: string) => {
+  return query
+    .toLowerCase()
+    .split(/\s+/)
+    .map((t) => {
+      return t.trim();
+    })
+    .filter(Boolean)
+    .slice(0, 6);
+};

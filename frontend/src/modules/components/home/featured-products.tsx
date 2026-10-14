@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { routes } from "@/config/routes";
 import { ProductType } from "@/config/type-schemas";
-import { cn } from "@/lib/utilsPREV";
+import { cn } from "cn";
 import { ArrowRightIcon } from "lucide-react";
 import CategoriesProducts from "@/modules/components/catalog/categories-products";
 import { buttonVariants } from "@/components/ui/button";
@@ -24,7 +24,7 @@ const FeaturedProducts = ({
           </h2>
         </div>
         <Link
-          href={routes.products}
+          href={routes.catalog}
           className={cn(
             buttonVariants({ variant: "outline", size: "sm" }),
             "flex w-fit items-center gap-1.5",
