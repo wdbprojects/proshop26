@@ -15,6 +15,7 @@ import { Gauge, Lock, Package, ShoppingBag, ShoppingCart } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import SearchBar from "@/modules/components/search/search-bar";
 
 const HeaderMain = () => {
   const { data, isLoading, error, refetch } = useQuery({
@@ -50,6 +51,9 @@ const HeaderMain = () => {
       <div className="container mx-auto flex w-full items-center justify-between gap-1 sm:gap-2">
         {/* // MENU & LOGO  & NAV LINKS */}
         <AppLogo />
+        <div className="hidden w-full max-w-md md:block">
+          <SearchBar />
+        </div>
         {/* // AUTH & BUTTONS */}
         <div className="flex shrink-0 items-center gap-2 p-1">
           {data?.session && (
@@ -96,7 +100,7 @@ const HeaderMain = () => {
             <Gauge className="size-3.5" />
             <span>Dashboard</span>
           </Link>
-          <Link href={routes.products}>
+          <Link href={routes.catalog}>
             <Button
               size="sm"
               variant="outline"

@@ -7,11 +7,7 @@ import LongDescription from "@/modules/components/products/description";
 import ProductBreadcrumb from "@/modules/components/products/product-breadcrumb";
 import { PriceTag } from "./pricetag";
 import Image from "next/image";
-import {
-  IK_PRESETS,
-  imageKitOptimizedUrl,
-  imageKitWatermarkedUrl,
-} from "@/lib/image-kit-url";
+import { IK_PRESETS, imageKitOptimizedUrl } from "@/lib/image-kit-url";
 import Link from "next/link";
 import { cn, formatPriceNew } from "@/lib/utils";
 import { ProductImageType, ProductType } from "@/config/type-schemas";
@@ -211,7 +207,7 @@ const ProductDetailsContent = ({
           {/* OTHER ACTIONS */}
           <div>
             <Link
-              href={routes.products}
+              href={routes.catalog}
               className={cn(
                 buttonVariants({ size: "lg", variant: "secondary" }),
                 "text-foreground/70 flex min-w-50 items-center justify-center",

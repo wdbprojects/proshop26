@@ -101,7 +101,7 @@ const HeaderDashboard = () => {
               <span>Admin</span>
             </Link>
           )}
-          <Link href={routes.products}>
+          <Link href={routes.catalog}>
             <Button
               size="sm"
               variant="outline"

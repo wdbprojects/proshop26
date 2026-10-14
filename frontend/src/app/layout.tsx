@@ -9,7 +9,7 @@ const robotoHeading = Roboto({
   variable: "--font-heading",
 });
 
-const oxanium = Oxanium({subsets:['latin'],variable:'--font-sans'});
+const oxanium = Oxanium({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: "ProShop26",

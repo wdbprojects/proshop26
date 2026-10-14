@@ -1,10 +1,8 @@
-import PublicLayout from "@/modules/layouts/public-layout";
 import { LayoutPropsMain } from "@/config/types";
-import { useCart } from "@/store/cart";
-import { Button } from "@/components/ui/button";
+import PublicLayout from "@/modules/layouts/public-layout";
 
-const HomeLayoutMain = ({ children }: LayoutPropsMain) => {
+const PublicLayoutMain = ({ children }: LayoutPropsMain) => {
   return <PublicLayout>{children}</PublicLayout>;
 };
 
-export default HomeLayoutMain;
+export default PublicLayoutMain;

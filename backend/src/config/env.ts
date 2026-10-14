@@ -23,6 +23,15 @@ const envSchema = z.object({
   IMAGEKIT_PRIVATE_KEY: z.string().min(1),
   IMAGEKIT_ID: z.string().min(1),
   IMAGEKIT_URL_ENDPOINT: z.string(),
+  /* BNB QR IMPLEMENTATION */
+  BNB_ACCOUNT_ID: z.string().optional(),
+  BNB_AUTHORIZATION_ID: z.string().optional(),
+  BNB_AUTH_BASE_URL: z
+    .url()
+    .default("https://clientauthenticationapiv2.azurewebsites.net/api/v1"),
+  BNB_QR_BASE_URL: z
+    .url()
+    .default("https://qrsimpleapiv2.azurewebsites.net/api/v1"),
 });
 export type Env = z.infer<typeof envSchema>;
 

@@ -76,6 +76,7 @@ const fulfillCheckoutSession = async (
         userId: session.userId,
         status: "paid",
         paymentProvider: PROVIDER,
+        currency: session.currency,
         totalCents: session.totalCents,
         providerCheckoutId:
           providerCheckoutId ?? session.providerCheckoutId ?? null,

@@ -35,6 +35,8 @@ export const checkoutSession = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    qrImage: text("qr_image"),
   },
   (table) => ({
     providerCheckoutIdx: uniqueIndex(

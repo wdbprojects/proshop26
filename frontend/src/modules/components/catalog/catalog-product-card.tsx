@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/card";
 import { useAddToCart } from "@/hooks/use-add-to-cart";
 import { Spinner } from "@/components/ui/spinner";
+import { Separator } from "@/components/ui/separator";
 
 const CatalogProductCard = ({ product }: { product: ProductType }) => {
   const addToCart = useAddToCart();
@@ -30,7 +31,7 @@ const CatalogProductCard = ({ product }: { product: ProductType }) => {
   const outOfStock = product.stock <= 0;
 
   return (
-    <Card className="bg-muted relative mx-auto h-full w-full gap-2 rounded-md px-0 pt-0 ring-0 transition-all hover:shadow-xl">
+    <Card className="bg-muted relative mx-auto h-full w-full gap-2 rounded-md px-0 pt-0 pb-2 ring-0 transition-all hover:shadow-xl">
       <div className="p-0">
         <Link
           href={routes.productDetails(product.slug)}
@@ -60,20 +61,21 @@ const CatalogProductCard = ({ product }: { product: ProductType }) => {
       <div className="flex h-full flex-col items-center justify-between">
         <div className="w-full">
           <CardHeader className="mb-0 w-full p-0 px-2 pb-0">
-            <CardTitle className="px-0">
+            <CardTitle className="px-0 text-sm font-bold">
               <Link
                 href={routes.productDetails(product.slug)}
-                className="hover:text-primary line-clamp-2 text-base leading-4.5 font-light transition-all"
+                className="hover:text-primary line-clamp-2 leading-4.5 transition-all"
               >
                 {product.name}
               </Link>
             </CardTitle>
           </CardHeader>
-          <CardDescription className="text-muted-foreground mt-2 line-clamp-3 px-2 text-sm leading-tight">
+          <CardDescription className="text-muted-foreground mt-1 line-clamp-3 px-2 text-xs leading-tight">
             {product?.description}
           </CardDescription>
         </div>
-        <CardAction className="mt-2 flex w-full flex-row items-center justify-between px-2">
+        <Separator className="my-2" />
+        <CardAction className="mt-0 flex w-full flex-row items-center justify-between px-2">
           <span className="text-lg font-bold tabular-nums">
             {formatPriceNew(Number(product.priceCents), product.currency)}
           </span>

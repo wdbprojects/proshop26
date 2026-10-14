@@ -13,7 +13,7 @@ export const routes = {
   login: "/auth/login",
   register: "/auth/register",
   /* ECOMMERCE */
-  catalog: "/products/catalog",
+  catalog: "/catalog",
   products: "/products",
   productDetails: (slug: string) => {
     return `/products/${slug}`;
