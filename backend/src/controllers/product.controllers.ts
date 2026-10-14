@@ -326,10 +326,7 @@ export const suggestProducts = async (
       )
       .orderBy(
         sql`(${products.name} ilike ${prefixPattern}) DESC`,
-<<<<<<< HEAD
-=======
         sql`(${products.name} ilike ${containsPattern}) DESC`,
->>>>>>> 9-catalog-filters-search-fixed
         sql`similarity(${products.name}, ${q}) DESC`,
       )
       .limit(SUGGEST_LIMIT);
