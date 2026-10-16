@@ -30,6 +30,8 @@ const CatalogPage = () => {
         setPriceRange={catalog.setPriceRange}
         clearFilters={catalog.clearFilters}
         hasActiveFilters={catalog.hasActiveFilters}
+        sort={catalog.sort}
+        setSort={catalog.setSort}
       />
     </div>
   );

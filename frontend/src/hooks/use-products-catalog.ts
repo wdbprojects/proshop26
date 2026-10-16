@@ -23,6 +23,16 @@ type ProductsResponse = {
   facets?: ProductsFacets;
 };
 
+export const SORT_OPTIONS = [
+  { value: "relevance", label: "Most relevant" },
+  { value: "newest", label: "Newest" },
+  { value: "price_asc", label: "Price: low to high" },
+  { value: "price_desc", label: "Price: high to low" },
+  { value: "rating", label: "Top rated" },
+] as const;
+
+export type SortValue = (typeof SORT_OPTIONS)[number]["value"];
+
 const dollarsToCents = (value: string) => {
   if (value.trim() === "") return null;
   const num = Number(value);
@@ -45,6 +55,17 @@ export const useProductsCatalog = ({ limit = 12 }: { limit?: number } = {}) => {
   const maxPrice = searchParams.get("maxPrice") ?? "";
   const rawPage = Number(searchParams.get("page"));
   const page = Number.isFinite(rawPage) && rawPage > 0 ? rawPage : 1;
+
+  const rawSort = searchParams.get("sort") ?? "";
+  const isValidSort = SORT_OPTIONS.some((option) => {
+    return option.value === rawSort;
+  });
+  /* "relevance" only makes sense with a search term */
+  const defaultSort: SortValue = q ? "relevance" : "newest";
+  const sort: SortValue =
+    isValidSort && (rawSort !== "relevance" || q)
+      ? (rawSort as SortValue)
+      : defaultSort;
 
   /* ONE HELPER TO UPDATE THE URL. Any filter change resets to page 1 unless told otherwise  */
   const updateParams = (
@@ -92,6 +113,11 @@ export const useProductsCatalog = ({ limit = 12 }: { limit?: number } = {}) => {
     return updateParams({ q: null });
   };
 
+  /* the default sort is not stored in the URL, to keep links clean */
+  const setSort = (value: string) => {
+    updateParams({ sort: value === defaultSort ? null : value });
+  };
+
   const hasActiveFilters =
     selectedBrands.length > 0 || Boolean(minPrice) || Boolean(maxPrice);
 
@@ -116,6 +142,7 @@ export const useProductsCatalog = ({ limit = 12 }: { limit?: number } = {}) => {
         brands: brandParam,
         minPrice,
         maxPrice,
+        sort,
         page,
         limit,
       },
@@ -137,6 +164,7 @@ export const useProductsCatalog = ({ limit = 12 }: { limit?: number } = {}) => {
       if (maxCents !== null) {
         params.set("maxPrice", String(maxCents));
       }
+      params.set("sort", sort);
       params.set("page", String(page));
       params.set("limit", String(limit));
       return apiFetch<ProductsResponse>(`/api/products?${params.toString()}`, {
@@ -174,5 +202,8 @@ export const useProductsCatalog = ({ limit = 12 }: { limit?: number } = {}) => {
     setPriceRange: setPriceRange,
     clearFilters: clearFilters,
     hasActiveFilters: hasActiveFilters,
+    // sorting
+    sort: sort,
+    setSort: setSort,
   };
 };

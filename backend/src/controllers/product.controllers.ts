@@ -13,6 +13,7 @@ import {
   isNotNull,
   ilike,
   or,
+  type SQL,
 } from "drizzle-orm";
 import { escapeLike, tokenize, truncateText } from "../lib/utils";
 
@@ -47,6 +48,50 @@ const parseBrandFilter = (value: unknown): string[] => {
   return [];
 };
 
+const SORT_KEYS = [
+  "relevance",
+  "newest",
+  "price_asc",
+  "price_desc",
+  "rating",
+] as const;
+type SortKey = (typeof SORT_KEYS)[number];
+
+const parseSort = (value: unknown, hasQuery: boolean): SortKey => {
+  const fallback: SortKey = hasQuery ? "relevance" : "newest";
+  if (typeof value !== "string") return fallback;
+  const match = SORT_KEYS.find((key) => {
+    return key === value;
+  });
+  if (!match) return fallback;
+  if (match === "relevance" && !hasQuery) return fallback;
+  return match;
+};
+
+const buildOrderBy = (sort: SortKey, q: string): SQL[] => {
+  switch (sort) {
+    case "relevance":
+      return [
+        sql`ts_rank(search_vector, websearch_to_tsquery('english', ${q})) DESC`,
+        sql`similarity(${products.name}, ${q} DESC)`,
+        desc(products.createdAt),
+        asc(products.id),
+      ];
+    case "price_asc":
+      return [asc(products.priceCents), asc(products.id)];
+    case "price_desc":
+      return [desc(products.priceCents), asc(products.id)];
+    case "rating":
+      return [
+        desc(products.rating),
+        desc(products.numReviews),
+        asc(products.id),
+      ];
+    default:
+      return [desc(products.createdAt), asc(products.id)];
+  }
+};
+
 /* GET ALL PRODUCTS */
 /* Now also supports keyword search (?q=), brand filtering (?brand=), and a price range (?minPrice=/?maxPrice=, in cents), alongside the existing category/featured/pagination params. When ?q= is present, results rank by full-text relevance with a trigram fallback for typos;  facets (brand counts, price bounds) are computed against category+q only - narrowing by brand/price doesn't shrink the facet options themselves, which is the simpler "narrow as you go" pattern. A proper mutual-exclusion facet count (where picking a brand doesn't hide other brand's true counts) needs one query per facet dimension and is a reasonable v2 if the UX calls for it. */
 export const getAllProducts = async (
@@ -66,6 +111,8 @@ export const getAllProducts = async (
       typeof req.query.q === "string"
         ? req.query.q.trim().slice(0, MAX_QUERY_LENGTH)
         : "";
+
+    const sort = parseSort(req.query.sort, Boolean(q));
 
     const brands = parseBrandFilter(req.query.brand);
     let minPriceCents = parseOptionalNonNegativeInt(req.query.minPrice);
@@ -146,81 +193,53 @@ export const getAllProducts = async (
       : baseWhere;
 
     const runQuery = async (whereClause: typeof baseWhere) => {
-      if (q) {
-      }
-      /* Ranking (ts_rank/similarity) is a raw sql expression, which the plain query builder orders by directly; the relational query API (db.query.products.findMany) doesn't cleanly support that. So: get ranked ids + total count via the query builder first, then fetch the same ids with images/category via the relational API, and re-sort in app code, since findMany won't preserve the rank order the ids came in. */
-      const rankedRows = await db
-        .select({ id: products.id })
-        .from(products)
-        .where(whereClause)
-        .orderBy(
-          sql`ts_rank(search_vector, websearch_to_tsquery('english', ${q})) DESC`,
-          sql`similarity(${products.name}, ${q}) DESC`,
-        )
-        .limit(limit)
-        .offset(offset);
-
-      const ids = rankedRows.map((row) => {
+      const [idRows, [{ count }]] = await Promise.all([
+        db
+          .select({ id: products.id })
+          .from(products)
+          .where(whereClause)
+          .orderBy(...buildOrderBy(sort, q))
+          .limit(limit)
+          .offset(offset),
+        db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(products)
+          .where(whereClause),
+      ]);
+      const ids = idRows.map((row) => {
         return row.id;
       });
-      const countPromise = db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(products)
-        .where(whereClause);
-
       if (ids.length === 0) {
-        const [[{ count }]] = await Promise.all([countPromise]);
-        return [[], [{ count }] as const];
+        return { rows: [], count: count };
       }
-
-      const [fullRows, [{ count }]] = await Promise.all([
-        db.query.products.findMany({
-          where: inArray(products.id, ids),
-          with: {
-            images: { orderBy: asc(productImages.order) },
-            category: true,
-          },
-        }),
-        countPromise,
-      ]);
-
+      const fullRows = await db.query.products.findMany({
+        where: inArray(products.id, ids),
+        with: {
+          images: { orderBy: asc(productImages.order) },
+          category: true,
+        },
+      });
       const byId = new Map(
         fullRows.map((row) => {
           return [row.id, row];
         }),
       );
-      const ordered = ids
+      const rows = ids
         .map((id) => {
           return byId.get(id);
         })
         .filter((row): row is (typeof fullRows)[number] => {
           return Boolean(row);
         });
-
-      return Promise.all([
-        db.query.products.findMany({
-          where: whereClause,
-          orderBy: desc(products.createdAt),
-          limit: limit,
-          offset: offset,
-          with: {
-            images: { orderBy: asc(productImages.order) },
-            category: true,
-          },
-        }),
-        db
-          .select({ count: sql<number>`count(*)::int` })
-          .from(products)
-          .where(whereClause),
-      ]);
+      return { rows: rows, count: count };
     };
 
-    let [rows, [{ count }]] = await runQuery(featuredWhere);
+    let { rows, count } = await runQuery(featuredWhere);
 
     /* Nothing has been marked isFeatured yet - fall back to newest active products rather than showing an empty "Featured products" section. Once products are actually flagged featured,  this stops firing. */
 
     if (featuredOnly && rows.length === 0) {
-      [rows, [{ count }]] = await runQuery(baseWhere);
+      ({ rows, count } = await runQuery(baseWhere));
     }
 
     /* Facets deliberately ignore brand/price so the filter panel doesn't collapse its own options when a filter is applied - only category + q narrow what's offered. */
@@ -284,8 +303,6 @@ export const suggestProducts = async (
     const tokens = tokenize(q);
     const prefixPattern = `${escapeLike(q)}%`;
     const containsPattern = `%${escapeLike(q)}%`;
-
-    /* CONTINUE HERE.... */
 
     const tokenMatch = and(
       ...tokens.map((token) => {
