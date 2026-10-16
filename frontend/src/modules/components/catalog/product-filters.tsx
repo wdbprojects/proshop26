@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import PriceRange from "./price-range";
 import CategoriesList from "@/modules/components/catalog/categories-list";
 import { CategorySchemaType } from "@/config/type-schemas";
+import SortSelect from "@/modules/components/catalog/sort-select";
 
 export interface ProductFiltersProps {
   facets?: ProductsFacets;
@@ -20,7 +21,10 @@ export interface ProductFiltersProps {
   categoryFilter: string;
   categoryChipsLoading: boolean;
   categories: CategorySchemaType[];
+  q: string;
   setCategory: (category: string) => void;
+  sort: string;
+  setSort: (value: string) => void;
 }
 
 const ProductFilters = ({
@@ -36,6 +40,9 @@ const ProductFilters = ({
   categoryChipsLoading,
   categories,
   setCategory,
+  q,
+  sort,
+  setSort,
 }: ProductFiltersProps) => {
   const brands = (facets?.brands ?? []).filter((br) => {
     return br.brand;
@@ -51,6 +58,8 @@ const ProductFilters = ({
           </Button>
         )}
       </div>
+      <Separator />
+      <SortSelect sort={sort} setSort={setSort} hasSearch={Boolean(q)} />
       <Separator />
       <CategoriesList
         categoryFilter={categoryFilter}

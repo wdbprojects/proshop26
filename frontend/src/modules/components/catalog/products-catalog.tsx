@@ -29,6 +29,8 @@ const ProductsCatalog = ({
   setPriceRange,
   clearFilters,
   hasActiveFilters,
+  sort,
+  setSort,
 }: {
   categoryFilter: string;
   categoryChipsLoading: boolean;
@@ -51,6 +53,8 @@ const ProductsCatalog = ({
   setPriceRange: (min: string, max: string) => void;
   clearFilters: () => void;
   hasActiveFilters: boolean;
+  sort: string;
+  setSort: (value: string) => void;
 }) => {
   return (
     <section className="flex h-full flex-col">

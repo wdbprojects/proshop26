@@ -28,6 +28,9 @@ const CatalogSidebarContent = () => {
               categoryChipsLoading={catalog.categoryChipsLoading}
               categories={catalog.categories}
               setCategory={catalog.setCategory}
+              q={catalog.q}
+              sort={catalog.sort}
+              setSort={catalog.setSort}
             />
           </SidebarGroupContent>
         </SidebarGroup>

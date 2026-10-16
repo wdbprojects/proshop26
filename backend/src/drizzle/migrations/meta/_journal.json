@@ -15,6 +15,13 @@
       "when": 1791814697688,
       "tag": "0001_military_spitfire",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792076161912,
+      "tag": "0002_products_search",
+      "breakpoints": true
     }
   ]
 }
