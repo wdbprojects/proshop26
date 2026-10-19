@@ -2,7 +2,7 @@
 
 import { Card } from "@/components/ui/card";
 import { routes } from "@/config/routes";
-import { IOrder } from "@/config/types";
+import { IOrder } from "@/config/type-schemas";
 import Link from "next/link";
 import OrderPreview from "@/modules/components/orders/order-preview";
 import { Badge } from "@/components/ui/badge";

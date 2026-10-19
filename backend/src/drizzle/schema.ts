@@ -7,3 +7,4 @@ export * from "./schemas/orderItems.schema";
 export * from "./schemas/product.images.schema";
 export * from "./schemas/cart.schema";
 export * from "./schemas/cart.items.schema";
+export * from "./schemas/reviews.schema";

@@ -16,6 +16,7 @@ import checkoutRouter from "./routes/checkout.router";
 import cartRouter from "./routes/cart.router";
 import adminRouter from "./routes/admin.router";
 import orderRouter from "./routes/order.router";
+import reviewRouter from "./routes/review.router";
 import { notFoundMiddleware } from "./middlewares/not-found";
 import { errorHandlerMiddleware } from "./middlewares/error-handler";
 import { allowedOrigins } from "./config/origins";
@@ -69,6 +70,7 @@ app.use("/api/checkout", checkoutRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/orders", orderRouter);
+app.use("/api/reviews", reviewRouter);
 
 /* CRON - FIX FOR RENDER IDLE ON FREE PLAN */
 app.get("/health", (_req, res) => {

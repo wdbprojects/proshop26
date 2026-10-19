@@ -129,11 +129,11 @@ const ProductDetailsContent = ({
             </p>
           </div>
           {/* RATINGS */}
-          <div className="mt-3 flex items-center justify-start gap-2">
+          <div className="mt-1 px-2">
             <ProductRatings
-              value={ratings}
-              onChange={setRatings}
-              numReviews={product?.numReviews ?? 0}
+              value={Number(product.rating)}
+              numReviews={product?.numReviews}
+              size={14}
             />
           </div>
           <Separator className="my-2" />

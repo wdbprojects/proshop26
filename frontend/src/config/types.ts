@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { IProducts } from "./type-schemas";
 
 export type LayoutPropsMain = {
   children: ReactNode;
@@ -25,51 +26,6 @@ export interface CartState {
 export interface ICategories {
   categories: string | string[] | null;
   loadingCategories: boolean;
-}
-
-export type imagesType = {
-  id: string;
-  url: string;
-};
-
-export interface IProducts {
-  active: boolean;
-  category: string;
-  createdAt: string;
-  currency: string;
-  description: string;
-  id: string;
-  images: imagesType[];
-  name: string;
-  price: number;
-  priceCents: number;
-  slug: string;
-}
-
-export interface IOrder {
-  id: string;
-  userId: string;
-  providerCheckoutId: string | null;
-  providerOrderId: string | null;
-  previewItems: IOrderPreview[];
-  status: string;
-  totalCents: number;
-  currency: string;
-  updatedAt: string;
-  createdAt: string;
-}
-
-export interface IOrderItem {
-  id: string;
-  product: IProducts;
-  quantity: number;
-  unitPriceCents: number;
-}
-export interface IOrderPreview {
-  imageUrl: string;
-  name: string;
-  quantity: number;
-  slug: string;
 }
 
 export type TBody = {

@@ -33,7 +33,7 @@ const RootLayout = () => {
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: "FFFFFF" },
+          contentStyle: { backgroundColor: "#FFFFFF" },
         }}
       />
     </QueryClientProvider>

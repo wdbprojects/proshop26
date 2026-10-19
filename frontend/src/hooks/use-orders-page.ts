@@ -3,7 +3,7 @@
 import { authClient } from "@/lib/auth-client";
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
-import { IOrder } from "@/config/types";
+import { IOrder } from "@/config/type-schemas";
 
 export const useOrdersPage = () => {
   // const { data: sessionData } = authClient.useSession();

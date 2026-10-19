@@ -1,7 +1,6 @@
 import z from "zod";
 import { ChannelData } from "stream-chat";
 import { formatNumberWithDecimal } from "../lib/utils";
-import { IOrder, IOrderItem } from "./types";
 
 export const currency = z
   .string()
@@ -108,6 +107,7 @@ export type ProductType = Omit<
   ProductCreateSchemaType,
   "categoryId" | "images"
 > & {
+  rating: string; // numeric(3, 2) arrives as a string; convert with Number() at the point of use
   category: CategorySchemaType;
   images: ProductImageType[];
 };
@@ -160,6 +160,7 @@ export type ProductFormData = Omit<ProductCreateSchemaType, "images"> & {
 export type OrderDetailsResponse = {
   items: IOrderItem[];
   singleOrder: Omit<IOrder, "previewItems">;
+  canRate: boolean;
 };
 
 export type ImageKitAuthResponse = {
@@ -173,4 +174,61 @@ export type ImageKitAuthenticatorType = {
   expire: number;
   token: string;
   publicKey: string;
+};
+
+export interface IOrder {
+  id: string;
+  userId: string;
+  providerCheckoutId: string | null;
+  providerOrderId: string | null;
+  previewItems: IOrderPreview[];
+  status: string;
+  totalCents: number;
+  currency: string;
+  updatedAt: string;
+  createdAt: string;
+}
+
+export interface IOrderItem {
+  id: string;
+  product: IProducts;
+  quantity: number;
+  unitPriceCents: number;
+  myRating: number | null;
+}
+export interface IOrderPreview {
+  imageUrl: string;
+  name: string;
+  quantity: number;
+  slug: string;
+}
+
+export interface IProducts {
+  active: boolean;
+  category: string;
+  createdAt: string;
+  currency: string;
+  description: string;
+  id: string;
+  images: imagesType[];
+  name: string;
+  price: number;
+  priceCents: number;
+  slug: string;
+}
+
+export type imagesType = {
+  id: string;
+  url: string;
+};
+
+export type OrderDetailsReponse = {
+  items: IOrderItem[];
+  singleOrder: Omit<IOrder, "previewItems">;
+  canRate: boolean;
+};
+
+export type RateProductResponse = {
+  rating: number;
+  product: { rating: string; numReviews: number };
 };

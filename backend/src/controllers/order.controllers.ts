@@ -8,10 +8,11 @@ import {
   products,
   user,
   UserRole,
+  reviews,
 } from "../drizzle/schema";
 import { isStaff } from "../lib/roles";
 import { db } from "../drizzle/db";
-import { asc, desc, eq, inArray } from "drizzle-orm";
+import { asc, desc, eq, inArray, and } from "drizzle-orm";
 import {
   getStreamChatServer,
   streamChatDisplayName,
@@ -122,7 +123,32 @@ export const getSingleOrder = async (
       .from(orderItems)
       .innerJoin(products, eq(orderItems.productId, products.id))
       .where(eq(orderItems.orderId, singleOrder.id));
-    res.status(200).json({ singleOrder: singleOrder, items: items });
+
+    const isOwner = singleOrder.userId === user.id;
+    const myRatings =
+      isOwner && items.length > 0
+        ? await db
+            .select({ productId: reviews.productId, rating: reviews.rating })
+            .from(reviews)
+            .where(and(eq(reviews.userId, user.id)))
+        : [];
+
+    const ratingByProduct = new Map(
+      myRatings.map((row) => {
+        return [row.productId, row.rating];
+      }),
+    );
+
+    res.status(200).json({
+      singleOrder: singleOrder,
+      canRate: isOwner && singleOrder.status === "paid",
+      items: items.map((item) => {
+        return {
+          ...item,
+          myRating: ratingByProduct.get(item.product.id) ?? null,
+        };
+      }),
+    });
   } catch (error) {
     next(error);
   }

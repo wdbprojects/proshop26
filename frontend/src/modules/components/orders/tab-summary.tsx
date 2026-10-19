@@ -6,8 +6,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { routes } from "@/config/routes";
-import { IOrderItem } from "@/config/types";
+import { IOrderItem } from "@/config/type-schemas";
 import { OrderDetailsResponse } from "@/config/type-schemas";
+import RateProduct from "@/modules/components/orders/rate-product";
 import { IK_PRESETS, imageKitOptimizedUrl } from "@/lib/image-kit-url";
 import { formatPrice } from "@/lib/utils";
 import { ListOrderedIcon, PackageIcon } from "lucide-react";
@@ -18,7 +19,7 @@ const TabSummary = ({
   order,
   items,
 }: {
-  order: Pick<OrderDetailsResponse, "singleOrder">;
+  order: Pick<OrderDetailsResponse, "singleOrder" | "canRate">;
   items: IOrderItem[];
 }) => {
   return (
@@ -91,6 +92,13 @@ const TabSummary = ({
                           each
                         </span>
                       </div>
+                      {order.canRate && (
+                        <RateProduct
+                          orderId={order.singleOrder.id}
+                          productId={row.product.id}
+                          myRating={row.myRating}
+                        />
+                      )}
                     </div>
                   </div>
                   <div className="border-accent/30 flex shrink-0 flex-col border-t pt-3 sm:border-t-0 sm:pt-0 sm:text-right">

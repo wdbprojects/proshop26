@@ -12,6 +12,7 @@ import { integer } from "drizzle-orm/pg-core";
 import { orderItems } from "./orderItems.schema";
 import { productImages } from "./product.images.schema";
 import { categories } from "./categories.schema";
+import { reviews } from "./reviews.schema";
 
 export const products = pgTable(
   "products",
@@ -58,4 +59,5 @@ export const productRelations = relations(products, ({ one, many }) => ({
     fields: [products.categoryId],
     references: [categories.id],
   }),
+  reviews: many(reviews),
 }));
