@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { requireAuth } from "../middlewares/authorization";
-import { upsertReviewHandler } from "../controllers/review.controlers";
+import { upsertReviewHandler } from "../controllers/review.controllers";
 
 const router = Router();
 router.use(requireAuth);

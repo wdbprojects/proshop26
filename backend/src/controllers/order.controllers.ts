@@ -9,10 +9,11 @@ import {
   user,
   UserRole,
   reviews,
+  productImages,
 } from "../drizzle/schema";
 import { isStaff } from "../lib/roles";
 import { db } from "../drizzle/db";
-import { asc, desc, eq, inArray, and } from "drizzle-orm";
+import { asc, desc, eq, inArray, and, sql } from "drizzle-orm";
 import {
   getStreamChatServer,
   streamChatDisplayName,
@@ -35,11 +36,11 @@ export const getAllOrders = async (
       ? await db.select().from(orders).orderBy(desc(orders.createdAt))
       : await db.select().from(orders).where(eq(orders.userId, user.id));
 
-    const session = await getCurrentSession(req.headers);
-    if (!session) {
-      res.status(401).json({ error: "Unauthorized" });
-      return;
-    }
+    // const session = await getCurrentSession(req.headers);
+    // if (!session) {
+    //   res.status(401).json({ error: "Unauthorized" });
+    //   return;
+    // }
 
     const orderIds = rows.map((order) => {
       return order.id;
@@ -56,6 +57,9 @@ export const getAllOrders = async (
           quantity: orderItems.quantity,
           name: products.name,
           slug: products.slug,
+          imageUrl: sql<
+            string | null
+          >`(select pi.url from product_images pi where pi.product_id = ${products.id} order by pi.is_primary desc, pi."order" asc limit 1)`,
         })
         .from(orderItems)
         .innerJoin(products, eq(orderItems.productId, products.id))
@@ -69,6 +73,7 @@ export const getAllOrders = async (
           name: row.name,
           slug: row.slug,
           quantity: row.quantity,
+          imageUrl: row.imageUrl,
         });
         previewByOrder.set(row.orderId, list);
       }
@@ -113,16 +118,17 @@ export const getSingleOrder = async (
       return;
     }
     // inner join to get the product information
-    const items = await db
-      .select({
-        id: orderItems.id,
-        quantity: orderItems.quantity,
-        unitPriceCents: orderItems.unitPriceCents,
-        product: products,
-      })
-      .from(orderItems)
-      .innerJoin(products, eq(orderItems.productId, products.id))
-      .where(eq(orderItems.orderId, singleOrder.id));
+    const items = await db.query.orderItems.findMany({
+      where: eq(orderItems.orderId, singleOrder.id),
+      with: {
+        product: {
+          with: {
+            images: { orderBy: asc(productImages.order) },
+            category: true,
+          },
+        },
+      },
+    });
 
     const isOwner = singleOrder.userId === user.id;
     const myRatings =
@@ -130,7 +136,17 @@ export const getSingleOrder = async (
         ? await db
             .select({ productId: reviews.productId, rating: reviews.rating })
             .from(reviews)
-            .where(and(eq(reviews.userId, user.id)))
+            .where(
+              and(
+                eq(reviews.userId, user.id),
+                inArray(
+                  reviews.productId,
+                  items.map((item) => {
+                    return item.productId;
+                  }),
+                ),
+              ),
+            )
         : [];
 
     const ratingByProduct = new Map(
@@ -144,7 +160,10 @@ export const getSingleOrder = async (
       canRate: isOwner && singleOrder.status === "paid",
       items: items.map((item) => {
         return {
-          ...item,
+          id: item.id,
+          quantity: item.quantity,
+          unitPriceCents: item.unitPriceCents,
+          product: item.product,
           myRating: ratingByProduct.get(item.product.id) ?? null,
         };
       }),

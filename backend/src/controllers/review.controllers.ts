@@ -56,7 +56,7 @@ export const upsertReviewHandler = async (
       const [agg] = await tx
         .select({
           avg: sql<string>`coalesce(round(avg(${reviews.rating}), 2), 0)::text`,
-          count: sql<number>``,
+          count: sql<number>`count(*)::int`,
         })
         .from(reviews)
         .where(eq(reviews.productId, productId));
