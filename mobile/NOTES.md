@@ -58,10 +58,16 @@ Backend (Express + Drizzle + PostgreSQL + Better Auth) and the Next.js web app a
 - Stack `contentStyle` must be set to white (default is #f2f2f2). Use "#ffffff" with the "#".
 - Two-column FlatList cells use `w-1/2`, not `flex-1`, to avoid a stretched last row.
 - A component that returns JSX needs an explicit `return` when its body uses braces.
+- Every useQuery needs its own queryKey. Two queries with the same key share one cache
+  entry and overwrite each other's data.
+- RN ScrollView has flexShrink: 1 by default: give a horizontal chip row `flexShrink: 0`
+  and a fixed height, or a big FlatList beside it will squeeze it.
+- Mobile catalog hits `/api/products` with relevance sort whenever `q` is set; the backend
+  `similarity(...) DESC` order-by was fixed (parenthesis).
 
 ## Open items
 
-- Home chips and search bar link to catalog (verify done)
+- Bottom tabs: Home, Catalog, Cart, Account (move routes into `(tabs)`)
 - Brand/price filter sheet using `facets`
 - Bottom tabs: Home, Catalog, Cart, Account (move routes into `(tabs)`)
 - Backend (owner side): Better Auth Expo plugin + trustedOrigins, `x-cart-session-id` support,
@@ -70,4 +76,4 @@ Backend (Express + Drizzle + PostgreSQL + Better Auth) and the Next.js web app a
 
 ## Last updated
 
-Phase 3, catalog screen v1.
+Phase 3 mobile catalog done (search, category chips, sort, infinite scroll).
