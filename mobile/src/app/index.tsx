@@ -6,9 +6,13 @@ import {
   ScrollView,
   Text,
   View,
+  Pressable,
 } from "react-native";
-
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+const router = useRouter();
 
 export default function Index() {
   const { categories, products, loadingProducts, error } = useHomeCatalog();
@@ -29,6 +33,17 @@ export default function Index() {
         ListHeaderComponent={
           <View className="gap-4 px-1.5 pb-3">
             <Text className="text-2xl font-bold text-foreground">Proshop</Text>
+            <Pressable
+              className="h-11 flex-row items-center gap-2 rounded-full bg-muted px-4"
+              onPress={() =>
+                router.push({ pathname: "/catalog", params: { focus: "1" } })
+              }
+            >
+              <Ionicons name="search" size={18} color="#67787C" />
+              <Text className="text-base text-muted-foreground">
+                Search products
+              </Text>
+            </Pressable>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -36,12 +51,18 @@ export default function Index() {
             >
               {categories.map((category) => {
                 return (
-                  <View
+                  <Pressable
                     key={category.id}
                     className="rounded-full bg-muted px-4 py-2"
+                    onPress={() =>
+                      router.push({
+                        pathname: "/catalog",
+                        params: { category: category.slug },
+                      })
+                    }
                   >
                     <Text>{category.name}</Text>
-                  </View>
+                  </Pressable>
                 );
               })}
             </ScrollView>

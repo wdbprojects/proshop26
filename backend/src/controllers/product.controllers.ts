@@ -73,7 +73,7 @@ const buildOrderBy = (sort: SortKey, q: string): SQL[] => {
     case "relevance":
       return [
         sql`ts_rank(search_vector, websearch_to_tsquery('english', ${q})) DESC`,
-        sql`similarity(${products.name}, ${q} DESC)`,
+        sql`similarity(${products.name}, ${q}) DESC`,
         desc(products.createdAt),
         asc(products.id),
       ];
