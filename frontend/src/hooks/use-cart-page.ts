@@ -10,6 +10,7 @@ import {
   CartResponse,
   useCartQuery,
 } from "@/hooks/use-cart-query";
+import { toast } from "@/components/ui/toast";
 
 export const useCartPage = () => {
   const [checkoutLoading, startCheckoutTransition] = useTransition();
@@ -96,18 +97,25 @@ export const useCartPage = () => {
 
   const checkout = () => {
     startCheckoutTransition(async () => {
-      const body = {
-        items: items.map((item) => {
-          return { productId: item.productId, quantity: item.quantity };
-        }),
-      };
-      const response = (await apiFetch("/api/checkout", {
-        method: "POST",
-        body: body,
-      })) as { checkoutUrl?: string } | undefined;
-      if (response?.checkoutUrl) {
-        router.push(response.checkoutUrl);
-        return;
+      try {
+        const body = {
+          items: items.map((item) => {
+            return { productId: item.productId, quantity: item.quantity };
+          }),
+        };
+        const response = (await apiFetch("/api/checkout", {
+          method: "POST",
+          body: body,
+        })) as { checkoutUrl?: string } | undefined;
+        if (response?.checkoutUrl) {
+          router.push(response.checkoutUrl);
+        }
+      } catch (err) {
+        toast.add({
+          type: "error",
+          title: "Checkout failed",
+          description: err instanceof Error ? err.message : "Please try again",
+        });
       }
     });
   };

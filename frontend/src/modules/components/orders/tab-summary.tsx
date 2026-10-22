@@ -78,7 +78,7 @@ const TabSummary = ({
                       </Link>
                       {row.product.category ? (
                         <p className="text-foreground/55 mt-1 text-sm">
-                          {row.product.category}
+                          {row.product.category.name}
                         </p>
                       ) : null}
                       <div className="text-foreground/65 mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">

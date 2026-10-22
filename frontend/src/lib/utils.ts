@@ -1,12 +1,5 @@
 export { cn } from "cn";
 
-export const formatPrice = (cents: number, currency: string) => {
-  return new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency: (currency ?? "usd").toUpperCase(),
-  }).format(cents);
-};
-
 export const formatOrderWhen = (
   iso: string,
   opts: Intl.DateTimeFormatOptions = {},
@@ -22,7 +15,7 @@ export const formatOrderWhen = (
 };
 
 // format price
-export const formatPriceNew = (price: number, currency: string) => {
+export const formatPrice = (price: number, currency: string) => {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: (currency ?? "usd").toUpperCase(),

@@ -9,7 +9,7 @@ import { PriceTag } from "./pricetag";
 import Image from "next/image";
 import { IK_PRESETS, imageKitOptimizedUrl } from "@/lib/image-kit-url";
 import Link from "next/link";
-import { cn, formatPriceNew } from "@/lib/utils";
+import { cn, formatPrice } from "@/lib/utils";
 import { ProductImageType, ProductType } from "@/config/type-schemas";
 import ProductRatings from "./product-ratings";
 import { HIGHLIGHTS } from "@/config/data";
@@ -168,7 +168,7 @@ const ProductDetailsContent = ({
         {/*  RIGHT */}
         <div className="col-span-12 w-full border px-4 py-0 pb-2 sm:order-2 sm:col-span-5 lg:order-3 lg:col-span-3">
           <div className="text-foreground mt-3 text-3xl font-semibold tabular-nums md:text-4xl">
-            {formatPriceNew(Number(product?.priceCents), product.currency)}
+            {formatPrice(Number(product?.priceCents), product.currency)}
           </div>
           <Separator className="mt-2" />
           <div className={cn("text-s mt-2 mb-0 w-full px-0")}>

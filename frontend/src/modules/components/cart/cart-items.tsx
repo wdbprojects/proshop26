@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { authClient } from "@/lib/auth-client";
 import { IK_PRESETS, imageKitOptimizedUrl } from "@/lib/image-kit-url";
-import { cn, formatPriceNew } from "@/lib/utils";
+import { cn, formatPrice } from "@/lib/utils";
 import LoginButton from "@/modules/components/auth/login-button";
 import { routes } from "@/config/routes";
 import Image from "next/image";
@@ -94,12 +94,12 @@ const CartItems = ({
                       </Link>
                     </h2>
                     <p className="text-muted-foreground text-sm">
-                      {formatPriceNew(item.priceCents, item.currency)} each
+                      {formatPrice(item.priceCents, item.currency)} each
                     </p>
                     {item.priceCentsAtAdd !== item.priceCents ? (
                       <p className="text-xs text-amber-600">
                         Price changed since you added this (was{" "}
-                        {formatPriceNew(item.priceCentsAtAdd, item.currency)})
+                        {formatPrice(item.priceCentsAtAdd, item.currency)})
                       </p>
                     ) : null}
                   </div>
@@ -159,10 +159,7 @@ const CartItems = ({
                 </div>
 
                 <div className="text-foreground pt-2 pr-4 text-right text-xl font-semibold">
-                  {formatPriceNew(
-                    item.priceCents * item.quantity,
-                    item.currency,
-                  )}
+                  {formatPrice(item.priceCents * item.quantity, item.currency)}
                 </div>
               </div>
             </Card>
@@ -173,7 +170,7 @@ const CartItems = ({
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Subtotal</span>
           <span className="text-foreground text-xl font-semibold">
-            {formatPriceNew(subTotal, items[0]?.currency ?? "usd")}
+            {formatPrice(subTotal, items[0]?.currency ?? "usd")}
           </span>
         </div>
         <hr className="" />

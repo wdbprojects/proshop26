@@ -189,15 +189,20 @@ export interface IOrder {
   createdAt: string;
 }
 
+export type IOrderProducts = Pick<
+  ProductType,
+  "id" | "name" | "slug" | "currency" | "priceCents" | "images" | "category"
+>;
+
 export interface IOrderItem {
   id: string;
-  product: IProducts;
+  product: IOrderProducts;
   quantity: number;
   unitPriceCents: number;
   myRating: number | null;
 }
 export interface IOrderPreview {
-  imageUrl: string;
+  imageUrl: string | null;
   name: string;
   quantity: number;
   slug: string;

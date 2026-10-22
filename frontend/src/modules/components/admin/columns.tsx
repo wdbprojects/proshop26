@@ -10,7 +10,7 @@ import Image from "next/image";
 import EditAction from "@/modules/components/admin/edit-action";
 import DeleteAction from "@/modules/components/admin/delete-action";
 import { IK_PRESETS, imageKitOptimizedUrl } from "@/lib/image-kit-url";
-import { formatPriceNew } from "@/lib/utils";
+import { formatPrice } from "@/lib/utils";
 import { ProductType } from "@/config/type-schemas";
 
 export const columns: ColumnDef<ProductType>[] = [
@@ -113,7 +113,7 @@ export const columns: ColumnDef<ProductType>[] = [
       const currency: string = row.original.currency;
       return (
         <div className="text-right font-medium">
-          {formatPriceNew(amount, currency)}
+          {formatPrice(amount, currency)}
         </div>
       );
     },

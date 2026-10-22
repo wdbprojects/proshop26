@@ -1,7 +1,12 @@
 import { Request, Response } from "express";
 import { getEnv } from "../config/env";
-import { checkoutSession, orderItems, orders } from "../drizzle/schema";
-import { eq, and } from "drizzle-orm";
+import {
+  checkoutSession,
+  orderItems,
+  orders,
+  products,
+} from "../drizzle/schema";
+import { eq, and, gte, sql } from "drizzle-orm";
 import { db } from "../drizzle/db";
 import { Webhook } from "standardwebhooks";
 import { clearCartForUser } from "../controllers/cart.controllers";
@@ -56,13 +61,65 @@ const checkoutSessionIdFromMetadata = async (
   return typeof sessionId === "string" ? sessionId : undefined;
 };
 
+// const fulfillCheckoutSession = async (
+//   sessionId: string,
+//   providerOrderId: string | undefined,
+//   providerCheckoutId: string | undefined,
+// ) => {
+//   // database transaction - returns the userId to clear the cart for on success, or null if there was no matching session to fulfill
+//   const fulfilledForUserId = await db.transaction(async (tx) => {
+//     const [session] = await tx
+//       .select()
+//       .from(checkoutSession)
+//       .where(eq(checkoutSession.id, sessionId))
+//       .for("update");
+//     if (!session) return null;
+
+//     const [orderResp] = await tx
+//       .insert(orders)
+//       .values({
+//         userId: session.userId,
+//         status: "paid",
+//         paymentProvider: PROVIDER,
+//         currency: session.currency,
+//         totalCents: session.totalCents,
+//         providerCheckoutId:
+//           providerCheckoutId ?? session.providerCheckoutId ?? null,
+//         ...(providerOrderId ? { providerOrderId } : {}),
+//       })
+//       .returning();
+
+//     if (session.lines.length) {
+//       await tx.insert(orderItems).values(
+//         session.lines.map((line) => ({
+//           orderId: orderResp.id,
+//           productId: line.productId,
+//           quantity: line.quantity,
+//           unitPriceCents: line.unitPriceCents,
+//         })),
+//       );
+//     }
+//     await tx.delete(checkoutSession).where(eq(checkoutSession.id, sessionId));
+//     return session.userId;
+//   });
+
+//   if (fulfilledForUserId) {
+//     /* Best-effort: the order is already paid and committed at this point, so a failure here should never look like a failed webhook (Polar would retry and we would double-process). Just log it - the customer's cart being briefly stale is a much smaller problem than that. */
+//     try {
+//       await clearCartForUser(fulfilledForUserId);
+//     } catch (err) {
+//       console.error("Failed to clear cart after order fullfillment", err);
+//     }
+//   }
+//   return fulfilledForUserId !== null;
+// };
+
 const fulfillCheckoutSession = async (
   sessionId: string,
   providerOrderId: string | undefined,
   providerCheckoutId: string | undefined,
 ) => {
-  // database transaction - returns the userId to clear the cart for on success, or null if there was no matching session to fulfill
-  const fulfilledForUserId = await db.transaction(async (tx) => {
+  const result = await db.transaction(async (tx) => {
     const [session] = await tx
       .select()
       .from(checkoutSession)
@@ -80,33 +137,66 @@ const fulfillCheckoutSession = async (
         totalCents: session.totalCents,
         providerCheckoutId:
           providerCheckoutId ?? session.providerCheckoutId ?? null,
-        ...(providerOrderId ? { providerOrderId } : {}),
+        ...(providerCheckoutId ? { providerOrderId } : {}),
       })
       .returning();
 
     if (session.lines.length) {
       await tx.insert(orderItems).values(
-        session.lines.map((line) => ({
-          orderId: orderResp.id,
-          productId: line.productId,
-          quantity: line.quantity,
-          unitPriceCents: line.unitPriceCents,
-        })),
+        session.lines.map((line) => {
+          return {
+            orderId: orderResp.id,
+            productId: line.productId,
+            quantity: line.quantity,
+            unitPriceCents: line.unitPriceCents,
+          };
+        }),
       );
     }
+
+    /* Decrement stock. The UPDATE ... WHERE stock >= qty is atomic, so two  concurrent webhooks can't both take the last unit. Lines are sorted by productId so two orders touching the same products always lock rows in the same order, which prevents deadlocks */
+    const oversold: string[] = [];
+    const sortedLines = [...session.lines].sort((a, b) => {
+      return a.productId.localeCompare(b.productId);
+    });
+
+    for (const line of sortedLines) {
+      const decremented = await tx
+        .update(products)
+        .set({ stock: sql`${products.stock} - ${line.quantity}` })
+        .where(
+          and(
+            eq(products.id, line.productId),
+            gte(products.stock, line.quantity),
+          ),
+        )
+        .returning();
+      if (decremented.length === 0) {
+        /* Customer already paid, so we can't reject the order. Clamp to 0 and flag it. */
+        oversold.push(line.productId);
+        await tx
+          .update(products)
+          .set({ stock: 0 })
+          .where(eq(products.id, line.productId));
+      }
+    }
     await tx.delete(checkoutSession).where(eq(checkoutSession.id, sessionId));
-    return session.userId;
+    return { userId: session.userId, orderId: orderResp.id, oversold };
   });
 
-  if (fulfilledForUserId) {
-    /* Best-effort: the order is already paid and committed at this point, so a failure here should never look like a failed webhook (Polar would retry and we would double-process). Just log it - the customer's cart being briefly stale is a much smaller problem than that. */
-    try {
-      await clearCartForUser(fulfilledForUserId);
-    } catch (err) {
-      console.error("Failed to clear cart after order fullfillment", err);
-    }
+  if (!result) return false;
+  if (result.oversold.length > 0) {
+    console.error(
+      `OVERSOLD: order ${result.orderId} has products without enough stock: ${result.oversold.join(", ")}. Refund or restock manually`,
+    );
   }
-  return fulfilledForUserId !== null;
+
+  /* Best-effort: the order is already commited, so a failure here must not look like a failed webhook (Polar would retry and we would double-process) */
+  try {
+    await clearCartForUser(result.userId);
+  } catch (err) {
+    console.error("Failed to clear cart after order fulfillment", err);
+  }
 };
 
 export const polarWebhookHandler = async (req: Request, res: Response) => {
@@ -175,6 +265,7 @@ export const polarWebhookHandler = async (req: Request, res: Response) => {
           checkoutId,
         });
         res.status(500).json({ error: "Checkout fulfillment failed" });
+        return;
       }
     }
     res.json({ ok: true });

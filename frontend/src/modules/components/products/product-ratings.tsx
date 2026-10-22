@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  ComponentProps,
-  Dispatch,
-  KeyboardEvent,
-  MouseEvent,
-  SetStateAction,
-  useState,
-} from "react";
+import { ComponentProps, KeyboardEvent, useState } from "react";
 import Star from "@/components/shared/star";
 import { cn } from "cn";
 
@@ -44,6 +37,7 @@ const ProductRatings = ({
       "aria-label": `${starValue} ${starValue === 1 ? "star" : "stars"}`,
       tabIndex: 0,
       onMouseEnter: () => setHoverValue(starValue),
+      onClick: () => onChange(starValue),
       onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
@@ -61,7 +55,7 @@ const ProductRatings = ({
           aria-label={
             interactive
               ? "Rate this product"
-              : `${value.toFixed(1)} out of ${totalStars} stars}`
+              : `${value.toFixed(1)} out of ${totalStars} stars`
           }
           className={cn(
             "flex items-center gap-1",
@@ -76,16 +70,16 @@ const ProductRatings = ({
                 size={size}
                 fill={getFill(index)}
                 interactive={interactive}
-                {...interactiveProps(index - 1)}
+                {...interactiveProps(index + 1)}
               />
             );
           })}
         </div>
         {showCount && numReviews !== undefined && (
           <span className="text-muted-foreground text-sm">
-            {numReviews === 1
-              ? `${numReviews} review`
-              : `${numReviews} reviews`}
+            {numReviews === 0
+              ? "No ratings yet"
+              : `${value.toFixed(1)} · ${numReviews} ${numReviews === 1 ? "rating" : "ratings"}`}
           </span>
         )}
       </div>

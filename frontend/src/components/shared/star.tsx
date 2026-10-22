@@ -42,7 +42,6 @@ const Star = ({
       <div
         className="pointer-events-none absolute inset-0 overflow-hidden transition-all duration-200 ease-in-out"
         style={{ width: `${fill * 100}%` }}
-        {...props}
       >
         <svg
           width="24"

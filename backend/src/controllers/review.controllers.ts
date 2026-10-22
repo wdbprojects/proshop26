@@ -6,7 +6,7 @@ import {
 import { db } from "../drizzle/db";
 import { ApiError } from "../lib/api-error";
 import { orderItems, orders, products, reviews } from "../drizzle/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, sql, ne } from "drizzle-orm";
 
 /* PUT /api/reviews/:productId - create or change my rating */
 export const upsertReviewHandler = async (
@@ -29,6 +29,7 @@ export const upsertReviewHandler = async (
           eq(orders.userId, userId),
           eq(orders.status, "paid"),
           eq(orderItems.productId, productId),
+          ne(orders.fulfillmentStatus, "cancelled"),
         ),
       )
       .limit(1);

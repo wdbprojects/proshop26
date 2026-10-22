@@ -1,4 +1,4 @@
-import { IOrderPreview } from "@/config/types";
+import { IOrderPreview } from "@/config/type-schemas";
 import { IK_PRESETS, imageKitOptimizedUrl } from "@/lib/image-kit-url";
 import { cn } from "@/lib/utils";
 import { PackageIcon } from "lucide-react";

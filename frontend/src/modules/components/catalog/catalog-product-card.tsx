@@ -2,7 +2,7 @@
 
 import { routes } from "@/config/routes";
 import { IK_PRESETS, imageKitOptimizedUrl } from "@/lib/image-kit-url";
-import { formatPriceNew } from "@/lib/utils";
+import { formatPrice } from "@/lib/utils";
 import { Ban, PlusIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -77,7 +77,7 @@ const CatalogProductCard = ({ product }: { product: ProductType }) => {
         <Separator className="my-2" />
         <CardAction className="mt-0 flex w-full flex-row items-center justify-between px-2">
           <span className="text-lg font-bold tabular-nums">
-            {formatPriceNew(Number(product.priceCents), product.currency)}
+            {formatPrice(Number(product.priceCents), product.currency)}
           </span>
           <Button
             onClick={() => {

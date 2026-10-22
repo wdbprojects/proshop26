@@ -4,7 +4,7 @@ import ErrorCard from "@/components/shared/error-card";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { routes } from "@/config/routes";
-import { IOrder } from "@/config/types";
+import { IOrder } from "@/config/type-schemas";
 import { useOrdersPage } from "@/hooks/use-orders-page";
 import { cn } from "@/lib/utils";
 import OrderItem from "@/modules/components/orders/order-item";

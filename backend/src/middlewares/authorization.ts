@@ -58,7 +58,7 @@ export const requireStaff: RequestHandler = (
     return res.status(401).json({ error: "Authentication required" });
   }
   if (!isStaff(session.user.role as UserRole)) {
-    return res.status(403).json({ errr: "Insufficient permissions" });
+    return res.status(403).json({ err: "Insufficient permissions" });
   }
   next();
 };

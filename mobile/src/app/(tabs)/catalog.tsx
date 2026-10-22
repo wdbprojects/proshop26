@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Product, ProductSort } from "@/types/api";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import {
   View,
   Text,
@@ -50,14 +50,20 @@ const Chip = ({
 };
 
 const Catalog = () => {
-  const router = useRouter();
-  const params = useLocalSearchParams<{ category?: string; focus?: string }>();
+  // const params = useLocalSearchParams<{ category?: string; focus?: string }>();
+  const params = useLocalSearchParams<{
+    category?: string;
+    focus?: string;
+    ts?: string;
+  }>();
 
   const [input, setInput] = useState("");
-  const [category, setCategory] = useState(params.category ?? "");
+  const [category, setCategory] = useState("");
   const [sortChoice, setSortChoice] = useState<ProductSort | null>(null);
   const [sortOpen, setSortOpen] = useState(false);
   const listRef = useRef<FlatList<Product>>(null);
+
+  const inputRef = useRef<TextInput>(null);
 
   /* The query uses the debounced text, the input box shows what is typed right now */
   const q = useDebouncedValue(input.trim());
@@ -86,19 +92,19 @@ const Catalog = () => {
     listRef.current?.scrollToOffset({ offset: 0, animated: false });
   }, [q, category, sort]);
 
+  /* Home sent us here on purpose: start a fresh view for that intent */
+  useEffect(() => {
+    if (!params.ts) return;
+    setCategory(params.category ?? "");
+    setInput("");
+    setSortChoice(null);
+    if (params.focus) inputRef.current?.focus();
+  }, [params.ts]);
+
   return (
     <SafeAreaView edges={["top"]} className="flex-1 bg-background">
       {/* SEARCH BAR */}
       <View className="flex-row items-center gap-2 px-3 pb-2 pt-2">
-        <Pressable
-          onPress={() => {
-            return router.canGoBack() ? router.back() : router.replace("/");
-          }}
-          hitSlop={8}
-          className="size-11 items-center justify-center"
-        >
-          <Ionicons name="chevron-back" size={26} color="#090B0C" />
-        </Pressable>
         <View className="h-11 flex-1 flex-row items-center gap-2 rounded-full bg-muted px-4">
           <Ionicons name="search" size={18} color="#67787C" />
           <TextInput
@@ -106,7 +112,7 @@ const Catalog = () => {
             onChangeText={setInput}
             placeholder="Search products"
             placeholderTextColor="#67787C"
-            autoFocus={params.focus === "1"}
+            ref={inputRef}
             autoCorrect={false}
             returnKeyType="search"
             className="flex-1 text-base text-foreground"

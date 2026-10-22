@@ -36,7 +36,10 @@ export default function Index() {
             <Pressable
               className="h-11 flex-row items-center gap-2 rounded-full bg-muted px-4"
               onPress={() =>
-                router.push({ pathname: "/catalog", params: { focus: "1" } })
+                router.push({
+                  pathname: "/catalog",
+                  params: { focus: "1", ts: String(Date.now()) },
+                })
               }
             >
               <Ionicons name="search" size={18} color="#67787C" />
@@ -57,7 +60,10 @@ export default function Index() {
                     onPress={() =>
                       router.push({
                         pathname: "/catalog",
-                        params: { category: category.slug },
+                        params: {
+                          category: category.slug,
+                          ts: String(Date.now()),
+                        },
                       })
                     }
                   >

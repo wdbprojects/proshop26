@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ProductFiltersProps } from "./product-filters";
-import { formatPriceNew } from "@/lib/utils";
+import { formatPrice } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -23,8 +23,8 @@ const PriceRange = ({
       <h3 className="text-sm font-semibold">Price (USD)</h3>
       {facets && facets.price.max > 0 && (
         <p className="text-muted-foreground text-xs">
-          {formatPriceNew(facets.price.min, "usd")} -{" "}
-          {formatPriceNew(facets.price.max, "usd")}
+          {formatPrice(facets.price.min, "usd")} -{" "}
+          {formatPrice(facets.price.max, "usd")}
         </p>
       )}
       <div className="flex items-center gap-2">

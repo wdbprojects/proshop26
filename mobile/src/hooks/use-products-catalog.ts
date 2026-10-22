@@ -1,6 +1,7 @@
 import { apiFetch } from "@/lib/api";
 import { buildQuery } from "@/lib/query-string";
 import { CategoriesResponse, ProductSort, ProductsResponse } from "@/types/api";
+import { ProductFilters } from "@/lib/filters";
 import {
   keepPreviousData,
   useInfiniteQuery,
@@ -13,9 +14,15 @@ type CatalogFilters = {
   q: string;
   category: string;
   sort: ProductSort;
+  filters: ProductFilters;
 };
 
-export const useProductsCatalog = ({ q, category, sort }: CatalogFilters) => {
+export const useProductsCatalog = ({
+  q,
+  category,
+  sort,
+  filters,
+}: CatalogFilters) => {
   const categoriesQuery = useQuery({
     queryKey: ["product-categories", { q, category, sort }],
     queryFn: () =>
@@ -25,20 +32,21 @@ export const useProductsCatalog = ({ q, category, sort }: CatalogFilters) => {
   });
   const productsQuery = useInfiniteQuery({
     /* "infinite" keeps this cache separate from the home screen's lists, but everything still starts with "products" so one invalidate refreshes all of them */
-    queryKey: ["products", "infinite", { q, category, sort }],
-    queryFn: async ({ pageParam }) => {
-      const path = `/api/products${buildQuery({
-        q: q,
-        category: category,
-        sort: sort,
-        page: pageParam,
-        limit: PAGE_SIZE,
-      })}`;
-      const data = await apiFetch<ProductsResponse>(path, {
-        method: "GET",
-      });
-      return data;
-    },
+    queryKey: ["products", "infinite", { q, category, sort, filters }],
+    queryFn: ({ pageParam }) =>
+      apiFetch<ProductsResponse>(
+        `/api/products${buildQuery({
+          q: q,
+          category: category,
+          sort: sort,
+          brand: filters.brands.join(","),
+          minPrice: filters.minPrice,
+          maxPrice: filters.maxPrice,
+          page: pageParam,
+          limit: PAGE_SIZE,
+        })}`,
+        { method: "GET" },
+      ),
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
       const pagination = lastPage?.pagination;
@@ -55,6 +63,7 @@ export const useProductsCatalog = ({ q, category, sort }: CatalogFilters) => {
       return page.products;
     }) ?? [];
   const total = productsQuery.data?.pages[0].pagination.total ?? 0;
+  const facets = productsQuery.data?.pages[0]?.facets;
 
   return {
     categories: categoriesQuery.data?.categories ?? [],
@@ -66,5 +75,6 @@ export const useProductsCatalog = ({ q, category, sort }: CatalogFilters) => {
     hasNextPage: productsQuery.hasNextPage,
     isFetchingNextPage: productsQuery.isFetchingNextPage,
     fetchNextPage: productsQuery.fetchNextPage,
+    facets: facets,
   };
 };

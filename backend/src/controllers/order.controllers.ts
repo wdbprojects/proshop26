@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from "express";
 import { getEnv } from "../config/env";
-import { getCurrentSession } from "../lib/session";
 import {
   // order as ordersTable,
   orders,
@@ -20,6 +19,12 @@ import {
   streamUserId,
 } from "../lib/stream";
 import { ExtendedChannelData } from "../config/type-schemas";
+import { ApiError } from "../lib/api-error";
+import { canTransition } from "../lib/order-status";
+import {
+  orderIdParamSchema,
+  updateFulfillmentSchema,
+} from "../validators/order.validators";
 
 const ENV = getEnv();
 
@@ -157,7 +162,10 @@ export const getSingleOrder = async (
 
     res.status(200).json({
       singleOrder: singleOrder,
-      canRate: isOwner && singleOrder.status === "paid",
+      canRate:
+        isOwner &&
+        singleOrder.status === "paid" &&
+        singleOrder.fulfillmentStatus !== "cancelled",
       items: items.map((item) => {
         return {
           id: item.id,
@@ -279,5 +287,70 @@ export const createVideoInvite = async (
     res.json({ ok: true, joinUrl: joinUrl });
   } catch (error) {
     next(error);
+  }
+};
+
+/* PATCH /api/orders/:id/fulfillment - staff only (requireStaff in the router) */
+export const updateFulfillmentHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { id } = orderIdParamSchema.parse(req.params);
+    const { status, trackingNumber } = updateFulfillmentSchema.parse(req.body);
+    const updated = await db.transaction(async (tx) => {
+      /* Lock the order row so two staff clicking at once can't both pass the transition check */
+      const [current] = await tx
+        .select()
+        .from(orders)
+        .where(eq(orders.id, id))
+        .for("update");
+      if (!current) {
+        throw new ApiError(409, "Order not found");
+      }
+      if (current.status !== "paid") {
+        throw new ApiError(409, "Only paid orders can be fulfilled");
+      }
+      if (!canTransition(current.fulfillmentStatus, status)) {
+        throw new ApiError(
+          409,
+          `Cannot move an order from ${current.fulfillmentStatus} to ${status}`,
+        );
+      }
+      /* Cancelling puts the units back on the shelf */
+      if (status === "cancelled") {
+        const lines = await tx
+          .select({
+            producetId: orderItems.productId,
+            quantity: orderItems.quantity,
+          })
+          .from(orderItems)
+          .where(eq(orderItems.orderId, id))
+          .orderBy(asc(orderItems.productId));
+        for (const line of lines) {
+          await tx
+            .update(products)
+            .set({ stock: sql`${products.stock} + ${line.quantity}` })
+            .where(eq(products.id, line.producetId));
+        }
+      }
+      const now = new Date();
+      const [row] = await tx
+        .update(orders)
+        .set({
+          fulfillmentStatus: status,
+          updatedAt: now,
+          ...(status === "shipped"
+            ? { shippedAt: now, trackingNumber: trackingNumber ?? null }
+            : {}),
+        })
+        .where(eq(orders.id, id))
+        .returning();
+      return row;
+    });
+    res.json({ order: updated });
+  } catch (err) {
+    next(err);
   }
 };

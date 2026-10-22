@@ -11,7 +11,7 @@ import { Spinner } from "@/components/ui/spinner";
 import Link from "next/link";
 import { cn } from "cn";
 import { IK_PRESETS, imageKitOptimizedUrl } from "@/lib/image-kit-url";
-import { formatPriceNew } from "@/lib/utils";
+import { formatPrice } from "@/lib/utils";
 
 const SearchBar = () => {
   const [value, setValue] = useState("");
@@ -141,7 +141,7 @@ const SearchBar = () => {
                         </p>
                       </div>
                       <span className="text-sm font-semibold tabular-nums">
-                        {formatPriceNew(item.priceCents, item.currency)}
+                        {formatPrice(item.priceCents, item.currency)}
                       </span>
                     </Link>
                   </li>

@@ -12,6 +12,12 @@ import { relations } from "drizzle-orm";
 import { orderItems } from "./orderItems.schema";
 
 export type OrderStatus = "pending" | "paid" | "failed";
+export type FulfillmentStatus =
+  | "unfulfilled"
+  | "processing"
+  | "shipped"
+  | "delivered"
+  | "cancelled";
 
 /* Polar is the only provider wired up today. "qr_bolivia is added to the union now (schema-only) so the column type, the unique index, and every switch/if on paymentProvider are already shaped for a second provider. No QR integration code exists yet - this is purely so adding it later is a new case, not a migration." */
 export type PaymentProvider = "polar" | "qr_bolivia";
@@ -34,6 +40,13 @@ export const orders = pgTable(
     providerReference: jsonb("provider_reference"),
     totalCents: integer("total_cents").notNull().default(0),
     currency: text("currency").notNull().default("usd"),
+    fulfillmentStatus: text("fulfillment_status")
+      .$type<FulfillmentStatus>()
+      .notNull()
+      .default("unfulfilled"),
+    trackingNumber: text("tracking_number"),
+    shippedAt: timestamp("shipped_at", { withTimezone: true }),
+    deliveredAt: timestamp("delivered_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),

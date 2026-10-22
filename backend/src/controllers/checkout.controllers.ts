@@ -1,15 +1,13 @@
 import { NextFunction, Request, Response } from "express";
 import { getEnv } from "../config/env";
-import z from "zod";
-import { getCurrentSession } from "../lib/session";
+
 import {
   checkoutSession,
   CheckoutSessionLine,
   PaymentProvider,
-  products,
 } from "../drizzle/schema";
 import { db } from "../drizzle/db";
-import { and, inArray, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { polarCreateCheckout } from "../lib/polar";
 import { getCartItemsForCheckout, getOrCreateCart } from "./cart.controllers";
 
@@ -50,6 +48,15 @@ export const createCheckout = async (
       if (!row.active) {
         res.status(409).json({
           error: `"${row.name}" is no longer available. Remove it from yout cart to continue.`,
+        });
+        return;
+      }
+      if (row.quantity > row.stock) {
+        res.status(409).json({
+          error:
+            row.stock <= 0
+              ? `"${row.name}" is out of stock. Remove it from your cart to continue.`
+              : `Only "${row.stock}" of "${row.name}" left. Lower the quantity to continue.`,
         });
         return;
       }
