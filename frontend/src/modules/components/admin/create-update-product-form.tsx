@@ -910,7 +910,7 @@ const CreateUpdateProductForm = ({ product }: { product?: ProductType }) => {
               type="submit"
               form="create-update-product"
               className="flex flex-1 items-center justify-center gap-2"
-              disabled={!canSubmit || isMutating}
+              // disabled={!canSubmit || isMutating}
             >
               {isMutating ? (
                 <Spinner />

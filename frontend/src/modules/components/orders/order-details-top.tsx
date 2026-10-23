@@ -8,9 +8,15 @@ import { useOrderDetails } from "@/hooks/use-order-details";
 import { cn, formatOrderWhen, formatPrice } from "@/lib/utils";
 import { ArrowLeftIcon } from "lucide-react";
 import Link from "next/link";
+import { useUser } from "@/hooks/use-session";
+import FulfillmentBadge from "@/modules/components/orders/fulfillment-badge";
+import FulfillmentControls from "@/modules/components/orders/fulfillment-controls";
 
 const OrderDetailsTop = ({ orderId }: { orderId: string }) => {
   const { order, isLoading, error } = useOrderDetails(orderId);
+
+  const { user } = useUser();
+  const isStaff = user?.role === "support" || user?.role === "admin";
 
   // handle loading and error states
   if (isLoading) return <div>Loading...</div>;
@@ -49,6 +55,32 @@ const OrderDetailsTop = ({ orderId }: { orderId: string }) => {
                     })
                   : "Date unavailable"}
               </p>
+
+              {singleOrder.trackingNumber && (
+                <p className="text-foreground/70 mt-1 text-sm">
+                  Tracking:{" "}
+                  <span className="font-mono font-semibold">
+                    {singleOrder.trackingNumber}
+                  </span>
+                </p>
+              )}
+              {singleOrder.shippedAt && (
+                <p className="text-foreground/70 mt-1 text-sm">
+                  Shipped{" "}
+                  {formatOrderWhen(singleOrder.shippedAt, {
+                    dateStyle: "medium",
+                  })}
+                </p>
+              )}
+              {singleOrder.deliveredAt && (
+                <p className="text-foreground/70 mt-1 text-sm">
+                  Delivered{" "}
+                  {formatOrderWhen(singleOrder.deliveredAt, {
+                    dateStyle: "medium",
+                  })}
+                </p>
+              )}
+
               <p className="text-foreground/45 mt-1 text-sm">
                 {singleOrder.id}
               </p>
@@ -69,6 +101,12 @@ const OrderDetailsTop = ({ orderId }: { orderId: string }) => {
               >
                 {order?.singleOrder?.status}
               </Badge>
+              {singleOrder.status === "paid" && (
+                <FulfillmentBadge
+                  status={singleOrder.fulfillmentStatus}
+                  className="w-fit px-6 py-3 lg:ml-auto"
+                />
+              )}
               <div>
                 <p className="text-foreground/50 text-xs font-medium tracking-wide uppercase">
                   Order total
@@ -92,6 +130,12 @@ const OrderDetailsTop = ({ orderId }: { orderId: string }) => {
           </p>
         </div>
       </Card>
+      {isStaff && singleOrder.status === "paid" && (
+        <FulfillmentControls
+          orderId={singleOrder.id}
+          current={singleOrder.fulfillmentStatus}
+        />
+      )}
     </div>
   );
 };

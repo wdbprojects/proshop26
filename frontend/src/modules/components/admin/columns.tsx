@@ -70,11 +70,18 @@ export const columns: ColumnDef<ProductType>[] = [
       );
     },
   },
+  {
+    accessorKey: "stock",
+    header: () => {
+      return <div className="text-right">Stock</div>;
+    },
+    cell: ({ row }) => {
+      return (
+        <div className="text-center font-medium">{row.getValue("stock")}</div>
+      );
+    },
+  },
   /*  {
-    accessorKey: "slug",
-    header: "Slug",
-  }, */
-  /* {
     accessorKey: "description",
     header: "Description",
     cell: ({ row }) => {

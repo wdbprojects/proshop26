@@ -8,6 +8,7 @@ import OrderPreview from "@/modules/components/orders/order-preview";
 import { Badge } from "@/components/ui/badge";
 import { formatOrderWhen, formatPrice } from "@/lib/utils";
 import { ChevronRightIcon } from "lucide-react";
+import FulfillmentBadge from "@/modules/components/orders/fulfillment-badge";
 
 const OrderItem = ({ order, summary }: { order: IOrder; summary: string }) => {
   const paymentStatus =
@@ -36,6 +37,9 @@ const OrderItem = ({ order, summary }: { order: IOrder; summary: string }) => {
                 <Badge variant={paymentStatus} className="capitalize">
                   {order.status}
                 </Badge>
+                {order.status === "paid" && (
+                  <FulfillmentBadge status={order.fulfillmentStatus} />
+                )}
               </div>
               <p className="text-muted-foreground mt-1 text-sm">
                 {formatOrderWhen(order.createdAt)}

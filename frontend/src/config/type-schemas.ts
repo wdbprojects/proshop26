@@ -176,6 +176,13 @@ export type ImageKitAuthenticatorType = {
   publicKey: string;
 };
 
+export type FulfillmentStatus =
+  | "unfulfilled"
+  | "processing"
+  | "shipped"
+  | "delivered"
+  | "cancelled";
+
 export interface IOrder {
   id: string;
   userId: string;
@@ -187,6 +194,10 @@ export interface IOrder {
   currency: string;
   updatedAt: string;
   createdAt: string;
+  fulfillmentStatus: FulfillmentStatus;
+  trackingNumber: string | null;
+  shippedAt: string | null;
+  deliveredAt: string | null;
 }
 
 export type IOrderProducts = Pick<
