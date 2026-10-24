@@ -9,6 +9,7 @@ import {
 import { user } from "./auth.schema";
 import { PaymentProvider } from "./orders.schema";
 import { uniqueIndex } from "drizzle-orm/pg-core";
+import { shippingColumns } from "./shipping.columns";
 
 export type CheckoutSessionLine = {
   productId: string;
@@ -37,6 +38,7 @@ export const checkoutSession = pgTable(
       .notNull(),
     expiresAt: timestamp("expires_at", { withTimezone: true }),
     qrImage: text("qr_image"),
+    ...shippingColumns(),
   },
   (table) => ({
     providerCheckoutIdx: uniqueIndex(

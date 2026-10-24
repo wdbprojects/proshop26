@@ -36,6 +36,20 @@
       "when": 1792638713490,
       "tag": "0004_flawless_whirlwind",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792785839905,
+      "tag": "0005_lean_nightshade",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792802789525,
+      "tag": "0006_loud_wallow",
+      "breakpoints": true
     }
   ]
 }

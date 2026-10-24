@@ -11,6 +11,7 @@ import Link from "next/link";
 import { useUser } from "@/hooks/use-session";
 import FulfillmentBadge from "@/modules/components/orders/fulfillment-badge";
 import FulfillmentControls from "@/modules/components/orders/fulfillment-controls";
+import ShippingAddressCard from "./shipping-address-card";
 
 const OrderDetailsTop = ({ orderId }: { orderId: string }) => {
   const { order, isLoading, error } = useOrderDetails(orderId);
@@ -130,6 +131,7 @@ const OrderDetailsTop = ({ orderId }: { orderId: string }) => {
           </p>
         </div>
       </Card>
+      <ShippingAddressCard order={singleOrder} />
       {isStaff && singleOrder.status === "paid" && (
         <FulfillmentControls
           orderId={singleOrder.id}

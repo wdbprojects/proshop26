@@ -61,59 +61,6 @@ const checkoutSessionIdFromMetadata = async (
   return typeof sessionId === "string" ? sessionId : undefined;
 };
 
-// const fulfillCheckoutSession = async (
-//   sessionId: string,
-//   providerOrderId: string | undefined,
-//   providerCheckoutId: string | undefined,
-// ) => {
-//   // database transaction - returns the userId to clear the cart for on success, or null if there was no matching session to fulfill
-//   const fulfilledForUserId = await db.transaction(async (tx) => {
-//     const [session] = await tx
-//       .select()
-//       .from(checkoutSession)
-//       .where(eq(checkoutSession.id, sessionId))
-//       .for("update");
-//     if (!session) return null;
-
-//     const [orderResp] = await tx
-//       .insert(orders)
-//       .values({
-//         userId: session.userId,
-//         status: "paid",
-//         paymentProvider: PROVIDER,
-//         currency: session.currency,
-//         totalCents: session.totalCents,
-//         providerCheckoutId:
-//           providerCheckoutId ?? session.providerCheckoutId ?? null,
-//         ...(providerOrderId ? { providerOrderId } : {}),
-//       })
-//       .returning();
-
-//     if (session.lines.length) {
-//       await tx.insert(orderItems).values(
-//         session.lines.map((line) => ({
-//           orderId: orderResp.id,
-//           productId: line.productId,
-//           quantity: line.quantity,
-//           unitPriceCents: line.unitPriceCents,
-//         })),
-//       );
-//     }
-//     await tx.delete(checkoutSession).where(eq(checkoutSession.id, sessionId));
-//     return session.userId;
-//   });
-
-//   if (fulfilledForUserId) {
-//     /* Best-effort: the order is already paid and committed at this point, so a failure here should never look like a failed webhook (Polar would retry and we would double-process). Just log it - the customer's cart being briefly stale is a much smaller problem than that. */
-//     try {
-//       await clearCartForUser(fulfilledForUserId);
-//     } catch (err) {
-//       console.error("Failed to clear cart after order fullfillment", err);
-//     }
-//   }
-//   return fulfilledForUserId !== null;
-// };
-
 const fulfillCheckoutSession = async (
   sessionId: string,
   providerOrderId: string | undefined,
@@ -138,6 +85,15 @@ const fulfillCheckoutSession = async (
         providerCheckoutId:
           providerCheckoutId ?? session.providerCheckoutId ?? null,
         ...(providerCheckoutId ? { providerOrderId } : {}),
+        shipFullName: session.shipFullName,
+        shipPhone: session.shipPhone,
+        shipCity: session.shipCity,
+        shipZone: session.shipZone,
+        shipStreet: session.shipStreet,
+        shipReference: session.shipReference,
+        shipPostalCode: session.shipPostalCode,
+        shipLatitude: session.shipLatitude,
+        shipLongitude: session.shipLongitude,
       })
       .returning();
 

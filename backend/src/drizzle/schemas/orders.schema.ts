@@ -10,6 +10,7 @@ import { user } from "./auth.schema";
 import { timestamp } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { orderItems } from "./orderItems.schema";
+import { shippingColumns } from "./shipping.columns";
 
 export type OrderStatus = "pending" | "paid" | "failed";
 export type FulfillmentStatus =
@@ -53,6 +54,7 @@ export const orders = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
+    ...shippingColumns(),
   },
   (table) => ({
     /* Scoped per provider so a Polar id and a future QR id can never collide, and so "has this already been processed" checks stay provider-aware. Postgres unique indexes allow multiple NULLs, so orders without a providerOrderId yet (shouldn't normally happen, but defensively) don't fight each other. */

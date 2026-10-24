@@ -10,7 +10,7 @@ import {
   CartResponse,
   useCartQuery,
 } from "@/hooks/use-cart-query";
-import { toast } from "@/components/ui/toast";
+import { routes } from "@/config/routes";
 
 export const useCartPage = () => {
   const [checkoutLoading, startCheckoutTransition] = useTransition();
@@ -96,6 +96,12 @@ export const useCartPage = () => {
   const subTotal = cartData?.cart.itemsPriceCents ?? 0;
 
   const checkout = () => {
+    startCheckoutTransition(() => {
+      router.push(routes.checkout);
+    });
+  };
+
+  /* const checkout = () => {
     startCheckoutTransition(async () => {
       try {
         const body = {
@@ -118,7 +124,7 @@ export const useCartPage = () => {
         });
       }
     });
-  };
+  }; */
 
   return {
     items: items,

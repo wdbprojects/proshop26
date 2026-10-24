@@ -5,11 +5,11 @@ import HeaderCatalog from "@/modules/components/layout/header-catalog";
 import CatalogSidebar from "@/modules/sidebars/catalog-sidebar";
 
 const CatalogLayout = async ({ children }: LayoutPropsMain) => {
-  const cookieStore = await cookies();
-  const defaultOpen = cookieStore.get("sidebar_state")?.value === "true";
+  // const cookieStore = await cookies();
+  // const defaultOpen = cookieStore.get("sidebar_state")?.value === "true";
 
   return (
-    <SidebarProvider defaultOpen={defaultOpen}>
+    <SidebarProvider defaultOpen={true}>
       <HeaderCatalog />
       <div className="flex w-full overflow-y-auto">
         <CatalogSidebar />

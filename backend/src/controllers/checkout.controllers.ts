@@ -10,6 +10,7 @@ import { db } from "../drizzle/db";
 import { eq } from "drizzle-orm";
 import { polarCreateCheckout } from "../lib/polar";
 import { getCartItemsForCheckout, getOrCreateCart } from "./cart.controllers";
+import { checkoutBodySchema } from "../validators/checkout.validators";
 
 const ENV = getEnv();
 
@@ -31,6 +32,8 @@ export const createCheckout = async (
       return;
     }
 
+    const { shippingAddress } = checkoutBodySchema.parse(req.body);
+
     /* Checkout always operates on the caller's persisted cart - never on items posted in the request body. This keeps it consistent with whatever the cart badge/mini-cart page are showing (all backed by the same React Query ["cart"] cache), and means a stale or tempered client payload can no longer choose what gets charged. `resolveCart` middleware (mounted on this router) populates req.cartContext the same way it does for every cart endpoint. */
     const cartRow = await getOrCreateCart(req.cartContext!);
     const cartItemRows = await getCartItemsForCheckout(cartRow.id);
@@ -47,7 +50,7 @@ export const createCheckout = async (
     for (const row of cartItemRows) {
       if (!row.active) {
         res.status(409).json({
-          error: `"${row.name}" is no longer available. Remove it from yout cart to continue.`,
+          error: `"${row.name}" is no longer available. Remove it from your cart to continue.`,
         });
         return;
       }
@@ -56,7 +59,7 @@ export const createCheckout = async (
           error:
             row.stock <= 0
               ? `"${row.name}" is out of stock. Remove it from your cart to continue.`
-              : `Only "${row.stock}" of "${row.name}" left. Lower the quantity to continue.`,
+              : `Only ${row.stock} of "${row.name}" left. Lower the quantity to continue.`,
         });
         return;
       }
@@ -84,6 +87,15 @@ export const createCheckout = async (
         lines: lines,
         totalCents: totalCents,
         currency: "usd",
+        shipFullName: shippingAddress.fullName,
+        shipPhone: shippingAddress.phone,
+        shipCity: shippingAddress.city,
+        shipZone: shippingAddress.zone || null,
+        shipStreet: shippingAddress.street || null,
+        shipReference: shippingAddress.reference || null,
+        shipPostalCode: shippingAddress.postalCode || null,
+        shipLatitude: shippingAddress.latitude,
+        shipLongitude: shippingAddress.longitude,
       })
       .returning();
 

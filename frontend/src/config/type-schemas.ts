@@ -198,6 +198,15 @@ export interface IOrder {
   trackingNumber: string | null;
   shippedAt: string | null;
   deliveredAt: string | null;
+  shipFullName: string | null;
+  shipPhone: string | null;
+  shipCity: string | null;
+  shipZone: string | null;
+  shipStreet: string | null;
+  shipReference: string | null;
+  shipPostalCode: string | null;
+  shipLatitude: number | null;
+  shipLongitude: number | null;
 }
 
 export type IOrderProducts = Pick<

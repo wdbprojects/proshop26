@@ -23,4 +23,5 @@ export const routes = {
   orderItem: (id: string) => {
     return `/orders/${id}`;
   },
+  checkout: "/checkout",
 };
