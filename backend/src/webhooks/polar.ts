@@ -91,7 +91,6 @@ const fulfillCheckoutSession = async (
         shipZone: session.shipZone,
         shipStreet: session.shipStreet,
         shipReference: session.shipReference,
-        shipPostalCode: session.shipPostalCode,
         shipLatitude: session.shipLatitude,
         shipLongitude: session.shipLongitude,
       })

@@ -93,7 +93,6 @@ export const createCheckout = async (
         shipZone: shippingAddress.zone || null,
         shipStreet: shippingAddress.street || null,
         shipReference: shippingAddress.reference || null,
-        shipPostalCode: shippingAddress.postalCode || null,
         shipLatitude: shippingAddress.latitude,
         shipLongitude: shippingAddress.longitude,
       })

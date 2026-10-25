@@ -204,7 +204,6 @@ export interface IOrder {
   shipZone: string | null;
   shipStreet: string | null;
   shipReference: string | null;
-  shipPostalCode: string | null;
   shipLatitude: number | null;
   shipLongitude: number | null;
 }

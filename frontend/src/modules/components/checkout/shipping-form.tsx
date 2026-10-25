@@ -44,7 +44,6 @@ const ShippingForm = ({
       zone: "",
       street: "",
       reference: "",
-      postalCode: "",
       latitude: null,
       longitude: null,
     },
@@ -188,12 +187,6 @@ const ShippingForm = ({
               </Field>
             );
           }}
-        />
-
-        <ShippingTextField
-          control={control}
-          name="postalCode"
-          label="Postal code (optional)"
         />
       </FieldGroup>
     </form>

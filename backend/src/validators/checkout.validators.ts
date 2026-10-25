@@ -11,7 +11,6 @@ export const shippingAddressSchema = z
     zone: z.string().trim().max(120).default(""),
     street: z.string().trim().max(160).default(""),
     reference: z.string().trim().max(300).default(""),
-    postalCode: z.string().trim().max(10).default(""),
     latitude: z.number().min(-90).max(90).nullable().default(null),
     longitude: z.number().min(-180).max(180).nullable().default(null),
   })

@@ -31,7 +31,6 @@ const ShippingAddressCard = ({
           {[order.shipStreet, order.shipZone, order.shipCity]
             .filter(Boolean)
             .join(", ")}
-          {order.shipPostalCode && ` (${order.shipPostalCode})`}
         </p>
         {order.shipReference && (
           <p className="text-muted-foreground italic">

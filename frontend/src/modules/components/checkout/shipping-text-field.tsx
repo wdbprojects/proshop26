@@ -3,13 +3,7 @@ import { Input } from "@/components/ui/input";
 import { ShippingAddressValues } from "@/schemas/checkout-schemas";
 import { Control, Controller } from "react-hook-form";
 
-type TextName =
-  | "fullName"
-  | "phone"
-  | "city"
-  | "zone"
-  | "street"
-  | "postalCode";
+type TextName = "fullName" | "phone" | "city" | "zone" | "street";
 
 const ShippingTextField = ({
   control,

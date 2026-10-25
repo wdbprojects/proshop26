@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 import { getEnv } from "./config/env";
 import cronJob from "./lib/cron";
 import { polarWebhookHandler } from "./webhooks/polar";
+import { originGuard } from "./config/origin-guard";
 
 /* ROUTES IMPORTS */
 import authRouter from "./routes/auth.router";
@@ -46,6 +47,8 @@ app.use(
   }),
 );
 // app.options("*", cors());
+
+app.use(originGuard);
 
 app.use(express.json());
 app.use(cookieParser());

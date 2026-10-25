@@ -71,9 +71,11 @@ export const deleteProductImageUpload = async (
 ) => {
   try {
     const imageKitFileId = req.params.fileId;
-    if (!imageKitFileId) {
+    if (typeof imageKitFileId !== "string" || !imageKitFileId) {
       throw new ApiError(400, "Missing ImageKit file id");
     }
+    await deleteImageKitAsset(ENV, imageKitFileId);
+    res.json({ success: true });
   } catch (err) {
     next(err);
   }
@@ -396,7 +398,7 @@ export const deleteAdminProduct = async (
 
     res.status(200).json({
       success: true,
-      message: "Image deleted successfully",
+      message: "Product deleted successfully",
     });
   } catch (err) {
     next(err);
