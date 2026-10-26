@@ -12,9 +12,8 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const router = useRouter();
-
 export default function Index() {
+  const router = useRouter();
   const { categories, products, loadingProducts, error } = useHomeCatalog();
   return (
     <SafeAreaView edges={["top"]} className="flex-1 bg-background">

@@ -16,7 +16,7 @@ export const countActiveFilters = (filters: ProductFilters) => {
   return filters.brands.length + (hasPrice ? 1 : 0);
 };
 
-/* The inputs hodl text in dollars, the API wants integer cents */
+/* The inputs holds text in dollars, the API wants integer cents */
 export const dollarsToCents = (value: string): number | null => {
   const trimmed = value.trim();
   if (trimmed === "") return null;

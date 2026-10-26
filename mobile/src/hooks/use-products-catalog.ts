@@ -24,7 +24,7 @@ export const useProductsCatalog = ({
   filters,
 }: CatalogFilters) => {
   const categoriesQuery = useQuery({
-    queryKey: ["product-categories", { q, category, sort }],
+    queryKey: ["product-categories"],
     queryFn: () =>
       apiFetch<CategoriesResponse>("/api/products/categories", {
         method: "GET",
@@ -62,7 +62,7 @@ export const useProductsCatalog = ({
     productsQuery.data?.pages.flatMap((page) => {
       return page.products;
     }) ?? [];
-  const total = productsQuery.data?.pages[0].pagination.total ?? 0;
+  const total = productsQuery.data?.pages[0]?.pagination.total ?? 0;
   const facets = productsQuery.data?.pages[0]?.facets;
 
   return {
