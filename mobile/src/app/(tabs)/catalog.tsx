@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, ComponentRef } from "react";
 import { Product, ProductSort } from "@/types/api";
 import { useLocalSearchParams } from "expo-router";
 import {
@@ -17,6 +17,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { SORT_OPTIONS } from "@/lib/sort-options";
 import ProductCard from "@/components/product-card";
 import { SortSheet } from "@/components/sort-sheet";
+import FilterSheet from "@/components/filter-sheet";
+import {
+  countActiveFilters,
+  EMPTY_FILTERS,
+  ProductFilters,
+} from "@/lib/filters";
 
 const Chip = ({
   label,
@@ -61,9 +67,13 @@ const Catalog = () => {
   const [category, setCategory] = useState("");
   const [sortChoice, setSortChoice] = useState<ProductSort | null>(null);
   const [sortOpen, setSortOpen] = useState(false);
+  const [filters, setFilters] = useState<ProductFilters>(EMPTY_FILTERS);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const activeCount = countActiveFilters(filters);
+
   const listRef = useRef<FlatList<Product>>(null);
 
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<ComponentRef<typeof TextInput>>(null);
 
   /* The query uses the debounced text, the input box shows what is typed right now */
   const q = useDebouncedValue(input.trim());
@@ -79,18 +89,19 @@ const Catalog = () => {
     categories,
     products,
     total,
+    facets,
     isLoading,
     isPlaceholderData,
     error,
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
-  } = useProductsCatalog({ q, category, sort });
+  } = useProductsCatalog({ q, category, sort, filters });
 
   /* New search, category or sort: jump back to the top of the list */
   useEffect(() => {
     listRef.current?.scrollToOffset({ offset: 0, animated: false });
-  }, [q, category, sort]);
+  }, [q, category, sort, filters]);
 
   /* Home sent us here on purpose: start a fresh view for that intent */
   useEffect(() => {
@@ -98,8 +109,14 @@ const Catalog = () => {
     setCategory(params.category ?? "");
     setInput("");
     setSortChoice(null);
+    setFilters(EMPTY_FILTERS);
     if (params.focus) inputRef.current?.focus();
   }, [params.ts]);
+
+  const selectCategory = (slug: string) => {
+    setCategory(slug);
+    setFilters(EMPTY_FILTERS);
+  };
 
   return (
     <SafeAreaView edges={["top"]} className="flex-1 bg-background">
@@ -139,7 +156,7 @@ const Catalog = () => {
         <Chip
           label="All"
           active={category === ""}
-          onPress={() => setCategory("")}
+          onPress={() => selectCategory("")}
         />
         {categories.map((item) => {
           return (
@@ -147,7 +164,7 @@ const Catalog = () => {
               key={item.id}
               label={item.name}
               active={category === item.slug}
-              onPress={() => setCategory(item.slug)}
+              onPress={() => selectCategory(item.slug)}
             />
           );
         })}
@@ -159,7 +176,48 @@ const Catalog = () => {
             ? "Loading..."
             : `${total} ${total === 1 ? "result" : "results"}`}
         </Text>
-        <Pressable
+
+        <View className="flex-row items-center gap-6">
+          <View className="flex-row items-center gap-6">
+            {activeCount > 0 && (
+              <Pressable
+                onPress={() => setFilters(EMPTY_FILTERS)}
+                hitSlop={8}
+                className="flex flex-row items-center gap-0.5"
+              >
+                {/* <Ionicons name="close" size={16} color="#ca3500" /> */}
+                <Text className="text-sm font-medium text-primary">
+                  Clear all
+                </Text>
+              </Pressable>
+            )}
+          </View>
+          <Pressable
+            onPress={() => setFiltersOpen(true)}
+            hitSlop={8}
+            className="flex-row items-center gap-1"
+          >
+            <Ionicons name="options-outline" size={16} color="#090B0C" />
+            <Text className="text-sm font-medium text-foreground">
+              {activeCount > 0 ? `Filters (${activeCount})` : "Filters"}
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setSortOpen(true)}
+            hitSlop={8}
+            className="flex-row items-center gap-1"
+          >
+            <Ionicons name="swap-vertical" size={16} color="#090B0C" />
+            <Text className="text-sm font-medium text-foreground">
+              {
+                SORT_OPTIONS.find((option) => {
+                  return option.value === sort;
+                })?.label
+              }
+            </Text>
+          </Pressable>
+        </View>
+        {/* <Pressable
           onPress={() => setSortOpen(true)}
           hitSlop={8}
           className="flex-row items-center gap-1"
@@ -172,7 +230,7 @@ const Catalog = () => {
               })?.label
             }
           </Text>
-        </Pressable>
+        </Pressable> */}
       </View>
       {/* PRODUCT GRID */}
       <FlatList
@@ -209,7 +267,9 @@ const Catalog = () => {
           )
         }
         ListFooterComponent={
-          isFetchingNextPage ? <ActivityIndicator className="py-6" /> : null
+          isFetchingNextPage ? (
+            <ActivityIndicator className="py-6" />
+          ) : undefined
         }
       />
       <SortSheet
@@ -218,6 +278,13 @@ const Catalog = () => {
         hasSearch={hasQuery}
         onSelect={setSortChoice}
         onClose={() => setSortOpen(false)}
+      />
+      <FilterSheet
+        visible={filtersOpen}
+        facets={facets}
+        applied={filters}
+        onApply={setFilters}
+        onClose={() => setFiltersOpen(false)}
       />
     </SafeAreaView>
   );

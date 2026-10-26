@@ -16,7 +16,13 @@ const TabsLayout = () => {
         options={{
           title: "Home",
           tabBarIcon: ({ color, size }) => {
-            return <Ionicons name="home-outline" size={size} color={color} />;
+            return (
+              <Ionicons
+                name="home-outline"
+                size={size}
+                color={color as string}
+              />
+            );
           },
         }}
       />
@@ -25,7 +31,13 @@ const TabsLayout = () => {
         options={{
           title: "Catalog",
           tabBarIcon: ({ color, size }) => {
-            return <Ionicons name="grid-outline" size={size} color={color} />;
+            return (
+              <Ionicons
+                name="grid-outline"
+                size={size}
+                color={color as string}
+              />
+            );
           },
         }}
       />
@@ -34,7 +46,13 @@ const TabsLayout = () => {
         options={{
           title: "Cart",
           tabBarIcon: ({ color, size }) => {
-            return <Ionicons name="cart-outline" size={size} color={color} />;
+            return (
+              <Ionicons
+                name="cart-outline"
+                size={size}
+                color={color as string}
+              />
+            );
           },
         }}
       />
@@ -43,7 +61,13 @@ const TabsLayout = () => {
         options={{
           title: "Account",
           tabBarIcon: ({ color, size }) => {
-            return <Ionicons name="person-outline" size={size} color={color} />;
+            return (
+              <Ionicons
+                name="person-outline"
+                size={size}
+                color={color as string}
+              />
+            );
           },
         }}
       />
