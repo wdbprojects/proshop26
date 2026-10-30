@@ -9,6 +9,10 @@ const isProduction = getEnv().NODE_ENV === "production";
 const CART_COOKIE_NAME = "cart_session_id";
 const CART_COOKIE_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 30;
 
+const CART_HEADER_NAME = "x-cart-session-id";
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 export interface CartContext {
   userId: string | null;
   sessionCartId: string | null;
@@ -37,7 +41,12 @@ export const resolveCart = async (
     /* If requireAuth already ran on this router (e.g. checkout.router.ts: requireAuth then resolveCart), req.session is already populated — reuse it instead of validating the session a second time. On cart.router.ts, which allows guest carts and never runs requireAuth, req.session is undefined here, so this falls back to looking the session up directly, same as before. */
     const session = req.session ?? (await getCurrentSession(req.headers));
     const userId = session?.user?.id ?? null;
-    let sessionCartId: string | null = req.cookies?.[CART_COOKIE_NAME] ?? null;
+
+    const headerValue = req.get(CART_HEADER_NAME);
+    const headerCartId =
+      headerValue && UUID_PATTERN.test(headerValue) ? headerValue : null;
+    let sessionCartId: string | null =
+      req.cookies?.[CART_COOKIE_NAME] ?? headerCartId;
 
     if (!userId && !sessionCartId) {
       sessionCartId = randomUUID();

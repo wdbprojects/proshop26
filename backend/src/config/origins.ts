@@ -15,7 +15,12 @@ export const allowedOrigins = Array.from(
       ENV.FRONTEND_URL,
       "https://proshop26-frontend.onrender.com",
       "https://proshop26.vercel.app",
-      ...(isProduction ? [] : ["http://localhost:3000"]),
+      ...(isProduction
+        ? []
+        : [
+            "http://localhost:3000",
+            ...(process.env.DEV_EXTRA_ORIGINS?.split(",") ?? []),
+          ]),
     ]
       .filter(Boolean)
       .map(normalize),

@@ -8,6 +8,7 @@ import { getEnv } from "./config/env";
 import cronJob from "./lib/cron";
 import { polarWebhookHandler } from "./webhooks/polar";
 import { originGuard } from "./config/origin-guard";
+import rateLimit from "express-rate-limit";
 
 /* ROUTES IMPORTS */
 import authRouter from "./routes/auth.router";
@@ -21,6 +22,8 @@ import reviewRouter from "./routes/review.router";
 import { notFoundMiddleware } from "./middlewares/not-found";
 import { errorHandlerMiddleware } from "./middlewares/error-handler";
 import { allowedOrigins } from "./config/origins";
+
+app.set("trust proxy", 1);
 
 const ENV = getEnv();
 const rawJson = express.raw({ type: "application/json", limit: "1mb" });
@@ -65,6 +68,17 @@ app.use(express.urlencoded({ extended: true }));
 /* BETTER AUTH */
 app.all("api/auth/*splat", toNodeHandler(auth));
 app.get("/api/auth/callback/*splat", toNodeHandler(auth));
+
+/* RATE LIMITING */
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.method === "GET",
+  message: { success: false, message: "Too many attempts. Try again later." },
+});
+app.use("/api/auth", authLimiter);
 
 /* ROUTES */
 app.use("/api/auth", authRouter);
