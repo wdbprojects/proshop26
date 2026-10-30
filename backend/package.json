@@ -13,7 +13,8 @@
     "start": "bun run dist/index.js",
     "seed": "bun run scripts/seed.ts",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "email:test": "bun run scripts/test-email.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
@@ -41,7 +42,9 @@
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
     "express": "^5.2.1",
+    "jose": "^6.2.13",
     "pg": "^8.20.0",
+    "resend": "^6.34.1",
     "standardwebhooks": "^1.0.0",
     "stream-chat": "^9.43.0",
     "zod": "^4.4.1"

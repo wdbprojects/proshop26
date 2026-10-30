@@ -1,6 +1,6 @@
 "use client";
 
-import { ComponentProps } from "react";
+import { ComponentProps, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { useForm, Controller } from "react-hook-form";
@@ -23,7 +23,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, LogIn } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
+import { apiFetch } from "@/lib/api";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import GoogleButton from "@/modules/components/auth/google-button";
+import { useSearchParams } from "next/navigation";
 
 /* Login Mutation Function */
 const loginUser = async (data: LoginSchemaType) => {
@@ -40,15 +44,32 @@ const loginUser = async (data: LoginSchemaType) => {
   );
   const result = await response.json();
   if (!response.ok || !result.success) {
-    throw new Error(
+    const error = new Error(
       result.message || result.error || "Login failed, try again later!!!",
-    );
+    ) as Error & { code?: string };
+    error.code = result.code;
+    throw error;
   }
   return result;
 };
 
 const LoginForm = ({ className, ...props }: ComponentProps<"div">) => {
   const router = useRouter();
+  const oauthError = useSearchParams().get("error");
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
+
+  const resendMutation = useMutation({
+    mutationFn: (email: string) => {
+      return apiFetch("/api/auth/resend-verification", {
+        method: "POST",
+        body: { email },
+      });
+    },
+    onSuccess: () => {
+      toast.add({ type: "success", title: "Verification email sent" });
+    },
+  });
+
   const form = useForm<LoginSchemaType>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -58,16 +79,22 @@ const LoginForm = ({ className, ...props }: ComponentProps<"div">) => {
   });
   const { handleSubmit, control, reset } = form;
 
-  // TanStack Query Mutation
   const loginMutation = useMutation({
     mutationFn: loginUser,
     onSuccess: (data) => {
-      toast.success(data.message || "Login successful!");
+      toast.add({
+        type: "success",
+        title: data.message || "Login successful!",
+      });
       reset();
       router.push(routes.home);
     },
-    onError: (error: Error) => {
-      toast.error(error.message);
+    onError: (error: Error & { code?: string }, variables) => {
+      if (error.code === "EMAIL_NOT_VERIFIED") {
+        setUnverifiedEmail(variables.email);
+        return;
+      }
+      toast.add({ type: "error", title: "Error", description: error.message });
     },
   });
 
@@ -134,6 +161,15 @@ const LoginForm = ({ className, ...props }: ComponentProps<"div">) => {
                         aria-invalid={fieldState.invalid}
                         {...field}
                       />
+                      <div className="flex justify-end">
+                        <Link
+                          href={routes.forgotPassword}
+                          className="text-muted-foreground text-xs underline-offset-4 hover:underline"
+                        >
+                          Forgot password?
+                        </Link>
+                      </div>
+
                       <FieldError
                         errors={[fieldState.error]}
                         className="text-xs italic"
@@ -142,6 +178,36 @@ const LoginForm = ({ className, ...props }: ComponentProps<"div">) => {
                   );
                 }}
               />
+
+              {unverifiedEmail && (
+                <Alert>
+                  <AlertTitle>Verify your email first</AlertTitle>
+                  <AlertDescription>
+                    We sent a link to {unverifiedEmail}. Check your inbox (and
+                    spam), then log in.{" "}
+                    <Button
+                      type="button"
+                      className="underline"
+                      variant="link"
+                      disabled={resendMutation.isPending}
+                      onClick={() => {
+                        resendMutation.mutate(unverifiedEmail);
+                      }}
+                    >
+                      Resend the email
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {oauthError && (
+                <Alert variant="destructive">
+                  <AlertTitle>Google login didn&apos;t complete</AlertTitle>
+                  <AlertDescription>
+                    Try again, or log in with your email and password
+                  </AlertDescription>
+                </Alert>
+              )}
 
               {/* ACTION BUTTONS */}
               <FieldGroup className="mt-4 flex w-full flex-col items-center justify-between gap-0!">
@@ -184,15 +250,7 @@ const LoginForm = ({ className, ...props }: ComponentProps<"div">) => {
                 or continue with
               </FieldSeparator>
               <Field className="my-4 grid grid-cols-2 gap-4">
-                <Button variant="outline" type="button">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                    <path
-                      d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"
-                      fill="currentColor"
-                    />
-                  </svg>
-                  <span className="sr-only">Sign in with Google</span>
-                </Button>
+                <GoogleButton />
                 <Button variant="outline" type="button">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                     <path

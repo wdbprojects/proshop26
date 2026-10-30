@@ -11,7 +11,7 @@ import { inferAdditionalFields } from "better-auth/client/plugins";
 } */
 
 export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  // baseURL: process.env.NEXT_PUBLIC_API_URL,
   // baseURL: "",
   fetch: (url: string, options: RequestInit) =>
     fetch(url, {

@@ -1,35 +1,40 @@
-# NODE CONFIG
+// # NODE CONFIG
 PORT=5000
 NODE_ENV=development
-# NODE_ENV=production
+// # NODE_ENV=production
 BASE_URL=http://localhost:5000
-# BASE_URL=https://proshop26.onrender.com
+// # BASE_URL=https://proshop26.onrender.com
 FRONTEND_URL=http://localhost:3000
-# FRONTEND_URL=https://proshop26-frontend.onrender.com
-# FRONTEND_URL=https://proshop26.vercel.app
+// # FRONTEND_URL=https://proshop26-frontend.onrender.com
+// # FRONTEND_URL=https://proshop26.vercel.app
 
-# DATABASE
-# LOCAL
-# DATABASE_URL=
-# NEON
+// # DATABASE
+// # LOCAL
+// # DATABASE_URL=
+// # NEON
 DATABASE_URL=
-# BETTER AUTH
+// # BETTER AUTH
 BETTER_AUTH_SECRET=
 BETTER_AUTH_URL=http://localhost:5000
-# BETTER_AUTH_URL=https://pern-ecommerce-26.onrender.com
 
-# POLAR
+
+// # POLAR
 POLAR_ACCESS_TOKEN=
 POLAR_API_BASE=https://sandbox-api.polar.sh
 POLAR_CHECKOUT_PRODUCT_ID=
 POLAR_WEBHOOK_SECRET=
 
 
-# STREAM
+// # STREAM
 STREAM_API_KEY=
 STREAM_API_SECRET=
-# IMAGE KIT
+// # IMAGE KIT
 IMAGEKIT_PUBLIC_KEY=
 IMAGEKIT_PRIVATE_KEY=
 IMAGEKIT_ID=
 IMAGEKIT_URL_ENDPOINT=
+
+// # RESEND
+RESEND_API_KEY=
+EMAIL_FROM=
+EMAIL_TEST_RECIPIENT=

@@ -32,6 +32,11 @@ const envSchema = z.object({
   BNB_QR_BASE_URL: z
     .url()
     .default("https://qrsimpleapiv2.azurewebsites.net/api/v1"),
+  RESEND_API_KEY: z.string().optional(),
+  EMAIL_FROM: z.string().optional(),
+  EMAIL_TEST_RECIPIENT: z.string().optional(),
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
 });
 export type Env = z.infer<typeof envSchema>;
 
