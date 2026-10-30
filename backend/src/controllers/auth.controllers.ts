@@ -2,6 +2,20 @@ import { NextFunction, Request, Response } from "express";
 import { fromNodeHeaders } from "better-auth/node";
 import { auth } from "../lib/auth";
 import { getCurrentSession } from "../lib/session";
+import z from "zod";
+import {
+  emailOnlySchema,
+  resetPasswordSchema,
+  signUpSchema,
+  tokenSchema,
+} from "../validators/auth.validators";
+import { getEnv } from "../config/env";
+import { jwtVerify } from "jose";
+import { user } from "../drizzle/schema";
+import { eq } from "drizzle-orm";
+import { db } from "../drizzle/db";
+
+const ENV = getEnv();
 
 const getErrorDetails = (err: unknown) => {
   const body =
@@ -16,6 +30,10 @@ const getErrorDetails = (err: unknown) => {
       "An unexpected error occurred",
     code: body?.code,
   };
+};
+
+const zodMessage = (err: unknown) => {
+  return err instanceof z.ZodError ? err.issues[0]?.message : undefined;
 };
 
 /* GET SESSION CONTROLLER */
@@ -37,19 +55,17 @@ export const getSessionController = async (
 /* BETTER AUTH SIGN UP CONTROLLER */
 export const signUpController = async (req: Request, res: Response) => {
   try {
-    const result = await auth.api.signUpEmail({
-      body: {
-        email: req.body.email,
-        name: req.body.name,
-        password: req.body.password,
-      },
-    });
+    const { name, email, password } = signUpSchema.parse(req.body);
+    await auth.api.signUpEmail({ body: { name, email, password } });
     return res.status(200).json({
       success: true,
-      user: result,
-      message: "User created successfully!!",
+      message: "User created. Check your email to verify your account",
     });
   } catch (err) {
+    const invalid = zodMessage(err);
+    if (invalid) {
+      return res.status(400).json({ success: false, message: invalid });
+    }
     const { message, code } = getErrorDetails(err);
     console.log(err);
     return res.status(400).json({
@@ -84,6 +100,14 @@ export const signInController = async (req: Request, res: Response) => {
         message: "User logged in successfully!!",
       });
     } else {
+      if (response.status === 403) {
+        return res.status(403).json({
+          success: false,
+          code: "EMAIL_NOT_VERIFIED",
+          message:
+            "Please verify your email first. We sent you a new verification link",
+        });
+      }
       return res.status(401).json({
         success: false,
         message: "Invalid email or password",
@@ -121,5 +145,143 @@ export const logoutController = async (req: Request, res: Response) => {
       success: false,
       message: message || "Sign out failed!!!",
     });
+  }
+};
+
+/* POST  /api/auth/verify-email { token } */
+export const verifyEmailController = async (req: Request, res: Response) => {
+  try {
+    const { token } = tokenSchema.parse(req.body);
+
+    // Check the signature ourselves first, so the "already verified" answer can't be forged.
+    let email: string | undefined;
+    try {
+      const { payload } = await jwtVerify(
+        token,
+        new TextEncoder().encode(ENV.BETTER_AUTH_SECRET),
+      );
+      email = typeof payload.email === "string" ? payload.email : undefined;
+    } catch {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid or expired link" });
+    }
+
+    if (email) {
+      const [row] = await db
+        .select({ verified: user.emailVerified })
+        .from(user)
+        .where(eq(user.email, email))
+        .limit(1);
+      if (row?.verified) {
+        return res.status(200).json({
+          success: true,
+          alreadyVerified: true,
+          message: "Your email is already verified",
+        });
+      }
+    }
+
+    await auth.api.verifyEmail({ query: { token } });
+    return res
+      .status(200)
+      .json({ success: true, message: "Email verified. You can log in now." });
+  } catch (err) {
+    const { message } = getErrorDetails(err);
+    return res.status(400).json({
+      success: false,
+      message: zodMessage(err) ?? message ?? "Invalid or expired link",
+    });
+  }
+};
+
+/* POST /api/auth/resend-verification { email } */
+export const resendVerificationController = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const { email } = emailOnlySchema.parse(req.body);
+    await auth.api.sendVerificationEmail({ body: { email } });
+  } catch (err) {
+    const invalid = zodMessage(err);
+    if (invalid) {
+      return res.status(400).json({ success: false, message: invalid });
+    }
+    console.error(err);
+  }
+  return res.status(200).json({
+    success: true,
+    message: "If that account needs verification, we sent an link.",
+  });
+};
+
+/* POST /api/auth/forgot-password { email } */
+export const forgotPasswordController = async (req: Request, res: Response) => {
+  try {
+    const { email } = emailOnlySchema.parse(req.body);
+    await auth.api.requestPasswordReset({ body: { email } });
+  } catch (err) {
+    const invalid = zodMessage(err);
+    if (invalid) {
+      return res.status(400).json({ success: false, message: invalid });
+    }
+    console.error(err);
+  }
+  return res.status(200).json({
+    success: true,
+    message: "If an account exists for that email, we sent a reset link.",
+  });
+};
+
+/* POST /api/auth/reset-password { token, password } */
+export const resetPasswordController = async (req: Request, res: Response) => {
+  try {
+    const { token, password } = resetPasswordSchema.parse(req.body);
+    await auth.api.resetPassword({ body: { newPassword: password, token } });
+    return res.status(200).json({
+      success: true,
+      message: "Password updated. You can log in now.",
+    });
+  } catch (err) {
+    const { message } = getErrorDetails(err);
+    return res.status(400).json({
+      succcess: false,
+      message: zodMessage(err) ?? message ?? "Invalid or expired link",
+    });
+  }
+};
+
+/* POST /api/auth/google - returns the Google consent URL; the browser then navigates to it */
+export const googleSignInController = async (req: Request, res: Response) => {
+  try {
+    const frontend = ENV.FRONTEND_URL.replace(/\/+$/, "");
+    const response = await auth.api.signInSocial({
+      body: {
+        provider: "google",
+        callbackURL: `${frontend}/`,
+        errorCallbackURL: `${frontend}/auth/login`,
+        disableRedirect: true,
+      },
+      headers: fromNodeHeaders(req.headers),
+      asResponse: true,
+    });
+
+    // BetterAuth sets a state cookie that the callback checks - it must reach the browser
+    const cookies = response.headers.getSetCookie();
+    if (cookies.length > 0) res.setHeader("set-cookie", cookies);
+
+    const data = (await response.json()) as { url?: string };
+    if (!response.ok || !data.url) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Google login is unavailable" });
+    }
+    return res.status(200).json({ success: true, url: data.url });
+  } catch (err) {
+    console.error(err);
+    return res
+      .status(400)
+      .json({ success: false, message: "Google login is unavailable" });
   }
 };

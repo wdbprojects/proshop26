@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Loader2, LogOut } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { routes } from "@/config/routes";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -36,12 +36,15 @@ const SignOutButton = () => {
     mutationFn: signOutUser,
     onSuccess: (data) => {
       queryClient.clear();
-      toast.success(data.message || "Signed out successfully");
+      toast.add({
+        type: "success",
+        title: data.message || "Signed out successfully",
+      });
       router.push(routes.login);
       router.refresh();
     },
     onError: (error: Error) => {
-      toast.error(error.message);
+      toast.add({ type: "error", title: error.message });
     },
   });
 

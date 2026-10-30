@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { Spinner } from "@/components/ui/spinner";
 import { ProductType } from "@/config/type-schemas";
 
@@ -32,12 +32,16 @@ const DeleteAction = ({ product }: { product: ProductType }) => {
       {
         onSuccess: () => {
           setModalOpen(false);
-          toast.info(`Successfully deleted product: ${product.name}`);
+          toast.add({
+            type: "info",
+            title: `Successfully deleted product: ${product.name}`,
+          });
         },
         onError: (err) => {
-          toast.error(
-            `Failed to delete product: ${err.message || "Unknown error"}`,
-          );
+          toast.add({
+            type: "error",
+            title: `Failed to delete product: ${err.message || "Unknown error"}`,
+          });
         },
       },
     );

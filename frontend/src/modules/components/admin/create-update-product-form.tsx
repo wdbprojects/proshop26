@@ -7,7 +7,7 @@ import { useAdminProduct } from "@/hooks/use-admin-product";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { routes } from "@/config/routes";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { apiFetch } from "@/lib/api";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
@@ -267,24 +267,33 @@ const CreateUpdateProductForm = ({ product }: { product?: ProductType }) => {
             : img;
         });
       });
-      toast.error(message);
+      toast.add({ type: "error", title: message });
     }
   };
 
   const onDrop = useCallback(
     (acceptedFiles: File[], rejections: FileRejection[]) => {
       rejections.forEach((rejection) => {
-        toast.error(`${rejection.file.name}: ${rejection.errors[0]?.message}`);
+        toast.add({
+          type: "error",
+          title: `${rejection.file.name}: ${rejection.errors[0]?.message}`,
+        });
       });
 
       const availableSlots = MAX_IMAGES - images.length;
       if (availableSlots <= 0) {
-        toast.warning(`You can only have up to ${MAX_IMAGES} images`);
+        toast.add({
+          type: "warning",
+          title: `You can only have up to ${MAX_IMAGES} images`,
+        });
         return;
       }
       const filesToUpload = acceptedFiles.slice(0, availableSlots);
       if (acceptedFiles.length > availableSlots) {
-        toast.warning(`Only ${availableSlots} more image(s) can be added`);
+        toast.add({
+          type: "warning",
+          title: `Only ${availableSlots} more image(s) can be added`,
+        });
       }
       filesToUpload.forEach((file) => {
         return void uploadOne(file);
@@ -345,11 +354,11 @@ const CreateUpdateProductForm = ({ product }: { product?: ProductType }) => {
 
   const onSubmitForm = async (data: ProductFormValues) => {
     if (readyImages.length === 0) {
-      toast.error("At least one image is required");
+      toast.add({ type: "error", title: "At least one image is required" });
       return;
     }
     if (hasPendingUploads) {
-      toast.error("Please wait for uploads to finish");
+      toast.add({ type: "error", title: "Please wait for uploads to finish" });
       return;
     }
     const { priceDollars, ...rest } = data;
@@ -374,18 +383,18 @@ const CreateUpdateProductForm = ({ product }: { product?: ProductType }) => {
           body: body as any,
           id: product.id,
         });
-        toast.success("Product updated successfully");
+        toast.add({ type: "success", title: "Product updated successfully" });
       } else {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await createMutation.mutateAsync({ body: body as any });
-        toast.success("Products created successfully");
+        toast.add({ type: "success", title: "Products created successfully" });
       }
       router.push(routes.admin);
     } catch (err) {
       /* Surface the backend's actual message (slug conflict, invalid category, etc.) instead of a generic string - errorHandlerMiddleware always returns {error: "..."}, and apiFetch throws that as err.message */
       const message =
         err instanceof Error ? err.message : "Failed to save products";
-      toast.error(message);
+      toast.add({type: "error", title: message});
     }
   };
 

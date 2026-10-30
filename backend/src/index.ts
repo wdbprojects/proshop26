@@ -64,6 +64,7 @@ app.use(express.urlencoded({ extended: true }));
 
 /* BETTER AUTH */
 app.all("api/auth/*splat", toNodeHandler(auth));
+app.get("/api/auth/callback/*splat", toNodeHandler(auth));
 
 /* ROUTES */
 app.use("/api/auth", authRouter);

@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+const backend = process.env.BACKEND_URL ?? "http://localhost:5000";
+
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
@@ -18,16 +20,7 @@ const nextConfig: NextConfig = {
     ],
   },
   async rewrites() {
-    return [
-      {
-        source: "/api/auth/:path*",
-        destination: "https://proshop26.onrender.com/api/auth/:path*",
-      },
-      {
-        source: "/api/:path*",
-        destination: "https://proshop26.onrender.com/api/:path*",
-      },
-    ];
+    return [{ source: "/api/:path*", destination: `${backend}/api/:path*` }];
   },
   trailingSlash: false,
 };
