@@ -9,6 +9,9 @@ import cronJob from "./lib/cron";
 import { polarWebhookHandler } from "./webhooks/polar";
 import { originGuard } from "./config/origin-guard";
 import rateLimit from "express-rate-limit";
+import { notFoundMiddleware } from "./middlewares/not-found";
+import { errorHandlerMiddleware } from "./middlewares/error-handler";
+import { allowedOrigins } from "./config/origins";
 
 /* ROUTES IMPORTS */
 import authRouter from "./routes/auth.router";
@@ -19,9 +22,7 @@ import cartRouter from "./routes/cart.router";
 import adminRouter from "./routes/admin.router";
 import orderRouter from "./routes/order.router";
 import reviewRouter from "./routes/review.router";
-import { notFoundMiddleware } from "./middlewares/not-found";
-import { errorHandlerMiddleware } from "./middlewares/error-handler";
-import { allowedOrigins } from "./config/origins";
+import profileRouter from "./routes/profile.router";
 
 app.set("trust proxy", 1);
 
@@ -79,6 +80,7 @@ const authLimiter = rateLimit({
   message: { success: false, message: "Too many attempts. Try again later." },
 });
 app.use("/api/auth", authLimiter);
+app.use("/api/profile/change-password", authLimiter);
 
 /* ROUTES */
 app.use("/api/auth", authRouter);
@@ -89,6 +91,7 @@ app.use("/api/cart", cartRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/orders", orderRouter);
 app.use("/api/reviews", reviewRouter);
+app.use("/api/profile", profileRouter);
 
 /* CRON - FIX FOR RENDER IDLE ON FREE PLAN */
 app.get("/health", (_req, res) => {

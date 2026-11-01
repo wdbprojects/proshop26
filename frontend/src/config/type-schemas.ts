@@ -256,3 +256,18 @@ export type RateProductResponse = {
   rating: number;
   product: { rating: string; numReviews: number };
 };
+
+export type UserRole = "customer" | "support" | "admin";
+
+export type ProfileResponse = {
+  profile: {
+    id: string;
+    name: string;
+    email: string;
+    emailVerified: boolean;
+    image: string | null;
+    role: UserRole;
+    createdAt: string;
+  };
+  providers: string[];
+};

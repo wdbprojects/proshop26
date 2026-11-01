@@ -2,56 +2,59 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { sidebarData } from "@/config/data";
 
 import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
-  SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
+import { routes } from "@/config/routes";
+import { useUser } from "@/hooks/use-session";
+import { getNavForRole } from "@/config/data";
+import { UserRole } from "@/config/type-schemas";
+
+// "/dashboard" must match exactly, or it would be active on every page below it
+const isActive = (url: string, pathname: string) => {
+  if (url === routes.dashboard) return pathname === url;
+  return pathname === url || pathname.startsWith(`${url}/`);
+};
 
 const NavMain = () => {
-  const currentPathname = usePathname();
+  const pathname = usePathname();
+  const { user } = useUser();
+  const { setOpenMobile } = useSidebar();
+  const groups = getNavForRole((user?.role ?? "customer") as UserRole);
 
   return (
-    <SidebarMenu>
-      {sidebarData.navMain.map((item) => {
+    <>
+      {groups.map((group) => {
         return (
-          <SidebarGroup key={item.id}>
-            <SidebarGroupLabel>{item.title}</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {item.items.map((link) => {
-                  return (
-                    <SidebarMenuItem key={link.id} className="z-100">
-                      <SidebarMenuButton
-                        className="flex w-full"
-                        variant="default"
-                        isActive={link.url === currentPathname}
-                        tooltip={link.title}
-                      >
-                        <Link
-                          href={link.url}
-                          className="flex h-8 w-full items-center justify-start"
-                        >
-                          <div className="flex items-center justify-start gap-2">
-                            {link.icon && <link.icon />}
-                            {link.title}
-                          </div>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
-              </SidebarMenu>
+          <SidebarGroup key={group.id}>
+            <SidebarGroupLabel>{group.title}</SidebarGroupLabel>
+            <SidebarGroupContent className="list-none space-y-1">
+              {group.items.map((item) => {
+                return (
+                  <SidebarMenuItem key={item.id}>
+                    <SidebarMenuButton
+                      render={<Link href={item.url} />}
+                      isActive={isActive(item.url, pathname)}
+                      tooltip={item.title}
+                      onClick={() => setOpenMobile(false)}
+                    >
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarGroupContent>
           </SidebarGroup>
         );
       })}
-    </SidebarMenu>
+    </>
   );
 };
 
