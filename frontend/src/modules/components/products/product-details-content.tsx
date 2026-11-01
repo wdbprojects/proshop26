@@ -27,7 +27,6 @@ const ProductDetailsContent = ({
   product: ProductType;
   primaryImage: ProductImageType;
 }) => {
-  const [ratings, setRatings] = useState<number | null>(2.5);
   const [mainPhotoUrl, setMainPhotoUrl] = useState<string>(
     primaryImage?.url ?? "",
   );
@@ -98,7 +97,7 @@ const ProductDetailsContent = ({
                       height={100}
                       alt={img.alt || ""}
                       className={cn(
-                        "cursor-pointer object-cover transition-all",
+                        "cursor-pointer border-2 border-transparent object-cover transition-all",
                         mainPhotoUrl === img.url && "border-2 border-green-500",
                       )}
                       onMouseEnter={() => {

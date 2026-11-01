@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const passwordRule = z
+export const passwordRule = z
   .string()
   .min(8, { message: "Passwords must be at least 8 characters" })
   .max(128, { message: "Passwords must be at most 128 characters" })
@@ -45,3 +45,40 @@ export const loginSchema = z.object({
   password: z.string().nonempty({ message: "Password is required" }),
 });
 export type LoginSchemaType = z.infer<typeof loginSchema>;
+
+export const profileSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, { message: "Name is required" })
+    .max(100, { message: "Name is too long" }),
+});
+export type ProfileSchemaType = z.infer<typeof profileSchema>;
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z
+      .string()
+      .min(1, { message: "Current password is required" }),
+    newPassword: passwordRule,
+    confirmPassword: z.string(),
+  })
+  .refine((data) => {
+    return (
+      data.newPassword !== data.confirmPassword,
+      {
+        message: "Passwords don't match",
+        path: ["confirmPassword"],
+      }
+    );
+  })
+  .refine((data) => {
+    return (
+      data.newPassword !== data.currentPassword,
+      {
+        message: "The new password must be different from the current one",
+        path: ["newPassword"],
+      }
+    );
+  });
+export type ChangePasswordSchemaType = z.infer<typeof changePasswordSchema>;

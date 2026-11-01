@@ -6,10 +6,12 @@ import { useMutation } from "@tanstack/react-query";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, LoginSchemaType } from "@/schemas/auth-schemas";
+import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import Link from "next/link";
 import { routes } from "@/config/routes";
 import { cn } from "@/lib/utils";
+import { useSearchParams } from "next/navigation";
 
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -27,7 +29,6 @@ import { toast } from "@/components/ui/toast";
 import { apiFetch } from "@/lib/api";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import GoogleButton from "@/modules/components/auth/google-button";
-import { useSearchParams } from "next/navigation";
 
 /* Login Mutation Function */
 const loginUser = async (data: LoginSchemaType) => {
@@ -58,6 +59,8 @@ const LoginForm = ({ className, ...props }: ComponentProps<"div">) => {
   const oauthError = useSearchParams().get("error");
   const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
 
+  const queryClient = useQueryClient();
+
   const resendMutation = useMutation({
     mutationFn: (email: string) => {
       return apiFetch("/api/auth/resend-verification", {
@@ -87,6 +90,7 @@ const LoginForm = ({ className, ...props }: ComponentProps<"div">) => {
         title: data.message || "Login successful!",
       });
       reset();
+      queryClient.invalidateQueries({ queryKey: ["session"] });
       router.push(routes.home);
     },
     onError: (error: Error & { code?: string }, variables) => {

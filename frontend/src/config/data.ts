@@ -1,60 +1,90 @@
+import type { LucideIcon } from "lucide-react";
+import type { UserRole } from "@/config/type-schemas";
+
 import { routes } from "@/config/routes";
 import {
-  Bot,
   CreditCardIcon,
-  Gauge,
   HeadphonesIcon,
-  ImageUp,
-  LifeBuoy,
-  Settings2,
   ShieldCheckIcon,
-  SquareTerminal,
   TruckIcon,
+  BoxesIcon,
+  Gauge,
+  PackageIcon,
+  UserIcon,
 } from "lucide-react";
 
-export const sidebarData = {
-  navMain: [
-    {
-      id: 1,
-      title: "Getting Started",
-      url: "#",
-      items: [
-        {
-          id: 1,
-          title: "Dashboard",
-          url: routes.dashboard,
-          icon: Gauge,
-        },
-        { id: 2, title: "Rendering", url: "#", icon: Settings2 },
-        { id: 3, title: "Optimizing", url: "#", icon: ImageUp },
-      ],
-    },
-    {
-      id: 2,
-      title: "Getting Continued",
-      url: "#",
-      items: [
-        { id: 1, title: "Data Fetching", url: "#", icon: LifeBuoy },
-        { id: 2, title: "Rendering", url: "#", icon: Settings2 },
-        { id: 3, title: "Optimizing", url: "#", icon: ImageUp },
-      ],
-    },
-    {
-      id: 3,
-      title: "Getting Finished",
-      url: "#",
-      items: [
-        { id: 1, title: "Data Fetching", url: "#", icon: SquareTerminal },
-        { id: 2, title: "Rendering", url: "#", icon: Settings2 },
-        { id: 3, title: "Optimizing", url: "#", icon: Bot },
-      ],
-    },
-  ],
-  user: {
-    name: "Scarlett Johansson",
-    email: "scarlett@hottt.com",
-    avatar: "https://i.pravatar.cc/150?u=a042581f4e29026704d",
+export type DashboardNavItem = {
+  id: string;
+  title: string;
+  url: string;
+  icon: LucideIcon;
+  roles: UserRole[];
+};
+
+export type DashboardNavGroup = {
+  id: string;
+  title: string;
+  items: DashboardNavItem[];
+};
+
+const All_ROLES: UserRole[] = ["customer", "support", "admin"];
+
+export const dashboardNav: DashboardNavGroup[] = [
+  {
+    id: "account",
+    title: "Account",
+    items: [
+      {
+        id: "overview",
+        title: "Overview",
+        url: routes.dashboard,
+        icon: Gauge,
+        roles: All_ROLES,
+      },
+      {
+        id: "orders",
+        title: "Orders",
+        url: routes.orders,
+        icon: PackageIcon,
+        roles: All_ROLES,
+      },
+      {
+        id: "profile",
+        title: "Profile",
+        url: routes.profile,
+        icon: UserIcon,
+        roles: All_ROLES,
+      },
+    ],
   },
+  {
+    id: "management",
+    title: "Management",
+    items: [
+      {
+        id: "products",
+        title: "Products",
+        url: routes.admin,
+        icon: BoxesIcon,
+        roles: ["admin"],
+      },
+    ],
+  },
+];
+
+export const getNavForRole = (role: UserRole) => {
+  return dashboardNav
+    .map((group) => {
+      return {
+        ...group,
+        items: group.items.filter((item) => {
+          return item.roles.includes(role);
+        }),
+      };
+    })
+    .filter((group) => {
+      return group.items.length > 0;
+    });
 };
 
 export const homeTrustStrip = [

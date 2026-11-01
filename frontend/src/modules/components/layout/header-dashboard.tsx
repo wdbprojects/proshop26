@@ -4,15 +4,16 @@ import DarkMode from "@/components/shared/dark-mode";
 import SignOutButton from "../auth/sign-out-button";
 import AppLogo from "@/components/shared/app-logo";
 import LoginButton from "../auth/login-button";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Lock, Package, ShoppingBag, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { routes } from "@/config/routes";
 import { cn } from "@/lib/utils";
-import { useCart } from "@/store/cart";
+import { useCartCount } from "@/hooks/use-cart-count";
+
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Lock, Package, ShoppingBag, ShoppingCart } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const HeaderDashboard = () => {
   const getSession = async () => {
@@ -41,11 +42,8 @@ const HeaderDashboard = () => {
     enabled: true,
   });
 
-  const cartCount = useCart((state) => {
-    return state.items.reduce((num, line) => {
-      return num + line.quantity;
-    }, 0);
-  });
+  const { count } = useCartCount();
+  const cartCount = count ?? 0;
 
   if (isLoading) {
     return (

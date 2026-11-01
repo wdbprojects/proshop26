@@ -8,6 +8,11 @@ export const routes = {
   editProduct: (id: string) => {
     return `/dashboard/admin/edit-product/${id}`;
   },
+  profile: "/dashboard/profile",
+  orders: "/dashboard/orders",
+  orderItem: (id: string) => {
+    return `/dashboard/orders/${id}`;
+  },
 
   /* AUTH */
   login: "/auth/login",
@@ -22,9 +27,6 @@ export const routes = {
     return `/products/${slug}`;
   },
   cart: "/cart",
-  orders: "/orders",
-  orderItem: (id: string) => {
-    return `/orders/${id}`;
-  },
+
   checkout: "/checkout",
 };
