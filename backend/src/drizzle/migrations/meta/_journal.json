@@ -57,6 +57,13 @@
       "when": 1792882013661,
       "tag": "0007_stiff_rogue",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793575939065,
+      "tag": "0008_wealthy_black_bird",
+      "breakpoints": true
     }
   ]
 }

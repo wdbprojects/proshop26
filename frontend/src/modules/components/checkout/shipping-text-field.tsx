@@ -1,6 +1,7 @@
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { ShippingAddressValues } from "@/schemas/checkout-schemas";
+import { ShippingAddressValues } from "@/schemas/address-schemas";
+
 import { Control, Controller } from "react-hook-form";
 
 type TextName = "fullName" | "phone" | "city" | "zone" | "street";

@@ -271,3 +271,24 @@ export type ProfileResponse = {
   };
   providers: string[];
 };
+
+export interface IAddress {
+  id: string;
+  label: string | null;
+  fullName: string;
+  phone: string;
+  city: string;
+  zone: string | null;
+  street: string | null;
+  reference: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type AddressesResponse = {
+  addresses: IAddress[];
+  maxAddresses: number;
+};
