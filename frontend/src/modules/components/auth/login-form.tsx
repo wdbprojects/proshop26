@@ -26,23 +26,20 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, LogIn } from "lucide-react";
 import { toast } from "@/components/ui/toast";
-import { apiFetch } from "@/lib/api";
+import { API_BASE, apiFetch } from "@/lib/api";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import GoogleButton from "@/modules/components/auth/google-button";
 
 /* Login Mutation Function */
 const loginUser = async (data: LoginSchemaType) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/auth/sign-in/email`,
-    {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
+  const response = await fetch(`${API_BASE}/api/auth/sign-in/email`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
     },
-  );
+    body: JSON.stringify(data),
+  });
   const result = await response.json();
   if (!response.ok || !result.success) {
     const error = new Error(

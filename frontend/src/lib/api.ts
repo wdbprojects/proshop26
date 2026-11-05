@@ -1,4 +1,4 @@
-const base = process.env.NEXT_PUBLIC_API_URL;
+const base = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 // API FETCH
 
@@ -40,3 +40,5 @@ export const apiFetch = async <T = unknown>(
     throw err;
   }
 };
+
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";

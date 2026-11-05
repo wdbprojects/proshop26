@@ -24,22 +24,19 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FilePen, Loader2, MailCheckIcon } from "lucide-react";
 import { toast } from "@/components/ui/toast";
-import { apiFetch } from "@/lib/api";
+import { API_BASE, apiFetch } from "@/lib/api";
 import GoogleButton from "./google-button";
 
 /* Register Mutation Function */
 const registerUser = async (data: RegisterSchemaType) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/auth/sign-up/email`,
-    {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
+  const response = await fetch(`${API_BASE}/api/auth/sign-up/email`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
     },
-  );
+    body: JSON.stringify(data),
+  });
   const result = await response.json();
   if (!response.ok || !result.success) {
     throw new Error(

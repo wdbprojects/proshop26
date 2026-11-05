@@ -14,19 +14,17 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Lock, Package, ShoppingBag, ShoppingCart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { API_BASE } from "@/lib/api";
 
 const HeaderDashboard = () => {
   const getSession = async () => {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/auth/get-session`,
-      {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
+    const response = await fetch(`${API_BASE}/api/auth/get-session`, {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
       },
-    );
+    });
     if (!response.ok) {
       throw new Error("Failed to fetch user session");
     }

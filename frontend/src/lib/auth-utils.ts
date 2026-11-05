@@ -1,19 +1,17 @@
 import { routes } from "@/config/routes";
 // import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { API_BASE } from "./api";
 
 // GET SESSION
 export const getSession = async () => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/auth/get-session`,
-    {
-      method: "GET",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
+  const response = await fetch(`${API_BASE}/api/auth/get-session`, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
     },
-  );
+  });
   if (!response.ok) {
     throw new Error("Failed to fetch user session");
   }
