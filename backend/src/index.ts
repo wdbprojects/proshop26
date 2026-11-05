@@ -23,6 +23,7 @@ import adminRouter from "./routes/admin.router";
 import orderRouter from "./routes/order.router";
 import reviewRouter from "./routes/review.router";
 import profileRouter from "./routes/profile.router";
+import addressRouter from "./routes/address.router";
 
 app.set("trust proxy", 1);
 
@@ -92,6 +93,7 @@ app.use("/api/admin", adminRouter);
 app.use("/api/orders", orderRouter);
 app.use("/api/reviews", reviewRouter);
 app.use("/api/profile", profileRouter);
+app.use("/api/addresses", addressRouter);
 
 /* CRON - FIX FOR RENDER IDLE ON FREE PLAN */
 app.get("/health", (_req, res) => {

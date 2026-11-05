@@ -11,6 +11,7 @@ import {
   Gauge,
   PackageIcon,
   UserIcon,
+  MapPinIcon,
 } from "lucide-react";
 
 export type DashboardNavItem = {
@@ -53,6 +54,13 @@ export const dashboardNav: DashboardNavGroup[] = [
         title: "Profile",
         url: routes.profile,
         icon: UserIcon,
+        roles: All_ROLES,
+      },
+      {
+        id: "addresses",
+        title: "Addresses",
+        url: routes.addresses,
+        icon: MapPinIcon,
         roles: All_ROLES,
       },
     ],

@@ -13,6 +13,7 @@ export const routes = {
   orderItem: (id: string) => {
     return `/dashboard/orders/${id}`;
   },
+  addresses: "/dashboard/addresses",
 
   /* AUTH */
   login: "/auth/login",
