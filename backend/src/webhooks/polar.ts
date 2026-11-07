@@ -10,6 +10,7 @@ import { eq, and, gte, sql } from "drizzle-orm";
 import { db } from "../drizzle/db";
 import { Webhook } from "standardwebhooks";
 import { clearCartForUser } from "../controllers/cart.controllers";
+import { sendOrderConfirmedEmai } from "../lib/order-emails";
 
 /* This file stays Polar-specific (signature verification, event shape, Polar's field names). The provider-agnostic part - "given a checkout session id and a provider order/checkout id, create the order and clear the cart" - lives in fullfillCheckoutSession below and only needs the literal PROVIDER swapped for a future provider's own webhook handler to reuse the same shape */
 const PROVIDER = "polar" as const;
@@ -140,6 +141,10 @@ const fulfillCheckoutSession = async (
   });
 
   if (!result) return false;
+
+  // not awaited: an email problem must never fail the webhook
+  void sendOrderConfirmedEmai(result.orderId);
+
   if (result.oversold.length > 0) {
     console.error(
       `OVERSOLD: order ${result.orderId} has products without enough stock: ${result.oversold.join(", ")}. Refund or restock manually`,

@@ -292,3 +292,30 @@ export type AddressesResponse = {
   addresses: IAddress[];
   maxAddresses: number;
 };
+
+export type PaymentStatus = "pending" | "paid" | "failed";
+
+export interface IManagedOrder {
+  id: string;
+  status: PaymentStatus;
+  fulfillmentStatus: FulfillmentStatus;
+  totalCents: number;
+  currency: string;
+  createdAt: string;
+  shipFullName: string | null;
+  shipCity: string | null;
+  customerName: string;
+  customerEmail: string;
+}
+
+export type ManagedOrdersResponse = {
+  orders: IManagedOrder[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+};
+
+export type OrdersSummary = { unfulfilled: number; processing: number };

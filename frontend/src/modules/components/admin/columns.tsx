@@ -47,9 +47,14 @@ export const columns: ColumnDef<ProductType>[] = [
       );
     },
   },
+
   {
     accessorKey: "name",
     header: "Name",
+    cell: ({ row }) => {
+      const name: string = row.getValue("name") ?? "";
+      return <div className="w-full max-w-56 text-wrap">{name}</div>;
+    },
   },
   {
     id: "category",

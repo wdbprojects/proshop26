@@ -64,6 +64,13 @@
       "when": 1793575939065,
       "tag": "0008_wealthy_black_bird",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793848841698,
+      "tag": "0009_green_spirit",
+      "breakpoints": true
     }
   ]
 }
