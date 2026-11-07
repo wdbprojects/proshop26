@@ -5,7 +5,7 @@ import { FulfillmentStatus } from "@/config/type-schemas";
 import { apiFetch } from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-type NextStatus = Exclude<FulfillmentStatus, "unfulfilled">;
+type NextStatus = FulfillmentStatus;
 
 export const useUpdateFulfillment = (orderId: string) => {
   const queryClient = useQueryClient();

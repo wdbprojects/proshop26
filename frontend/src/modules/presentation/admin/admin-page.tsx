@@ -21,7 +21,7 @@ const AdminPage = () => {
   const { session, isLoading } = useSession();
   const user = session?.user;
 
-  const { products } = useAdminProduct();
+  const { products, page, setPage, totalPages } = useAdminProduct();
 
   useEffect(() => {
     if (isLoading) return;
@@ -77,7 +77,15 @@ const AdminPage = () => {
         </Link>
       </div>
       <div className="mt-4 border-t py-4">
-        <DataTable columns={columns} data={products} />
+        <DataTable
+          columns={columns}
+          data={products}
+          pagination={{
+            page: page,
+            totalPages: totalPages,
+            onPageChange: setPage,
+          }}
+        />
       </div>
     </div>
   );

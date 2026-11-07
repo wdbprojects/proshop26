@@ -11,8 +11,10 @@ import OrderItem from "@/modules/components/orders/order-item";
 import OrdersListSkeleton from "@/modules/components/orders/orders-list-skeleton";
 import { PackageIcon } from "lucide-react";
 import Link from "next/link";
+import ManagedOrdersView from "./managed-orders-view";
+import { useUser } from "@/hooks/use-session";
 
-const OrdersPage = () => {
+const CustomerOrders = () => {
   const { isLoading, error, orders, staff } = useOrdersPage();
 
   if (isLoading) {
@@ -70,6 +72,21 @@ const OrdersPage = () => {
       )}
     </div>
   );
+};
+
+const OrdersPage = () => {
+  const { user, isLoading } = useUser();
+  if (isLoading) {
+    return (
+      <div className="p-4">
+        <Skeleton className="mb-4 h-10 w-64 max-w-full" />
+        <OrdersListSkeleton />
+      </div>
+    );
+  }
+
+  const isStaff = user?.role === "support" || user?.role === "admin";
+  return isStaff ? <ManagedOrdersView /> : <CustomerOrders />;
 };
 
 export default OrdersPage;

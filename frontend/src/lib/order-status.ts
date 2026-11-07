@@ -8,7 +8,7 @@ export const FULFILLMENT_LABELS: Record<FulfillmentStatus, string> = {
   cancelled: "Cancelled",
 };
 
-/* Mirrors TRANSITIONS in backend/src/lib/order-status.ts. The backend is the real gate; this only decides which buttons to show. */
+// Mirrors TRANSITIONS in backend/src/lib/order-status.ts. The backend is the real gate; this only decides which buttons to show.
 export const FULFILLMENT_NEXT: Record<FulfillmentStatus, FulfillmentStatus[]> =
   {
     unfulfilled: ["processing", "cancelled"],
@@ -17,3 +17,15 @@ export const FULFILLMENT_NEXT: Record<FulfillmentStatus, FulfillmentStatus[]> =
     delivered: [],
     cancelled: [],
   };
+
+// one step back; mirrors the backend rules
+export const FULFILLMENT_BACK: Record<
+  FulfillmentStatus,
+  FulfillmentStatus | null
+> = {
+  unfulfilled: null,
+  processing: "unfulfilled",
+  shipped: "processing",
+  delivered: "shipped",
+  cancelled: null,
+};

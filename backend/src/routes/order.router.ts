@@ -5,12 +5,16 @@ import {
   getAllOrders,
   getSingleOrder,
   updateFulfillmentHandler,
+  manageSummaryHandler,
+  listManagedOrdersHandler,
 } from "../controllers/order.controllers";
 import { requireAuth, requireStaff } from "../middlewares/authorization";
 
 const router = Router();
 router.use(requireAuth);
 
+router.get("/manage", requireStaff, listManagedOrdersHandler);
+router.get("/manage/summary", requireStaff, manageSummaryHandler);
 router.get("/", getAllOrders);
 router.get("/:id", getSingleOrder);
 router.post("/:id/stream-channel", createStreamChannel);

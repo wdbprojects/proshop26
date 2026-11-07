@@ -4,9 +4,9 @@ import type { FulfillmentStatus } from "../drizzle/schema";
 
 const TRANSITIONS: Record<FulfillmentStatus, FulfillmentStatus[]> = {
   unfulfilled: ["processing", "cancelled"],
-  processing: ["shipped", "cancelled"],
-  shipped: ["delivered"],
-  delivered: [],
+  processing: ["shipped", "cancelled", "unfulfilled"],
+  shipped: ["delivered", "processing"],
+  delivered: ["shipped"],
   cancelled: [],
 };
 

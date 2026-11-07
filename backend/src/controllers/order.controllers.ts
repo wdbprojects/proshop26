@@ -12,7 +12,18 @@ import {
 } from "../drizzle/schema";
 import { isStaff } from "../lib/roles";
 import { db } from "../drizzle/db";
-import { asc, desc, eq, inArray, and, sql } from "drizzle-orm";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  ilike,
+  inArray,
+  or,
+  sql,
+  type SQL,
+} from "drizzle-orm";
+import { escapeLike } from "../lib/utils";
 import {
   getStreamChatServer,
   streamChatDisplayName,
@@ -22,9 +33,11 @@ import { ExtendedChannelData } from "../config/type-schemas";
 import { ApiError } from "../lib/api-error";
 import { canTransition } from "../lib/order-status";
 import {
+  manageOrdersQuerySchema,
   orderIdParamSchema,
   updateFulfillmentSchema,
 } from "../validators/order.validators";
+import { sendOrderShippedEmail } from "../lib/order-emails";
 
 const ENV = getEnv();
 
@@ -40,12 +53,6 @@ export const getAllOrders = async (
     const rows = isStaff(user?.role as UserRole)
       ? await db.select().from(orders).orderBy(desc(orders.createdAt))
       : await db.select().from(orders).where(eq(orders.userId, user.id));
-
-    // const session = await getCurrentSession(req.headers);
-    // if (!session) {
-    //   res.status(401).json({ error: "Unauthorized" });
-    //   return;
-    // }
 
     const orderIds = rows.map((order) => {
       return order.id;
@@ -300,7 +307,7 @@ export const updateFulfillmentHandler = async (
     const { id } = orderIdParamSchema.parse(req.params);
     const { status, trackingNumber } = updateFulfillmentSchema.parse(req.body);
     const updated = await db.transaction(async (tx) => {
-      /* Lock the order row so two staff clicking at once can't both pass the transition check */
+      // Lock the order row so two staff clicking at once can't both pass the transition check
       const [current] = await tx
         .select()
         .from(orders)
@@ -318,7 +325,7 @@ export const updateFulfillmentHandler = async (
           `Cannot move an order from ${current.fulfillmentStatus} to ${status}`,
         );
       }
-      /* Cancelling puts the units back on the shelf */
+      // Cancelling puts the units back on the shelf
       if (status === "cancelled") {
         const lines = await tx
           .select({
@@ -336,6 +343,9 @@ export const updateFulfillmentHandler = async (
         }
       }
       const now = new Date();
+      const shippingNow =
+        status === "shipped" && current.fulfillmentStatus === "processing";
+
       const [row] = await tx
         .update(orders)
         .set({
@@ -344,12 +354,116 @@ export const updateFulfillmentHandler = async (
           ...(status === "shipped"
             ? { shippedAt: now, trackingNumber: trackingNumber ?? null }
             : {}),
+          ...(status === "delivered" ? { deliveredAt: now } : {}),
+          // stepping back clears what the later steps recorded
+          ...(status === "unfulfilled" || status === "processing"
+            ? { shipped: null, trackingNumber: null }
+            : {}),
+          ...(status !== "delivered" ? { deliveredAt: null } : {}),
         })
         .where(eq(orders.id, id))
         .returning();
       return row;
     });
     res.json({ order: updated });
+    if (status === "shipped") {
+      void sendOrderShippedEmail(id);
+    }
+  } catch (err) {
+    next(err);
+  }
+};
+
+/* GET /api/orders/manage - staff only. Paginated, fileterable, searchable */
+export const listManagedOrdersHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { page, limit, payment, fulfillment, q } =
+      manageOrdersQuerySchema.parse(req.query);
+    const offset = (page - 1) * limit;
+
+    const conditions: SQL[] = [];
+    if (payment) {
+      conditions.push(eq(orders.status, payment));
+    }
+    if (fulfillment) {
+      conditions.push(eq(orders.fulfillmentStatus, fulfillment));
+    }
+    if (q) {
+      const pattern = `%${escapeLike(q)}%`;
+      conditions.push(
+        or(
+          ilike(orders.shipFullName, pattern),
+          ilike(orders.shipPhone, pattern),
+          ilike(user.name, pattern),
+          ilike(user.email, pattern),
+          sql`${orders.id}::text ilike ${pattern}`,
+        )!,
+      );
+    }
+    const where = conditions.length > 0 ? and(...conditions) : undefined;
+
+    const [rows, [{ total }]] = await Promise.all([
+      db
+        .select({
+          id: orders.id,
+          status: orders.status,
+          fulfillmentStatus: orders.fulfillmentStatus,
+          totalCents: orders.totalCents,
+          currency: orders.currency,
+          createdAt: orders.createdAt,
+          shipFullName: orders.shipFullName,
+          shipCity: orders.shipCity,
+          customerName: user.name,
+          customerEmail: user.email,
+        })
+        .from(orders)
+        .innerJoin(user, eq(orders.userId, user.id))
+        .where(where)
+        .orderBy(desc(orders.createdAt))
+        .limit(limit)
+        .offset(offset),
+      db
+        .select({ total: sql<number>`count(*)::int` })
+        .from(orders)
+        .innerJoin(user, eq(orders.userId, user.id))
+        .where(where),
+    ]);
+    res.json({
+      orders: rows,
+      pagination: {
+        page: page,
+        limit: limit,
+        total: total,
+        totalPages: Math.max(1, Math.ceil(total / limit)),
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/* GET /api/orders/manage/summary - counts for the sidebar badge */
+export const manageSummaryHandler = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const [row] = await db
+      .select({
+        unfulfilled: sql<number>`count(*) filter (where ${orders.fulfillmentStatus} = 'unfulfilled')::int`,
+        processing: sql<number>`count(*) filter (where ${orders.fulfillmentStatus} = 'processing'::int)`,
+      })
+      .from(orders)
+      .where(eq(orders.status, "paid"));
+    res.json({
+      unfulfilled: row?.unfulfilled ?? 0,
+      processing: row?.processing ?? 0,
+    });
   } catch (err) {
     next(err);
   }

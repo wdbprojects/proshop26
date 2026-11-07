@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { FulfillmentStatus } from "@/config/type-schemas";
 import { useUpdateFulfillment } from "@/hooks/use-update-fulfillment";
-import { FULFILLMENT_LABELS, FULFILLMENT_NEXT } from "@/lib/order-status";
+import {
+  FULFILLMENT_BACK,
+  FULFILLMENT_LABELS,
+  FULFILLMENT_NEXT,
+} from "@/lib/order-status";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +34,7 @@ const FulfillmentControls = ({
   const [trackingNumber, setTrackingNumber] = useState("");
   const update = useUpdateFulfillment(orderId);
   const next = FULFILLMENT_NEXT[current];
+  const back = FULFILLMENT_BACK[current];
 
   return (
     <Card className="mt-4">
@@ -39,7 +44,7 @@ const FulfillmentControls = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-wrap items-center gap-3">
-        {next.length === 0 && (
+        {next.length === 0 && !back && (
           <p className="text-muted-foreground text-sm">
             This order is closed. No further actions.
           </p>
@@ -113,7 +118,15 @@ const FulfillmentControls = ({
             </AlertDialogContent>
           </AlertDialog>
         )}
-
+        {back && (
+          <Button
+            variant="ghost"
+            disabled={update.isPending}
+            onClick={() => update.mutate({ status: back })}
+          >
+            Undo: back to {FULFILLMENT_LABELS[back]}
+          </Button>
+        )}
         {update.isPending && <Spinner />}
       </CardContent>
     </Card>
