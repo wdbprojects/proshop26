@@ -456,7 +456,7 @@ export const manageSummaryHandler = async (
     const [row] = await db
       .select({
         unfulfilled: sql<number>`count(*) filter (where ${orders.fulfillmentStatus} = 'unfulfilled')::int`,
-        processing: sql<number>`count(*) filter (where ${orders.fulfillmentStatus} = 'processing'::int)`,
+        processing: sql<number>`count(*) filter (where ${orders.fulfillmentStatus} = 'processing')::int`,
       })
       .from(orders)
       .where(eq(orders.status, "paid"));

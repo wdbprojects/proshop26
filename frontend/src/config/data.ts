@@ -12,6 +12,8 @@ import {
   PackageIcon,
   UserIcon,
   MapPinIcon,
+  TagsIcon,
+  UsersIcon,
 } from "lucide-react";
 
 export type DashboardNavItem = {
@@ -76,6 +78,20 @@ export const dashboardNav: DashboardNavGroup[] = [
         icon: BoxesIcon,
         roles: ["admin"],
       },
+      {
+        id: "categories",
+        title: "Categories",
+        url: routes.adminCategories,
+        icon: TagsIcon,
+        roles: ["admin"],
+      },
+      {
+        id: "users",
+        title: "Users",
+        url: routes.adminUsers,
+        icon: UsersIcon,
+        roles: ["admin"],
+      },
     ],
   },
 ];
@@ -122,4 +138,10 @@ export const HIGHLIGHTS = [
   "Secure checkout",
   "Support from order after payment",
   "Specs listed for this catalog",
+];
+
+export const USER_ROLES: { value: UserRole; label: string }[] = [
+  { value: "customer", label: "Customer" },
+  { value: "support", label: "Support" },
+  { value: "admin", label: "Admin" },
 ];

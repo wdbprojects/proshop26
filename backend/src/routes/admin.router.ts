@@ -12,6 +12,18 @@ import {
   updateAdminProduct,
 } from "../controllers/admin.controllers";
 import { requireAuth, requireRole } from "../middlewares/authorization";
+import {
+  createAdminCategory,
+  deleteAdminCategory,
+  listAdminCategories,
+  updateAdminCategory,
+} from "../controllers/admin-categories.controllers";
+import {
+  banUser,
+  listUsers,
+  setUserRole,
+  unbanUser,
+} from "../controllers/admin-users.controllers";
 
 const router = Router();
 
@@ -29,5 +41,13 @@ router.post("/products", createAdminProduct);
 router.get("/products/:id", getProductById);
 router.patch("/products/:id", updateAdminProduct);
 router.delete("/products/:id", deleteAdminProduct);
+router.get("/categories", listAdminCategories);
+router.post("/categories", createAdminCategory);
+router.patch("/categories/:id", updateAdminCategory);
+router.delete("/categories/:id", deleteAdminCategory);
+router.get("/users", listUsers);
+router.patch("/users/:id/role", setUserRole);
+router.post("/users/:id/ban", banUser);
+router.post("/users/:id/unban", unbanUser);
 
 export default router;

@@ -14,6 +14,8 @@ export const routes = {
     return `/dashboard/orders/${id}`;
   },
   addresses: "/dashboard/addresses",
+  adminCategories: "/dashboard/admin/categories",
+  adminUsers: "/dashboard/admin/users",
 
   /* AUTH */
   login: "/auth/login",

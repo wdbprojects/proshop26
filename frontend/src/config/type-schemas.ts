@@ -317,5 +317,39 @@ export type ManagedOrdersResponse = {
     totalPages: number;
   };
 };
-
 export type OrdersSummary = { unfulfilled: number; processing: number };
+
+export interface IAdminCategory {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  displayOrder: number;
+  active: boolean;
+  productCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+export type AdminCategoriesResponse = { categories: IAdminCategory[] };
+
+export interface IAdminUser {
+  id: string;
+  name: string;
+  email: string;
+  emailVerified: boolean;
+  role: UserRole;
+  banned: boolean | null;
+  banReason: string | null;
+  createdAt: string;
+  orderCount: number;
+}
+
+export type AdminUsersResponse = {
+  users: IAdminUser[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+};
