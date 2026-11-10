@@ -101,12 +101,30 @@ export const signInController = async (req: Request, res: Response) => {
       });
     } else {
       if (response.status === 403) {
-        return res.status(403).json({
-          success: false,
-          code: "EMAIL_NOT_VERIFIED",
-          message:
-            "Please verify your email first. We sent you a new verification link",
-        });
+        const body = (await response.json().catch(() => null)) as {
+          code?: string;
+          message?: string;
+        } | null;
+
+        if (
+          body?.code === "BANNED_USER" ||
+          body?.message?.toLowerCase().includes("banned")
+        ) {
+          return res.status(403).json({
+            success: false,
+            code: "ACCOUNT_BANNED",
+            message:
+              "This count has been suspended. Contact support if you think this is a mistake",
+          });
+        }
+        if (response.status === 403) {
+          return res.status(403).json({
+            success: false,
+            code: "EMAIL_NOT_VERIFIED",
+            message:
+              "Please verify your email. We sent you a new verification link.",
+          });
+        }
       }
       return res.status(401).json({
         success: false,

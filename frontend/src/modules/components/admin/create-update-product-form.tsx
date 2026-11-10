@@ -97,6 +97,12 @@ const makeClientId = () => {
 const CreateUpdateProductForm = ({ product }: { product?: ProductType }) => {
   const { categories, createMutation, updateMutation, deleteUploadMutation } =
     useAdminProduct();
+
+  const categoryOptions =
+    product && !categories.some((cat) => cat.id === product.category.id)
+      ? [...categories, product.category]
+      : categories;
+
   const router = useRouter();
   const isEdit = Boolean(product?.id);
 
@@ -394,7 +400,7 @@ const CreateUpdateProductForm = ({ product }: { product?: ProductType }) => {
       /* Surface the backend's actual message (slug conflict, invalid category, etc.) instead of a generic string - errorHandlerMiddleware always returns {error: "..."}, and apiFetch throws that as err.message */
       const message =
         err instanceof Error ? err.message : "Failed to save products";
-      toast.add({type: "error", title: message});
+      toast.add({ type: "error", title: message });
     }
   };
 
@@ -488,7 +494,7 @@ const CreateUpdateProductForm = ({ product }: { product?: ProductType }) => {
                 name="categoryId"
                 control={control}
                 render={({ field, fieldState }) => {
-                  const selectedCategory = categories?.find((cat) => {
+                  const selectedCategory = categoryOptions.find((cat) => {
                     return cat.id === field.value;
                   });
                   return (
@@ -523,7 +529,7 @@ const CreateUpdateProductForm = ({ product }: { product?: ProductType }) => {
                           </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
-                          {categories?.map((cat) => {
+                          {categoryOptions.map((cat) => {
                             return (
                               <SelectItem key={cat.id} value={cat.id}>
                                 {cat.name}

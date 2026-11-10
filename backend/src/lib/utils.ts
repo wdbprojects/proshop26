@@ -67,7 +67,7 @@ export const isUniqueViolation = (
 };
 
 export const isForeignKeyViolation = (err: unknown): boolean => {
-  return (err as PgErrorLike)?.code === "23503";
+  return getPgError(err)?.code === "23503";
 };
 
 /* format number with decimal places */

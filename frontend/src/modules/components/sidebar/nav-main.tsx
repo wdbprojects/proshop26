@@ -32,9 +32,33 @@ const NavMain = () => {
 
   const isStaff = user?.role === "support" || user?.role === "admin";
   const { data: summary } = useOrdersSummary(isStaff);
+
+  // Products lives at /dashboard/admin, a prefix of Categories and Users, so several items can match. Only the longest matching URL is active.
+
+  const activeUrl = groups
+    .flatMap((group) => {
+      return group.items;
+    })
+    .filter((item) => {
+      return isActive(item.url, pathname);
+    })
+    .sort((a, b) => {
+      return b.url.length - a.url.length;
+    })[0]?.url;
+
   return (
     <>
       {groups.map((group) => {
+        const activeUrl = groups
+          .flatMap((group) => {
+            return group.items;
+          })
+          .filter((item) => {
+            return isActive(item.url, pathname);
+          })
+          .sort((a, b) => {
+            return b.url.length - a.url.length;
+          })[0]?.url;
         return (
           <SidebarGroup key={group.id}>
             <SidebarGroupLabel>{group.title}</SidebarGroupLabel>
@@ -44,7 +68,7 @@ const NavMain = () => {
                   <SidebarMenuItem key={item.id}>
                     <SidebarMenuButton
                       render={<Link href={item.url} />}
-                      isActive={isActive(item.url, pathname)}
+                      isActive={item.url === activeUrl}
                       tooltip={item.title}
                       onClick={() => setOpenMobile(false)}
                     >
