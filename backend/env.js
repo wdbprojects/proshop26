@@ -5,7 +5,6 @@ NODE_ENV=development
 BASE_URL=http://localhost:5000
 // # BASE_URL=https://proshop26.onrender.com
 FRONTEND_URL=http://localhost:3000
-// # FRONTEND_URL=https://proshop26-frontend.onrender.com
 // # FRONTEND_URL=https://proshop26.vercel.app
 
 // # DATABASE

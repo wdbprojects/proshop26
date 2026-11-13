@@ -13,7 +13,6 @@ export const allowedOrigins = Array.from(
   new Set(
     [
       ENV.FRONTEND_URL,
-      "https://proshop26-frontend.onrender.com",
       "https://proshop26.vercel.app",
       ...(isProduction
         ? []
