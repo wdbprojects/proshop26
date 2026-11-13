@@ -33,7 +33,6 @@ CREATE TABLE "users" (
 	"email" text NOT NULL,
 	"email_verified" boolean DEFAULT false NOT NULL,
 	"image" text,
-	"address" jsonb DEFAULT '{}'::jsonb,
 	"payment_method" text,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
@@ -53,11 +52,23 @@ CREATE TABLE "verifications" (
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "categories" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"name" text NOT NULL,
+	"slug" text NOT NULL,
+	"description" text,
+	"image_url" text,
+	"display_order" integer DEFAULT 0 NOT NULL,
+	"active" boolean DEFAULT true NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "products" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" text NOT NULL,
 	"slug" text NOT NULL,
-	"category" text DEFAULT 'General' NOT NULL,
+	"category_id" uuid NOT NULL,
 	"brand" text,
 	"description" text DEFAULT '' NOT NULL,
 	"long_description" text DEFAULT '' NOT NULL,
@@ -81,7 +92,17 @@ CREATE TABLE "checkout_sessions" (
 	"lines" jsonb NOT NULL,
 	"total_cents" integer NOT NULL,
 	"currency" text NOT NULL,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"expires_at" timestamp with time zone,
+	"qr_image" text,
+	"ship_full_name" text,
+	"ship_phone" text,
+	"ship_city" text,
+	"ship_zone" text,
+	"ship_street" text,
+	"ship_reference" text,
+	"ship_latitude" double precision,
+	"ship_longitude" double precision
 );
 --> statement-breakpoint
 CREATE TABLE "orders" (
@@ -93,8 +114,21 @@ CREATE TABLE "orders" (
 	"provider_order_id" text,
 	"provider_reference" jsonb,
 	"total_cents" integer DEFAULT 0 NOT NULL,
+	"currency" text DEFAULT 'usd' NOT NULL,
+	"fulfillment_status" text DEFAULT 'unfulfilled' NOT NULL,
+	"tracking_number" text,
+	"shipped_at" timestamp with time zone,
+	"delivered_at" timestamp with time zone,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"ship_full_name" text,
+	"ship_phone" text,
+	"ship_city" text,
+	"ship_zone" text,
+	"ship_street" text,
+	"ship_reference" text,
+	"ship_latitude" double precision,
+	"ship_longitude" double precision
 );
 --> statement-breakpoint
 CREATE TABLE "order_items" (
@@ -137,8 +171,36 @@ CREATE TABLE "cart_items" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "reviews" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"user_id" text NOT NULL,
+	"product_id" uuid NOT NULL,
+	"rating" integer NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "reviews_rating_range" CHECK ("reviews"."rating" between 1 and 5)
+);
+--> statement-breakpoint
+CREATE TABLE "addresses" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"user_id" text NOT NULL,
+	"label" text,
+	"full_name" text NOT NULL,
+	"phone" text NOT NULL,
+	"city" text NOT NULL,
+	"zone" text,
+	"street" text,
+	"reference" text,
+	"latitude" double precision,
+	"longitude" double precision,
+	"is_default" boolean DEFAULT false NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 ALTER TABLE "accounts" ADD CONSTRAINT "accounts_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "products" ADD CONSTRAINT "products_category_id_categories_id_fk" FOREIGN KEY ("category_id") REFERENCES "public"."categories"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "checkout_sessions" ADD CONSTRAINT "checkout_sessions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "orders" ADD CONSTRAINT "orders_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "order_items" ADD CONSTRAINT "order_items_order_id_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "public"."orders"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -147,10 +209,16 @@ ALTER TABLE "product_images" ADD CONSTRAINT "product_images_product_id_products_
 ALTER TABLE "cart" ADD CONSTRAINT "cart_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "cart_items" ADD CONSTRAINT "cart_items_cart_id_cart_id_fk" FOREIGN KEY ("cart_id") REFERENCES "public"."cart"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "cart_items" ADD CONSTRAINT "cart_items_product_id_products_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "reviews" ADD CONSTRAINT "reviews_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "reviews" ADD CONSTRAINT "reviews_product_id_products_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "addresses" ADD CONSTRAINT "addresses_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "account_userId_idx" ON "accounts" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "session_userId_idx" ON "sessions" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "verification_identifier_idx" ON "verifications" USING btree ("identifier");--> statement-breakpoint
-CREATE INDEX "products_category_idx" ON "products" USING btree ("category");--> statement-breakpoint
+CREATE UNIQUE INDEX "categories_slug_idx" ON "categories" USING btree ("slug");--> statement-breakpoint
+CREATE INDEX "categories_active_idx" ON "categories" USING btree ("active");--> statement-breakpoint
+CREATE INDEX "categories_display_order_idx" ON "categories" USING btree ("display_order");--> statement-breakpoint
+CREATE INDEX "products_category_idx" ON "products" USING btree ("category_id");--> statement-breakpoint
 CREATE INDEX "products_brand_idx" ON "products" USING btree ("brand");--> statement-breakpoint
 CREATE INDEX "products_active_idx" ON "products" USING btree ("active");--> statement-breakpoint
 CREATE INDEX "products_id_featured_idx" ON "products" USING btree ("is_featured");--> statement-breakpoint
@@ -161,4 +229,8 @@ CREATE UNIQUE INDEX "product_images_one_primary_idx" ON "product_images" USING b
 CREATE INDEX "cart_user_is_idx" ON "cart" USING btree ("user_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "cart_session_cart_id_idx" ON "cart" USING btree ("session_cart_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "cart_item_cart_product_idx" ON "cart_items" USING btree ("cart_id","product_id");--> statement-breakpoint
-CREATE INDEX "cart_item_cart_id_idx" ON "cart_items" USING btree ("cart_id");
+CREATE INDEX "cart_item_cart_id_idx" ON "cart_items" USING btree ("cart_id");--> statement-breakpoint
+CREATE UNIQUE INDEX "reviews_user_product_idx" ON "reviews" USING btree ("user_id","product_id");--> statement-breakpoint
+CREATE INDEX "reviews_product_id_idx" ON "reviews" USING btree ("product_id");--> statement-breakpoint
+CREATE INDEX "addresses_user_id_idx" ON "addresses" USING btree ("user_id");--> statement-breakpoint
+CREATE UNIQUE INDEX "addresses_one_default_idx" ON "addresses" USING btree ("user_id") WHERE "addresses"."is_default" = true;

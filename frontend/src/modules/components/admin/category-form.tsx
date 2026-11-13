@@ -191,7 +191,7 @@ const CategoryForm = ({
       </FieldGroup>
 
       <div className="mt-6 flex justify-end gap-2">
-        <Button type="button" disabled={pending}>
+        <Button type="submit" disabled={pending}>
           {pending && <Spinner />}
           <span>{category ? "Save changes" : "Create category"}</span>
         </Button>

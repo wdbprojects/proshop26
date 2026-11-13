@@ -1,0 +1,123 @@
+import express, { NextFunction, Request, Response } from "express";
+const app = express();
+import { toNodeHandler, fromNodeHeaders } from "better-auth/node";
+import { auth } from "./lib/auth";
+import cors from "cors";
+import cookieParser from "cookie-parser";
+import { getEnv } from "./config/env";
+import cronJob from "./lib/cron";
+import { polarWebhookHandler } from "./webhooks/polar";
+import { originGuard } from "./config/origin-guard";
+import rateLimit from "express-rate-limit";
+import { notFoundMiddleware } from "./middlewares/not-found";
+import { errorHandlerMiddleware } from "./middlewares/error-handler";
+import { allowedOrigins } from "./config/origins";
+
+/* ROUTES IMPORTS */
+import authRouter from "./routes/auth.router";
+import productRouter from "./routes/product.router";
+import streamRouter from "./routes/stream.router";
+import checkoutRouter from "./routes/checkout.router";
+import cartRouter from "./routes/cart.router";
+import adminRouter from "./routes/admin.router";
+import orderRouter from "./routes/order.router";
+import reviewRouter from "./routes/review.router";
+import profileRouter from "./routes/profile.router";
+import addressRouter from "./routes/address.router";
+
+app.set("trust proxy", 1);
+
+const ENV = getEnv();
+const rawJson = express.raw({ type: "application/json", limit: "1mb" });
+
+/* WEBHOOKS */
+app.post("/webhooks/polar", rawJson, (req, res) => {
+  void polarWebhookHandler(req, res);
+});
+
+/* MIDDLEWARES */
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "Cookie",
+      "Set-Cookie",
+      "Accept",
+    ],
+    exposedHeaders: ["Set-Cookie"],
+  }),
+);
+// app.options("*", cors());
+
+app.use(originGuard);
+
+app.use(express.json());
+app.use(cookieParser());
+app.use(express.urlencoded({ extended: true }));
+
+/* DEBUG MIDDLEWARE */
+/* app.use((req, res, next) => {
+  console.log("Request Origin:", req.headers.origin);
+  console.log("Request Cookies:", req.headers.cookie);
+  next();
+}); */
+// http://localhost:5000/api/auth/sign-in/email
+
+/* BETTER AUTH */
+app.all("api/auth/*splat", toNodeHandler(auth));
+app.get("/api/auth/callback/*splat", toNodeHandler(auth));
+
+/* RATE LIMITING */
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.method === "GET",
+  message: { success: false, message: "Too many attempts. Try again later." },
+});
+app.use("/api/auth", authLimiter);
+app.use("/api/profile/change-password", authLimiter);
+
+/* ROUTES */
+app.use("/api/auth", authRouter);
+app.use("/api/products", productRouter);
+app.use("/api/stream", streamRouter);
+app.use("/api/checkout", checkoutRouter);
+app.use("/api/cart", cartRouter);
+app.use("/api/admin", adminRouter);
+app.use("/api/orders", orderRouter);
+app.use("/api/reviews", reviewRouter);
+app.use("/api/profile", profileRouter);
+app.use("/api/addresses", addressRouter);
+
+/* CRON - FIX FOR RENDER IDLE ON FREE PLAN */
+app.get("/health", (_req, res) => {
+  res.json({ ok: true });
+});
+
+/* API HEALTHY CHECK */
+app.get("/", (req, res) => {
+  res.json({
+    message:
+      "Welcome to Ecommerce26 API - Powered by PostgreSQL, Drizzle ORM & Better Auth",
+  });
+});
+
+// ERROR HANDLER MIDDLEWARE
+app.use(notFoundMiddleware);
+app.use(errorHandlerMiddleware);
+
+/* SERVER LISTEN */
+app.listen(ENV.PORT, () => {
+  console.log(`Server is running on port ${ENV.PORT}`);
+  if (ENV.NODE_ENV === "production") {
+    cronJob.start();
+  }
+});
+
+// export default app;

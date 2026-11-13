@@ -1,14 +1,20 @@
 import { Router } from "express";
-import { createCheckout } from "../controllers/checkout.controllers";
-import { resolveCart } from "../middlewares/resolve-cart";
 import { requireAuth } from "../middlewares/authorization";
+import { resolveCart } from "../middlewares/resolve-cart";
+import {
+  createCheckout,
+  createQrCheckout,
+  getQrCheckoutStatus,
+} from "../controllers/checkout.controllers";
 
 const router = Router();
 
-/* requireAuth runs first and populates req.session - checkout requires a logged-in customer (unlike cart.router.ts, which allows guests), and resolveCart is written to reuse req.session when it's already set, rather than re-validating the same session a second time.  */
+// requireAuth runs first and populates req.session; resolveCart reuses it
 router.use(requireAuth);
 router.use(resolveCart);
 
 router.post("/", createCheckout);
+router.post("/qr", createQrCheckout);
+router.get("/qr/:qrId", getQrCheckoutStatus);
 
 export default router;
