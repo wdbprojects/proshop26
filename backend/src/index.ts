@@ -88,8 +88,8 @@ app.post("/webhooks/bnb/ReceiveNotification", (req, res) => {
 });
 
 // BETTER AUTH
-app.all("api/auth/*splat", toNodeHandler(auth));
-// app.get("/api/auth/callback/*splat", toNodeHandler(auth));
+// app.all("api/auth/*splat", toNodeHandler(auth));
+app.get("/api/auth/callback/*splat", toNodeHandler(auth));
 
 // ROUTES
 app.use("/api/auth", authRouter);
@@ -101,8 +101,8 @@ app.use("/api/admin", adminRouter);
 app.use("/api/orders", orderRouter);
 app.use("/api/reviews", reviewRouter);
 
-// app.use("/api/profile", profileRouter);
-// app.use("/api/addresses", addressRouter);
+app.use("/api/profile", profileRouter);
+app.use("/api/addresses", addressRouter);
 
 // DEV ONLY: the env schema forbids BNB_MODE=fake in production
 if (ENV.BNB_MODE === "fake") {
