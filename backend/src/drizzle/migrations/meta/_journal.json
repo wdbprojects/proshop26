@@ -5,71 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1789788461339,
-      "tag": "0000_massive_ultron",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1791814697688,
-      "tag": "0001_military_spitfire",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1792076161912,
-      "tag": "0002_products_search",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1792289725693,
-      "tag": "0003_wild_thunderbolt_ross",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1792638713490,
-      "tag": "0004_flawless_whirlwind",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1792785839905,
-      "tag": "0005_lean_nightshade",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1792802789525,
-      "tag": "0006_loud_wallow",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1792882013661,
-      "tag": "0007_stiff_rogue",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1793575939065,
-      "tag": "0008_wealthy_black_bird",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1793848841698,
-      "tag": "0009_green_spirit",
+      "when": 1794523870483,
+      "tag": "0000_amused_marten_broadcloak",
       "breakpoints": true
     }
   ]

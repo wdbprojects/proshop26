@@ -5,13 +5,15 @@ import { auth } from "./lib/auth";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { getEnv } from "./config/env";
-import cronJob from "./lib/cron";
+import { keepAliveJob, qrReconcileJob } from "./lib/cron";
 import { polarWebhookHandler } from "./webhooks/polar";
 import { originGuard } from "./config/origin-guard";
 import rateLimit from "express-rate-limit";
 import { notFoundMiddleware } from "./middlewares/not-found";
 import { errorHandlerMiddleware } from "./middlewares/error-handler";
 import { allowedOrigins } from "./config/origins";
+import { isBnbEnabled } from "./lib/bnb";
+import { bnbNotificationHandler } from "./webhooks/bnb";
 
 /* ROUTES IMPORTS */
 import authRouter from "./routes/auth.router";
@@ -24,8 +26,9 @@ import orderRouter from "./routes/order.router";
 import reviewRouter from "./routes/review.router";
 import profileRouter from "./routes/profile.router";
 import addressRouter from "./routes/address.router";
+import devBnbRouter from "./routes/dev-bnb.router";
 
-app.set("trust proxy", 1);
+// app.set("trust proxy", 1);
 
 const ENV = getEnv();
 const rawJson = express.raw({ type: "application/json", limit: "1mb" });
@@ -53,7 +56,7 @@ app.use(
 );
 // app.options("*", cors());
 
-app.use(originGuard);
+// app.use(originGuard);
 
 app.use(express.json());
 app.use(cookieParser());
@@ -67,10 +70,6 @@ app.use(express.urlencoded({ extended: true }));
 }); */
 // http://localhost:5000/api/auth/sign-in/email
 
-/* BETTER AUTH */
-app.all("api/auth/*splat", toNodeHandler(auth));
-app.get("/api/auth/callback/*splat", toNodeHandler(auth));
-
 /* RATE LIMITING */
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -83,7 +82,16 @@ const authLimiter = rateLimit({
 app.use("/api/auth", authLimiter);
 app.use("/api/profile/change-password", authLimiter);
 
-/* ROUTES */
+// BNB QR NOTIICATION. The bank requires the registered URL to end in /ReceiveNotification and it can't be changed later, so choose the final domain before giving it to them. Needs the JSON parser above.
+app.post("/webhooks/bnb/ReceiveNotification", (req, res) => {
+  void bnbNotificationHandler(req, res);
+});
+
+// BETTER AUTH
+app.all("api/auth/*splat", toNodeHandler(auth));
+// app.get("/api/auth/callback/*splat", toNodeHandler(auth));
+
+// ROUTES
 app.use("/api/auth", authRouter);
 app.use("/api/products", productRouter);
 app.use("/api/stream", streamRouter);
@@ -92,19 +100,25 @@ app.use("/api/cart", cartRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/orders", orderRouter);
 app.use("/api/reviews", reviewRouter);
-app.use("/api/profile", profileRouter);
-app.use("/api/addresses", addressRouter);
 
-/* CRON - FIX FOR RENDER IDLE ON FREE PLAN */
+// app.use("/api/profile", profileRouter);
+// app.use("/api/addresses", addressRouter);
+
+// DEV ONLY: the env schema forbids BNB_MODE=fake in production
+if (ENV.BNB_MODE === "fake") {
+  app.use("/api/dev", devBnbRouter);
+}
+
+// CRON - FIX FOR RENDER IDLE ON FREE PLAN
 app.get("/health", (_req, res) => {
   res.json({ ok: true });
 });
 
-/* API HEALTHY CHECK */
+// API HEALTHY CHECK
 app.get("/", (req, res) => {
   res.json({
     message:
-      "Welcome to Ecommerce26 API - Powered by PostgreSQL, Drizzle ORM & Better Auth",
+      "Welcome to Mercia API - Powered by PostgreSQL, Drizzle ORM & Better Auth",
   });
 });
 
@@ -116,7 +130,10 @@ app.use(errorHandlerMiddleware);
 app.listen(ENV.PORT, () => {
   console.log(`Server is running on port ${ENV.PORT}`);
   if (ENV.NODE_ENV === "production") {
-    cronJob.start();
+    keepAliveJob.start();
+  }
+  if (isBnbEnabled) {
+    qrReconcileJob.start();
   }
 });
 

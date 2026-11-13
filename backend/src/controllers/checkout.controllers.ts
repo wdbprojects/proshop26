@@ -1,23 +1,67 @@
+import z from "zod";
 import { NextFunction, Request, Response } from "express";
 import { getEnv } from "../config/env";
-
 import {
   checkoutSession,
   CheckoutSessionLine,
+  orders,
   PaymentProvider,
 } from "../drizzle/schema";
-import { db } from "../drizzle/db";
-import { eq } from "drizzle-orm";
-import { polarCreateCheckout } from "../lib/polar";
 import { getCartItemsForCheckout, getOrCreateCart } from "./cart.controllers";
-import { checkoutBodySchema } from "../validators/checkout.validators";
+import { ApiError } from "../lib/api-error";
+import { db } from "../drizzle/db";
+import { polarCreateCheckout } from "../lib/polar";
+import { and, eq } from "drizzle-orm";
+import { bnb, isBnbEnabled, toBoliviaDate } from "../lib/bnb";
+import { abandonQrSession, confirmQrPayment } from "../lib/bnb-payments";
 
 const ENV = getEnv();
 
-/* Only "polar" is wired up. When the Bolivia QR method lands, this becomes e.g. `req.body.paymentMethod` validated against a small zod enum, and the logic below branches on it before the provider-specific checkout call - the cart loading/stock validation above that point stays provider-agnostic and unchanged */
-const PROVIDER: PaymentProvider = "polar";
+const POLAR: PaymentProvider = "polar";
+const QR: PaymentProvider = "qr_bolivia";
 
-/* requireAuth (checkout.router.ts) guarantees req.session is set below - checkout.router.ts is the one place besides admin.router.ts that requires login, since cart.router.ts allows guest carts */
+const QR_SESSION_MINUTES = 30;
+// Short and plain: the bank documents no limits for gloss
+const QR_GLOSS_PREFIX = "Mercia";
+
+// Checkout always works from the caller's persisted cart, never from the request body. Prices, availability and stock are re-read from the products table.
+const buildCheckoutFromCart = async (req: Request) => {
+  const cartRow = await getOrCreateCart(req.cartContext!);
+  const rows = await getCartItemsForCheckout(cartRow.id);
+
+  if (rows.length === 0) {
+    throw new ApiError(400, "Your cart is empty");
+  }
+
+  let totalCents = 0;
+  const lines: CheckoutSessionLine[] = [];
+  const currencies = new Set<string>();
+
+  for (const row of rows) {
+    if (!row.active) {
+      throw new ApiError(
+        409,
+        `"${row.name}" is no longer available. Remove it from your cart to continue.`,
+      );
+    }
+    if (row.quantity > row.stock) {
+      throw new ApiError(
+        409,
+        `Only ${row.stock} of "${row.name}" left in stock. Update your cart to continue.`,
+      );
+    }
+    totalCents += row.priceCents * row.quantity;
+    currencies.add(row.currency.toLowerCase());
+    lines.push({
+      productId: row.productId,
+      quantity: row.quantity,
+      unitPriceCents: row.priceCents,
+    });
+  }
+  return { lines: lines, totalCents: totalCents, currencies: currencies };
+};
+
+// POST /api/checkout (card, via Polar)
 export const createCheckout = async (
   req: Request,
   res: Response,
@@ -25,76 +69,35 @@ export const createCheckout = async (
 ) => {
   try {
     const userSession = req.session!;
-
-    // polar access token required
     if (!ENV.POLAR_ACCESS_TOKEN) {
-      res.status(503).json({ error: "Payments are not configured" });
-      return;
+      throw new ApiError(503, "Payments are not configured");
     }
-
-    const { shippingAddress } = checkoutBodySchema.parse(req.body);
-
-    /* Checkout always operates on the caller's persisted cart - never on items posted in the request body. This keeps it consistent with whatever the cart badge/mini-cart page are showing (all backed by the same React Query ["cart"] cache), and means a stale or tempered client payload can no longer choose what gets charged. `resolveCart` middleware (mounted on this router) populates req.cartContext the same way it does for every cart endpoint. */
-    const cartRow = await getOrCreateCart(req.cartContext!);
-    const cartItemRows = await getCartItemsForCheckout(cartRow.id);
-
-    if (cartItemRows.length === 0) {
-      res.status(400).json({ error: "Your cart is empty" });
-      return;
-    }
-
-    /* Recompute price AND validate stock server-side, from the current product rows - never trust priceCentsAtAdd (a snapshot only) amd never trust the client sent */
-    let totalCents = 0;
-    const lines: CheckoutSessionLine[] = [];
-
-    for (const row of cartItemRows) {
-      if (!row.active) {
-        res.status(409).json({
-          error: `"${row.name}" is no longer available. Remove it from your cart to continue.`,
-        });
-        return;
-      }
-      if (row.quantity > row.stock) {
-        res.status(409).json({
-          error:
-            row.stock <= 0
-              ? `"${row.name}" is out of stock. Remove it from your cart to continue.`
-              : `Only ${row.stock} of "${row.name}" left. Lower the quantity to continue.`,
-        });
-        return;
-      }
-      totalCents += row.priceCents * row.quantity;
-      lines.push({
-        productId: row.productId,
-        quantity: row.quantity,
-        unitPriceCents: row.priceCents,
-      });
+    const { lines, totalCents, currencies } = await buildCheckoutFromCart(req);
+    if (
+      [...currencies].some((currency) => {
+        return currency !== "usd";
+      })
+    ) {
+      throw new ApiError(
+        409,
+        "Card payments require every product to be priced in USD ",
+      );
     }
     if (totalCents < 10) {
-      res.status(400).json({
-        error:
-          "Total below Polar minimum (e.g. USD requires at least 10 cents)",
-      });
-      return;
+      throw new ApiError(
+        400,
+        "Total below Polar minimum (e.g. USD requires at least 10 cents)",
+      );
     }
 
-    /* CREATE CHECKOUT SESSION IN DATABASE */
     const [session] = await db
       .insert(checkoutSession)
       .values({
         userId: userSession.user.id,
-        paymentProvider: PROVIDER,
+        paymentProvider: POLAR,
         lines: lines,
         totalCents: totalCents,
         currency: "usd",
-        shipFullName: shippingAddress.fullName,
-        shipPhone: shippingAddress.phone,
-        shipCity: shippingAddress.city,
-        shipZone: shippingAddress.zone || null,
-        shipStreet: shippingAddress.street || null,
-        shipReference: shippingAddress.reference || null,
-        shipLatitude: shippingAddress.latitude,
-        shipLongitude: shippingAddress.longitude,
       })
       .returning();
 
@@ -114,17 +117,179 @@ export const createCheckout = async (
       },
       success_url: successUrl,
       return_url: returnUrl,
-      external_customer_id: userSession?.user?.id,
-      metadata: {
-        checkout_session_id: session.id,
-      },
+      external_customer_id: userSession.user.id,
+      metadata: { checkout_session_id: session.id },
     });
     await db
       .update(checkoutSession)
       .set({ providerCheckoutId: checkout.id })
       .where(eq(checkoutSession.id, session.id));
+    res.json({ checkoutUrl: checkout.url });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// POST /api/checkout/qr (Bolivia QR, via BNB)
+export const createQrCheckout = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userSession = req.session!;
+    if (!isBnbEnabled) {
+      throw new ApiError(503, "QR payments are not configured");
+    }
+    if (ENV.BNB_QR_ADMIN_ONLY === "true" && userSession.user.role !== "admin") {
+      throw new ApiError(403, "QR payments are not available yet");
+    }
+
+    // Retire this user's older QR sessions first. If one of them was actually paid, this fulfills it, the cart empties, and the cart check below fails naturally instead of charging twice.
+
+    const previous = await db
+      .select()
+      .from(checkoutSession)
+      .where(
+        and(
+          eq(checkoutSession.userId, userSession.user.id),
+          eq(checkoutSession.paymentProvider, QR),
+        ),
+      );
+    for (const old of previous) {
+      await abandonQrSession(old);
+    }
+
+    const { lines, totalCents, currencies } = await buildCheckoutFromCart(req);
+    if (currencies.size !== 1 || !currencies.has("bob")) {
+      throw new ApiError(
+        409,
+        "QR payments require every product in the cart to be priced in BOB",
+      );
+    }
+
+    const expiresAt = new Date(Date.now() + QR_SESSION_MINUTES * 60 * 1000);
+    const [session] = await db
+      .insert(checkoutSession)
+      .values({
+        userId: userSession.user.id,
+        paymentProvider: QR,
+        lines: lines,
+        totalCents: totalCents,
+        currency: "bob",
+        expiresAt: expiresAt,
+      })
+      .returning();
+
+    try {
+      const qr = await bnb.createQr({
+        amountCents: totalCents,
+        gloss: `${QR_GLOSS_PREFIX} ${session.id.slice(0, 8)}`,
+        additionalData: session.id,
+        expirationDate: toBoliviaDate(expiresAt),
+      });
+      await db
+        .update(checkoutSession)
+        .set({ providerCheckoutId: qr.qrId, qrImage: qr.qrImageBase64 })
+        .where(eq(checkoutSession.id, session.id));
+
+      res.status(201).json({
+        qrId: qr.qrId,
+        qrImage: qr.qrImageBase64,
+        expiresAt: expiresAt.toISOString(),
+        totalCents: totalCents,
+        currency: "bob",
+      });
+    } catch (err) {
+      console.error("BNB QR generation failed", err);
+      await db
+        .delete(checkoutSession)
+        .where(eq(checkoutSession.id, session.id));
+      throw new ApiError(502, "Could not generate the QR. Please try again.");
+    }
+  } catch (err) {
+    next(err);
+  }
+};
+
+const qrParamsSchema = z.object({ qrId: z.string().regex(/^\d+$/) });
+
+const findQrOrderId = async (qrId: string, userId: string) => {
+  const [order] = await db
+    .select({ id: orders.id })
+    .from(orders)
+    .where(
+      and(
+        eq(orders.paymentProvider, QR),
+        eq(orders.providerCheckoutId, qrId),
+        eq(orders.userId, userId),
+      ),
+    )
+    .limit(1);
+  return order?.id ?? null;
+};
+
+// GET /api/checkout/qr/:qrId (the frontend polls this every few seconds)
+export const getQrCheckoutStatus = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { qrId } = qrParamsSchema.parse(req.params);
+    const userId = req.session!.user.id;
+
+    const paidOrderId = await findQrOrderId(qrId, userId);
+    if (paidOrderId) {
+      res.json({ status: "paid", orderId: paidOrderId });
+      return;
+    }
+
+    const [session] = await db
+      .select()
+      .from(checkoutSession)
+      .where(
+        and(
+          eq(checkoutSession.paymentProvider, QR),
+          eq(checkoutSession.providerCheckoutId, qrId),
+          eq(checkoutSession.userId, userId),
+        ),
+      )
+      .limit(1);
+
+    if (!session) {
+      throw new ApiError(404, "QR payment not found");
+    }
+
+    const windowEnded =
+      session.expiresAt !== null && session.expiresAt.getTime() < Date.now();
+
+    const result = windowEnded
+      ? await abandonQrSession(session)
+      : await confirmQrPayment(qrId);
+
+    if (result.state === "paid") {
+      res.json({ status: "paid", orderId: await findQrOrderId(qrId, userId) });
+      return;
+    }
+
+    if (result.state === "expired" || windowEnded) {
+      res.json({ status: "expired" });
+      return;
+    }
+
+    if (result.state === "error") {
+      console.error(`QR ${qrId} needs review: ${result.reason}`);
+      res.json({ status: "error" });
+      return;
+    }
+
     res.json({
-      checkoutUrl: checkout.url,
+      status: "pending",
+      qrImage: session.qrImage,
+      expiresAt: session.expiresAt,
+      totalCents: session.totalCents,
+      currency: session.currency,
     });
   } catch (err) {
     next(err);

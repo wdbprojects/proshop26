@@ -107,6 +107,7 @@ export const getCartItemsForCheckout = async (cartId: string) => {
       productId: cartItems.productId,
       quantity: cartItems.quantity,
       priceCents: products.priceCents,
+      currency: products.currency,
       stock: products.stock,
       active: products.active,
       name: products.name,
