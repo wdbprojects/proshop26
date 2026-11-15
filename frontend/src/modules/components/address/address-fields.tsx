@@ -20,6 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { DEPARTMENTS } from "@/config/departments";
 import { useCurrentLocation } from "@/hooks/use-current-location";
 import { AddressFormValues } from "@/schemas/address-schemas";
+import LocationMap from "@/modules/components/address/location-map";
 
 import { CheckCircle2Icon, LocateFixedIcon, XIcon } from "lucide-react";
 import { useState } from "react";
@@ -82,7 +83,17 @@ const AddressFields = ({
   const [accuracy, setAccuracy] = useState<number | null>(null);
   const location = useCurrentLocation();
 
-  const hasLocation = watch("latitude") !== null && watch("longitude") !== null;
+  // const hasLocation = watch("latitude") !== null && watch("longitude") !== null;
+  const latitude = watch("latitude");
+  const longitude = watch("longitude");
+  const hasLocation = latitude !== null && longitude !== null;
+
+  const handlePinChange = (lat: number, lng: number) => {
+    setValue("latitude", lat, { shouldDirty: true });
+    setValue("longitude", lng, { shouldDirty: true });
+    setAccuracy(null);
+    void trigger("reference");
+  };
 
   const handleLocate = () => {
     location.request((coords) => {
@@ -219,9 +230,14 @@ const AddressFields = ({
         {location.error && (
           <p className="text-destructive text-xs">{location.error}</p>
         )}
+        <LocationMap
+          latitude={latitude}
+          longitude={longitude}
+          onChange={handlePinChange}
+        />
         <FieldDescription>
-          Best on your phone, standing at the delivery spot. On a computer the
-          location can be off by kilometers
+          Tap the map to place the pin, or drag it to your exact door. Use the
+          button above to jump to your current position.
         </FieldDescription>
       </Field>
 

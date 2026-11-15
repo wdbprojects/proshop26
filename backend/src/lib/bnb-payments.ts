@@ -106,7 +106,7 @@ export const confirmQrPayment = async (
       checkoutSessionId: session.id,
       voucherId:
         voucherId ?? notification?.voucherId ?? detail?.voucherId ?? null,
-      originName: notification?.sourceBankId ?? null,
+      originName: notification?.originName ?? null,
       sourceBankId: notification?.sourceBankId ?? null,
       transactionDateTime: notification?.transactionDateTime ?? null,
     },

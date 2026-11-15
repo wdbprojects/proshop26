@@ -14,6 +14,8 @@ import { polarCreateCheckout } from "../lib/polar";
 import { and, eq } from "drizzle-orm";
 import { bnb, isBnbEnabled, toBoliviaDate } from "../lib/bnb";
 import { abandonQrSession, confirmQrPayment } from "../lib/bnb-payments";
+import { shippingAddressSchema } from "../validators/shipping.validators";
+import { checkoutBodySchema } from "../validators/checkout.validators";
 
 const ENV = getEnv();
 
@@ -23,6 +25,19 @@ const QR: PaymentProvider = "qr_bolivia";
 const QR_SESSION_MINUTES = 30;
 // Short and plain: the bank documents no limits for gloss
 const QR_GLOSS_PREFIX = "Mercia";
+
+const shippingValues = (a: z.infer<typeof shippingAddressSchema>) => {
+  return {
+    shipFullName: a.fullName,
+    shipPhone: a.phone,
+    shipCity: a.city,
+    shipZone: a.zone || null,
+    shipStreet: a.street || null,
+    shipReference: a.reference || null,
+    shipLatitude: a.latitude,
+    shipLongitude: a.longitude,
+  };
+};
 
 // Checkout always works from the caller's persisted cart, never from the request body. Prices, availability and stock are re-read from the products table.
 const buildCheckoutFromCart = async (req: Request) => {
@@ -72,6 +87,7 @@ export const createCheckout = async (
     if (!ENV.POLAR_ACCESS_TOKEN) {
       throw new ApiError(503, "Payments are not configured");
     }
+    const { shippingAddress } = checkoutBodySchema.parse(req.body);
     const { lines, totalCents, currencies } = await buildCheckoutFromCart(req);
     if (
       [...currencies].some((currency) => {
@@ -98,6 +114,7 @@ export const createCheckout = async (
         lines: lines,
         totalCents: totalCents,
         currency: "usd",
+        ...shippingValues(shippingAddress),
       })
       .returning();
 
@@ -156,6 +173,9 @@ export const createQrCheckout = async (
           eq(checkoutSession.paymentProvider, QR),
         ),
       );
+
+    const { shippingAddress } = checkoutBodySchema.parse(req.body);
+
     for (const old of previous) {
       await abandonQrSession(old);
     }
@@ -178,6 +198,7 @@ export const createQrCheckout = async (
         totalCents: totalCents,
         currency: "bob",
         expiresAt: expiresAt,
+        ...shippingValues(shippingAddress),
       })
       .returning();
 

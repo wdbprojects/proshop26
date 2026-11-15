@@ -114,7 +114,7 @@ export const signInController = async (req: Request, res: Response) => {
             success: false,
             code: "ACCOUNT_BANNED",
             message:
-              "This count has been suspended. Contact support if you think this is a mistake",
+              "This account has been suspended. Contact support if you think this is a mistake",
           });
         }
         if (response.status === 403) {

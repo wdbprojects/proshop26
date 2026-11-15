@@ -7,14 +7,14 @@ const ENV = getEnv();
 const imageKitUrl = z
   .string()
   .url()
-  .refine((url) => {
-    return (
+  .refine(
+    (url) => (
       url.startsWith(ENV.IMAGEKIT_URL_ENDPOINT),
       {
         message: "Image URL must be hosted on this project's ImageKit endpoint",
       }
-    );
-  });
+    ),
+  );
 
 /* Matches what getProductBySlug/getAllProducts actually route on - catching a malformed slug here beats catching it as a 404 later */
 const slugSchema = z
@@ -46,6 +46,10 @@ export const productCreateSchema = z.object({
     .min(10, { message: "Description must be at least 10 characters" })
     .optional()
     .default(""),
+  longDescription: z
+    .string()
+    .trim()
+    .min(10, { message: "Full description must be at least 10 characters" }),
   stock: z.coerce
     .number()
     .int()

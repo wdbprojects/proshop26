@@ -130,7 +130,7 @@ const CreateUpdateProductForm = ({ product }: { product?: ProductType }) => {
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
-    mode: "onChange",
+    mode: "onTouched",
     defaultValues: product
       ? {
           name: product.name,
@@ -430,6 +430,7 @@ const CreateUpdateProductForm = ({ product }: { product?: ProductType }) => {
                         className="text-foreground"
                       >
                         Product Name
+                        <span className="text-destructive">*</span>
                       </FieldLabel>
                       <Input
                         {...field}
@@ -458,6 +459,7 @@ const CreateUpdateProductForm = ({ product }: { product?: ProductType }) => {
                         className="text-foreground"
                       >
                         Slug
+                        <span className="text-destructive">*</span>
                       </FieldLabel>
 
                       <Input
@@ -509,6 +511,7 @@ const CreateUpdateProductForm = ({ product }: { product?: ProductType }) => {
                           className="text-foreground"
                         >
                           Choose a category
+                          <span className="text-destructive">*</span>
                         </FieldLabel>
                         {fieldState.invalid && (
                           <FieldError errors={[fieldState.error]} />
@@ -555,6 +558,7 @@ const CreateUpdateProductForm = ({ product }: { product?: ProductType }) => {
                         className="text-foreground"
                       >
                         Brand
+                        <span className="text-destructive">*</span>
                       </FieldLabel>
                       <Input
                         {...field}
@@ -583,6 +587,7 @@ const CreateUpdateProductForm = ({ product }: { product?: ProductType }) => {
                         className="text-foreground"
                       >
                         Product Description
+                        <span className="text-destructive">*</span>
                       </FieldLabel>
                       <Textarea
                         {...field}
@@ -609,8 +614,13 @@ const CreateUpdateProductForm = ({ product }: { product?: ProductType }) => {
                         htmlFor="long-description-product-admin"
                         className="text-foreground"
                       >
-                        Full Description
+                        Full Description{" "}
+                        <span className="text-destructive">*</span>
                       </FieldLabel>
+                      <FieldDescription>
+                        Required. Shown on the product page (at least 10
+                        characters)
+                      </FieldDescription>
                       <Textarea
                         {...field}
                         id="long-description-product-admin"
@@ -643,6 +653,7 @@ const CreateUpdateProductForm = ({ product }: { product?: ProductType }) => {
                             className="text-foreground"
                           >
                             Price (USD)
+                            <span className="text-destructive">*</span>
                           </FieldLabel>
                           <Input
                             // {...field}
@@ -909,6 +920,13 @@ const CreateUpdateProductForm = ({ product }: { product?: ProductType }) => {
             </FieldGroup>
           </CardContent>
 
+          {!canSubmit && !isMutating && (
+            <p className="text-muted-foreground mt-4 px-6 text-xs">
+              Fields marked * are required, and at least one image must finish
+              uploading.
+            </p>
+          )}
+
           {/* ACTION BUTTONS */}
           <CardFooter className="mt-6 flex w-full items-center justify-between gap-4 rounded-b-md px-6 py-4">
             <Link
@@ -925,7 +943,7 @@ const CreateUpdateProductForm = ({ product }: { product?: ProductType }) => {
               type="submit"
               form="create-update-product"
               className="flex flex-1 items-center justify-center gap-2"
-              // disabled={!canSubmit || isMutating}
+              disabled={!canSubmit || isMutating}
             >
               {isMutating ? (
                 <Spinner />

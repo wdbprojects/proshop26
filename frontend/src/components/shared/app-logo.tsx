@@ -18,10 +18,8 @@ const AppLogo = () => {
       )}
       <Link href={routes.home} className="flex flex-row items-center gap-0">
         <StoreIcon className="mr-2 size-4" />
-        <h6 className="text-primary text-xl font-bold tracking-tight">La</h6>
-        <h6 className="text-foreground text-xl font-bold tracking-tight">
-          Tienda
-        </h6>
+        <h6 className="text-primary text-xl font-bold tracking-wide">mer</h6>
+        <h6 className="text-foreground text-xl font-bold tracking-wide">cia</h6>
       </Link>
     </div>
   );

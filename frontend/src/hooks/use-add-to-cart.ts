@@ -21,6 +21,7 @@ export const useAddToCart = () => {
     }: {
       productId: string;
       quantity?: number;
+      silent?: boolean;
     }) =>
       apiFetch<CartResponse>("/api/cart/items", {
         method: "POST",
@@ -28,6 +29,7 @@ export const useAddToCart = () => {
       }),
     onSuccess: (data, variables) => {
       queryClient.setQueryData(CART_QUERY_KEY, data);
+      if (variables.silent) return;
       const qty = variables.quantity ?? 1;
       const label = qty === 1 ? "item" : "items";
       const addedItem = data.cart.items.find((item) => {

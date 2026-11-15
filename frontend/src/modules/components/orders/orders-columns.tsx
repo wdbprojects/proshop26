@@ -10,7 +10,7 @@ import FulfillmentBadge from "./fulfillment-badge";
 
 const paymentVariant = (status: PaymentStatus) => {
   return status === "paid"
-    ? "default"
+    ? "success"
     : status === "pending"
       ? "secondary"
       : "destructive";
@@ -69,15 +69,19 @@ export const orderColumns: ColumnDef<IManagedOrder>[] = [
   },
   {
     accessorKey: "status",
-    header: "Payment",
+    header: () => {
+      return <div className="text-center">Payment</div>;
+    },
     cell: ({ row }) => {
       return (
-        <Badge
-          className="capitalize"
-          variant={paymentVariant(row.original.status)}
-        >
-          {row.original.status}
-        </Badge>
+        <div className="flex w-full items-center justify-center">
+          <Badge
+            className="capitalize"
+            variant={paymentVariant(row.original.status)}
+          >
+            {row.original.status}
+          </Badge>
+        </div>
       );
     },
   },

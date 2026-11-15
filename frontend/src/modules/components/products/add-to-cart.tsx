@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Quantity from "@/modules/components/products/quantity";
 import { useAddToCart } from "@/hooks/use-add-to-cart";
 
@@ -8,6 +8,8 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Ban, Plus } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
+import { useRouter } from "next/navigation";
+import { routes } from "@/config/routes";
 
 interface AddToCartProps {
   productId: string;
@@ -15,18 +17,27 @@ interface AddToCartProps {
 }
 
 const AddToCart = ({ productId, stock }: AddToCartProps) => {
+  const router = useRouter();
   const [quantity, setQuantity] = useState(1);
   const addToCart = useAddToCart();
 
   const outOfStock = stock <= 0;
 
   /* Derived during render instead of synced via an effect. If stock drops below the raw selected quantity, this clamps it for both display and the mutation - no setState-in-effect, and as a bonus, if stock later recovers the user's original selection reappears instead of being permanently overwritten. */
-
   const effectiveQuantity = Math.min(quantity, Math.max(stock, 1));
+
+  const buying = addToCart.isPending && addToCart.variables?.silent === true;
+  const adding = addToCart.isPending && !buying;
 
   const handleAddToCart = () => {
     addToCart.mutate({ productId, quantity: effectiveQuantity });
-    // toast.success(`${quantity} item(s) added to cart`);
+  };
+
+  const handleBuyNow = () => {
+    addToCart.mutate(
+      { productId: productId, quantity: effectiveQuantity, silent: true },
+      { onSuccess: () => router.push(routes.checkout) },
+    );
   };
 
   return (
@@ -52,7 +63,7 @@ const AddToCart = ({ productId, stock }: AddToCartProps) => {
               <Ban className="size-3" aria-hidden />
               <span className="font-bold">Out of stock</span>
             </div>
-          ) : addToCart.isPending ? (
+          ) : adding ? (
             <div className="flex items-center justify-center gap-2">
               <Spinner />
               <span>Adding...</span>
@@ -64,8 +75,20 @@ const AddToCart = ({ productId, stock }: AddToCartProps) => {
             </div>
           )}
         </Button>
-        <Button size="default" onClick={() => {}} variant="secondary">
-          Buy Now
+        <Button
+          size="default"
+          variant="secondary"
+          onClick={handleBuyNow}
+          disabled={outOfStock || addToCart.isPending}
+        >
+          {buying ? (
+            <div className="flex items-center justify-center gap-2">
+              <Spinner />
+              <span>Redirecting...</span>
+            </div>
+          ) : (
+            <span>Buy now</span>
+          )}
         </Button>
       </div>
     </div>

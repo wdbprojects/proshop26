@@ -24,7 +24,7 @@ const loadOrder = async (orderId: string) => {
   return row;
 };
 
-export const sendOrderConfirmedEmai = async (orderId: string) => {
+export const sendOrderConfirmedEmail = async (orderId: string) => {
   try {
     const row = await loadOrder(orderId);
     if (!row) return;

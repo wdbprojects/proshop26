@@ -59,7 +59,7 @@ const CartItems = ({
               key={item.id}
               className="flex flex-row gap-0 space-y-0 py-1 pl-1"
             >
-              <div className="w-auto">
+              <div className="w-auto shrink-0">
                 <figure className="p-2">
                   {item.image ? (
                     <Image
@@ -72,7 +72,7 @@ const CartItems = ({
                       alt={item.name}
                       loading="lazy"
                       decoding="async"
-                      className="bg-muted h-24 w-24 rounded-md object-cover"
+                      className="size-24 rounded-md bg-white object-contain"
                     />
                   ) : (
                     <div className="bg-accent h-24 w-24 rounded-md" />

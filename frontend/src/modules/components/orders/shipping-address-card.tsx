@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { IOrder } from "@/config/type-schemas";
 import { cn } from "cn";
 import { MapPinIcon, NavigationIcon } from "lucide-react";
+import LocationMap from "../address/location-map";
 
 const ShippingAddressCard = ({
   order,
@@ -34,22 +35,30 @@ const ShippingAddressCard = ({
         </p>
         {order.shipReference && (
           <p className="text-muted-foreground italic">
-            &ldquo;{order.shipReference}&ldquo;
+            &ldquo;{order.shipReference}&rdquo;
           </p>
         )}
         {hasLocation && (
-          <a
-            href={mapsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={cn(
-              buttonVariants({ variant: "outline", size: "sm" }),
-              "mt-2 flex w-fit items-center gap-2",
-            )}
-          >
-            <NavigationIcon className="size-3.5" />
-            <span>Open in Google Maps</span>
-          </a>
+          <>
+            <LocationMap
+              latitude={order.shipLatitude}
+              longitude={order.shipLongitude}
+              readOnly
+              className="mt-3 h-56"
+            />
+            <a
+              href={mapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "mt-2 flex w-fit items-center gap-2",
+              )}
+            >
+              <NavigationIcon className="size-3.5" />
+              <span>Open in Google Maps</span>
+            </a>
+          </>
         )}
       </CardContent>
     </Card>

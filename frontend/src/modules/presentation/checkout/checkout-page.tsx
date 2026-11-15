@@ -1,9 +1,10 @@
 "use client";
 
 import ErrorCard from "@/components/shared/error-card";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
+import { routes } from "@/config/routes";
 import { useAddresses } from "@/hooks/use-addresses";
 import { useCartQuery } from "@/hooks/use-cart-query";
 import { useCheckout } from "@/hooks/use-checkout";
@@ -13,6 +14,7 @@ import SavedAddressPicker from "@/modules/components/checkout/saved-address-pick
 import ShippingForm from "@/modules/components/checkout/shipping-form";
 import { toShippingPayload } from "@/schemas/address-schemas";
 import { LockIcon, TruckIcon } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 const CheckoutPage = () => {
@@ -84,6 +86,12 @@ const CheckoutPage = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             {saved.length > 0 && (
+              // <Link
+              //   href={routes.addresses}
+              //   className={buttonVariants({ variant: "link", size: "sm" })}
+              // >
+              //   Manage saved addresses
+              // </Link>
               <SavedAddressPicker
                 addresses={saved}
                 selectedId={selectedId}
