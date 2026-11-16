@@ -3,6 +3,7 @@ import { Roboto, Oxanium } from "next/font/google";
 import "./globals.css";
 import Providers from "@/app/providers";
 import { cn } from "@/lib/utils";
+import { BRAND_NAME } from "@/config/brand";
 
 const robotoHeading = Roboto({
   subsets: ["latin"],
@@ -12,9 +13,8 @@ const robotoHeading = Roboto({
 const oxanium = Oxanium({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "ProShop26",
-  description:
-    "Ecommerce application made with PERN stack, Next.js, and Tailwind CSS.",
+  title: BRAND_NAME,
+  description: "Multiporpuse Ecommerce Store in Bolivia",
 };
 
 export default function RootLayout({

@@ -17,7 +17,7 @@ const ProductBreadcrumb = ({ productName }: { productName: string }) => {
         </BreadcrumbItem>
         <BreadcrumbSeparator />
         <BreadcrumbItem>
-          <BreadcrumbLink href={routes.products}>Products</BreadcrumbLink>
+          <BreadcrumbLink href={routes.catalog}>Catalog</BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbSeparator />
         <BreadcrumbItem>

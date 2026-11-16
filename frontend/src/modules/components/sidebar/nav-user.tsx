@@ -17,6 +17,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { accountLinks } from "@/config/data";
 import { routes } from "@/config/routes";
 import { useUser } from "@/hooks/use-session";
 import { useSignOut } from "@/hooks/use-sign-out";
@@ -58,7 +59,7 @@ const NavUser = () => {
                   <AvatarImage
                     src={user.image ?? ""}
                     alt={user.name}
-                    className="rounded-lg"
+                    // className="rounded-lg"
                   />
                   <AvatarFallback className="rounded.lg">
                     {initials(user.name)}
@@ -92,13 +93,28 @@ const NavUser = () => {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
+              {accountLinks.map((item) => {
+                return (
+                  <DropdownMenuItem
+                    key={item.id}
+                    className="cursor-pointer"
+                    render={<Link href={item.url} />}
+                  >
+                    <item.icon />
+                    {item.title}
+                  </DropdownMenuItem>
+                );
+              })}
               <DropdownMenuItem
                 className="cursor-pointer"
                 render={<Link href={routes.home} />}
               >
                 <StoreIcon />
-                Back to store
+                Home
               </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
               <DropdownMenuItem
                 className="cursor-pointer"
                 variant="destructive"

@@ -2,16 +2,18 @@
 
 import {
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
 } from "@/components/ui/sidebar";
 import ProductFilters from "@/modules/components/catalog/product-filters";
 import { useProductsCatalog } from "@/hooks/use-products-catalog";
+import NavUser from "@/modules/components/sidebar/nav-user";
 
 const CatalogSidebarContent = () => {
   const catalog = useProductsCatalog({ limit: 12 });
   return (
-    <div>
+    <>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent className="mt-2">
@@ -35,7 +37,10 @@ const CatalogSidebarContent = () => {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-    </div>
+      <SidebarFooter>
+        <NavUser />
+      </SidebarFooter>
+    </>
   );
 };
 
