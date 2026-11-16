@@ -1,3 +1,6 @@
+import { routes } from "@/config/routes";
+import { Gauge, MapPinIcon, PackageIcon, UserIcon } from "lucide-react";
+
 export { cn } from "cn";
 
 export const formatOrderWhen = (
@@ -37,4 +40,16 @@ export const slugify = (value: string) => {
     .trim()
     .replace(/[^a-z0-9]+/g, "")
     .replace(/^-+|-+$/g, "");
+};
+
+export const initials = (name?: string | null) => {
+  const letters = (name ?? "")
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => {
+      return part[0]?.toUpperCase();
+    })
+    .join("");
+  return letters || "?";
 };

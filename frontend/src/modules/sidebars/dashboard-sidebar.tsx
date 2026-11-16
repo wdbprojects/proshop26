@@ -4,7 +4,7 @@ import DashboardSidebarContent from "@/modules/components/sidebar/dashboard-side
 const DashboardSidebar = () => {
   return (
     <Sidebar
-      className="z-40 rounded-sm border-none pt-15"
+      className="z-40 rounded-sm border-none pt-16"
       variant="floating"
       collapsible="icon"
     >

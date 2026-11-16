@@ -145,3 +145,15 @@ export const USER_ROLES: { value: UserRole; label: string }[] = [
   { value: "support", label: "Support" },
   { value: "admin", label: "Admin" },
 ];
+
+export const accountLinks = [
+  { id: "dashboard", title: "Dashboard", url: routes.dashboard, icon: Gauge },
+  { id: "orders", title: "Orders", url: routes.orders, icon: PackageIcon },
+  { id: "profile", title: "Profile", url: routes.profile, icon: UserIcon },
+  {
+    id: "addresses",
+    title: "Addresses",
+    url: routes.addresses,
+    icon: MapPinIcon,
+  },
+];

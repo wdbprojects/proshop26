@@ -13,7 +13,7 @@ import { cn } from "cn";
 import { IK_PRESETS, imageKitOptimizedUrl } from "@/lib/image-kit-url";
 import { formatPrice } from "@/lib/utils";
 
-const SearchBar = () => {
+const SearchBar = ({ autoFocus = false }: { autoFocus?: boolean }) => {
   const [value, setValue] = useState("");
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -80,6 +80,7 @@ const SearchBar = () => {
           setOpen(true);
         }}
         onFocus={() => setOpen(true)}
+        autoFocus={autoFocus}
         onKeyDown={handleKeyDown}
         placeholder="Search products..."
         className="pl-8"

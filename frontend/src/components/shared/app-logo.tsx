@@ -1,27 +1,20 @@
-"use client";
-
-import { usePathname } from "next/navigation";
 import { routes } from "@/config/routes";
-import SidebarTriggerCustom from "@/modules/components/misc/sidebar-trigger-custom";
 import Link from "next/link";
 import { StoreIcon } from "lucide-react";
+import { BRAND_NAME } from "@/config/brand";
 
 const AppLogo = () => {
-  const pathname = usePathname();
-  const isDashboard = pathname.includes("/dashboard");
-  const isCatalog = pathname.includes("/catalog");
-
   return (
-    <div className="relative flex flex-1 shrink-0 items-center gap-2 p-1">
-      {(isDashboard || isCatalog) && (
-        <SidebarTriggerCustom isCatalog={isCatalog} />
-      )}
-      <Link href={routes.home} className="flex flex-row items-center gap-0">
-        <StoreIcon className="mr-2 size-4" />
-        <h6 className="text-primary text-xl font-bold tracking-wide">mer</h6>
-        <h6 className="text-foreground text-xl font-bold tracking-wide">cia</h6>
-      </Link>
-    </div>
+    <Link
+      href={routes.home}
+      aria-label={`${BRAND_NAME} home`}
+      className="flex shrink-0 items-center gap-2"
+    >
+      <StoreIcon className="text-primary size-5" />
+      <span className="text-foreground text-xl font-bold tracking-tight">
+        {BRAND_NAME}
+      </span>
+    </Link>
   );
 };
 

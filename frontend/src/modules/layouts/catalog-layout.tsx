@@ -1,7 +1,6 @@
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { LayoutPropsMain } from "@/config/types";
-import { cookies } from "next/headers";
-import HeaderCatalog from "@/modules/components/layout/header-catalog";
+import SiteHeader from "@/modules/components/layout/site-header";
 import CatalogSidebar from "@/modules/sidebars/catalog-sidebar";
 
 const CatalogLayout = async ({ children }: LayoutPropsMain) => {
@@ -10,10 +9,10 @@ const CatalogLayout = async ({ children }: LayoutPropsMain) => {
 
   return (
     <SidebarProvider defaultOpen={true}>
-      <HeaderCatalog />
+      <SiteHeader sidebar="catalog" />
       <div className="flex w-full overflow-y-auto">
         <CatalogSidebar />
-        <main className="h-full w-full pt-12">
+        <main className="h-full w-full pt-14">
           <div className="h-full p-4">{children}</div>
         </main>
       </div>

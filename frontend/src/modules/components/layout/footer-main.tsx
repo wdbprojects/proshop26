@@ -1,4 +1,5 @@
 import { buttonVariants } from "@/components/ui/button";
+import { BRAND_NAME } from "@/config/brand";
 import { routes } from "@/config/routes";
 import { HeadphonesIcon, TruckIcon } from "lucide-react";
 import Link from "next/link";
@@ -12,7 +13,7 @@ const FooterMain = () => {
           <div>
             <div className="text-base-content flex items-center gap-2 font-semibold">
               <TruckIcon className="text-primary size-8" aria-hidden />
-              Ecommerce26
+              {BRAND_NAME}
             </div>
             <p className="text-base-content/65 text-muted-foreground mt-3 text-sm leading-relaxed">
               Curated hardware and workspace tools. Paid orders include priority
@@ -96,7 +97,7 @@ const FooterMain = () => {
         </div>
         <div className="border-base-300 mt-10 space-y-4 border-t pt-6">
           <p className="text-muted-foreground text-center text-xs">
-            © {new Date().getFullYear()} Ecommerce26 · All prices in USD
+            © {new Date().getFullYear()} {BRAND_NAME} · All prices in BOB
           </p>
         </div>
       </div>
