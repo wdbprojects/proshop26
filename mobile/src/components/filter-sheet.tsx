@@ -174,8 +174,8 @@ const FilterSheet = ({
               </View>
               {facets && (
                 <Text className="mt-2 text-xs text-muted-foreground">
-                  Prices here range from {formatPrice(facets.price.min, "usd")}{" "}
-                  to {formatPrice(facets.price.max, "usd")}
+                  Prices here range from {formatPrice(facets.price.min, "bob")}{" "}
+                  to {formatPrice(facets.price.max, "bob")}
                 </Text>
               )}
             </ScrollView>

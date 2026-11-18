@@ -20,11 +20,11 @@ const PriceRange = ({
 
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-semibold">Price (USD)</h3>
+      <h3 className="text-sm font-semibold">Price (BOB)</h3>
       {facets && facets.price.max > 0 && (
         <p className="text-muted-foreground text-xs">
-          {formatPrice(facets.price.min, "usd")} -{" "}
-          {formatPrice(facets.price.max, "usd")}
+          {formatPrice(facets.price.min, "bob")} -{" "}
+          {formatPrice(facets.price.max, "bob")}
         </p>
       )}
       <div className="flex items-center gap-2">

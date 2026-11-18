@@ -120,7 +120,7 @@ const TabSummary = ({
         <div className="border-foreground/50 flex items-center justify-between gap-4 border-t px-5 py-5 sm:px-6">
           <span className="text-foreground text-lg font-semibold">Total</span>
           <span className="text-primary text-2xl font-bold tabular-nums">
-            {formatPrice(order?.singleOrder?.totalCents, "usd")}
+            {formatPrice(order?.singleOrder?.totalCents, "bob")}
           </span>
         </div>
       </CardContent>

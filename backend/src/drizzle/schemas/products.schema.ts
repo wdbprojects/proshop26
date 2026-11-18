@@ -28,7 +28,7 @@ export const products = pgTable(
     longDescription: text("long_description").notNull().default(""),
     stock: integer("stock").notNull().default(0),
     priceCents: integer("price_cents").notNull().default(0),
-    currency: text("currency").notNull().default("usd"),
+    currency: text("currency").notNull().default("bob"),
     rating: numeric("rating", { precision: 3, scale: 2 })
       .notNull()
       .default("0.00"),

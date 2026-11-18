@@ -60,7 +60,7 @@ export const productCreateSchema = z.object({
     .nonnegative({ message: "Stock must be zero or a positive whole number" }),
   isFeatured: z.boolean(),
   priceCents: z.number().int().positive(),
-  currency: z.string().min(1).default("usd"),
+  currency: z.string().min(1).default("bob"),
   active: z.boolean(),
   images: z
     .array(newProductImageSchema)
@@ -74,7 +74,7 @@ export type ProductCreateSchemaType = z.infer<typeof productCreateSchema> & {
   createdAt: Date;
 };
 
-/* Deliberately NOT productCreateSchema.partial() - currency has a .default(...), and in a .partial() that default still fires on an absent key, so an update omitting currency would silently reset it to "usd". Defined from scratch instead, so an omitted field really means "leave it alone". Matches the same fix already applied on the backend. */
+/* Deliberately NOT productCreateSchema.partial() - currency has a .default(...), and in a .partial() that default still fires on an absent key, so an update omitting currency would silently reset it to "bob". Defined from scratch instead, so an omitted field really means "leave it alone". Matches the same fix already applied on the backend. */
 export const productUpdateSchema = z.object({
   name: z.string().min(3).optional(),
   slug: slugSchema.optional(),
@@ -353,3 +353,26 @@ export type AdminUsersResponse = {
     totalPages: number;
   };
 };
+
+export type PaymentMethod = "qr" | "card";
+export type CheckoutMethods = { card: boolean; qr: boolean };
+
+export type QrCheckoutData = {
+  qrId: string;
+  qrImage: string;
+  expiresAt: string;
+  totalCents: number;
+  currency: string;
+};
+
+export type QrStatusResponse =
+  | {
+      status: "pending";
+      qrImage: string | null;
+      expiresAt: string | null;
+      totalCents: number;
+      currency: string;
+    }
+  | { status: "paid"; orderId: string | null }
+  | { status: "expired" }
+  | { status: "error" };

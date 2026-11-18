@@ -170,7 +170,7 @@ const CartItems = ({
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Subtotal</span>
           <span className="text-foreground text-xl font-semibold">
-            {formatPrice(subTotal, items[0]?.currency ?? "usd")}
+            {formatPrice(subTotal, items[0]?.currency ?? "bob")}
           </span>
         </div>
         <hr className="" />

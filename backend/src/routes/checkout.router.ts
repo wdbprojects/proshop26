@@ -4,6 +4,7 @@ import { resolveCart } from "../middlewares/resolve-cart";
 import {
   createCheckout,
   createQrCheckout,
+  getCheckoutMethods,
   getQrCheckoutStatus,
 } from "../controllers/checkout.controllers";
 
@@ -13,6 +14,7 @@ const router = Router();
 router.use(requireAuth);
 router.use(resolveCart);
 
+router.get("/methods", getCheckoutMethods);
 router.post("/", createCheckout);
 router.post("/qr", createQrCheckout);
 router.get("/qr/:qrId", getQrCheckoutStatus);

@@ -47,6 +47,8 @@ const envSchema = z
     BNB_WWBHOOK_AUTH_VALUE: z.string().optional(),
     // While validating real payments, only admins can see QR checkout
     BNB_QR_ADMIN_ONLY: z.enum(["true", "false"]).default("false"),
+    // CURRENCY
+    CARD_PAYMENTS_ENABLED: z.enum(["true", "false"]).default("false"),
   })
   .refine(
     (env) => !(env.NODE_ENV === "production" && env.BNB_MODE === "fake"),

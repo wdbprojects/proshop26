@@ -1,4 +1,5 @@
 import { routes } from "@/config/routes";
+import { STORE_CURRENCY } from "@/config/store";
 import { Gauge, MapPinIcon, PackageIcon, UserIcon } from "lucide-react";
 
 export { cn } from "cn";
@@ -18,11 +19,14 @@ export const formatOrderWhen = (
 };
 
 // format price
-export const formatPrice = (price: number, currency: string) => {
-  return new Intl.NumberFormat("en-US", {
+export const formatPrice = (
+  cents: number,
+  currency: string = STORE_CURRENCY,
+) => {
+  return new Intl.NumberFormat("es-BO", {
     style: "currency",
-    currency: (currency ?? "usd").toUpperCase(),
-  }).format(price / 100);
+    currency: (currency || STORE_CURRENCY).toUpperCase(),
+  }).format(cents / 100);
 };
 
 // format number with decimal places
