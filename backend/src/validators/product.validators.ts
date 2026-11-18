@@ -1,5 +1,6 @@
 import z from "zod";
 import { getEnv } from "../config/env";
+import { STORE_CURRENCY } from "../config/store";
 
 const ENV = getEnv();
 
@@ -56,7 +57,7 @@ export const productCreateSchema = z.object({
     .nonnegative({ message: "Stock must be zero or a positive whole number" })
     .default(0),
   priceCents: z.number().int().positive(),
-  currency: z.string().min(1).default("usd"),
+  currency: z.literal(STORE_CURRENCY).default(STORE_CURRENCY),
   isFeatured: z.boolean().default(false),
   active: z.boolean().default(true),
   images: z
@@ -65,7 +66,7 @@ export const productCreateSchema = z.object({
 });
 export type ProductCreateInput = z.infer<typeof productCreateSchema>;
 
-/* Deliberately NOT productCreateSchema.partial() - several fields above have .default(...), and in a .partial() those defaults still fire on an absent key, so an update omitting `currency` would silently reset it to "usd". Defined from scratch instead, with no defaults, so an imitted field really means "leave it alone." */
+/* Deliberately NOT productCreateSchema.partial() - several fields above have .default(...), and in a .partial() those defaults still fire on an absent key, so an update omitting `currency` would silently reset it to "bob". Defined from scratch instead, with no defaults, so an imitted field really means "leave it alone." */
 export const productUpdateSchema = z.object({
   name: z.string().min(3).optional(),
   slug: slugSchema.optional(),
@@ -75,7 +76,7 @@ export const productUpdateSchema = z.object({
   longDescription: z.string().min(10).optional(),
   stock: z.coerce.number().int().nonnegative().optional(),
   priceCents: z.number().int().positive().optional(),
-  currency: z.string().min(1).optional(),
+  currency: z.literal(STORE_CURRENCY).optional(),
   isFeatured: z.boolean().optional(),
   active: z.boolean().optional(),
   images: z.array(existingProductImageSchema).min(1).optional(),

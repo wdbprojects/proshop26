@@ -68,7 +68,7 @@ export const resetPasswordTemplate = (name: string, url: string) => {
 };
 
 const money = (cents: number, currency: string) => {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("es-BO", {
     style: "currency",
     currency: currency.toUpperCase(),
   }).format(cents / 100);

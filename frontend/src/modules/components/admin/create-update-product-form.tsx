@@ -155,7 +155,7 @@ const CreateUpdateProductForm = ({ product }: { product?: ProductType }) => {
           stock: 0,
           isFeatured: false,
           priceDollars: undefined,
-          currency: "usd",
+          currency: "bob",
           active: true,
         },
   });
@@ -652,7 +652,7 @@ const CreateUpdateProductForm = ({ product }: { product?: ProductType }) => {
                             htmlFor="price-product-admin"
                             className="text-foreground"
                           >
-                            Price (USD)
+                            Price (BOB)
                             <span className="text-destructive">*</span>
                           </FieldLabel>
                           <Input

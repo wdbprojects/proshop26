@@ -16,11 +16,15 @@ import { bnb, isBnbEnabled, toBoliviaDate } from "../lib/bnb";
 import { abandonQrSession, confirmQrPayment } from "../lib/bnb-payments";
 import { shippingAddressSchema } from "../validators/shipping.validators";
 import { checkoutBodySchema } from "../validators/checkout.validators";
+import { STORE_CURRENCY } from "../config/store";
 
 const ENV = getEnv();
 
 const POLAR: PaymentProvider = "polar";
 const QR: PaymentProvider = "qr_bolivia";
+
+// Polar's documented minimum price for BOB is 5 BOB
+const POLAR_MIN_CENTS = 500;
 
 const QR_SESSION_MINUTES = 30;
 // Short and plain: the bank documents no limits for gloss
@@ -84,25 +88,29 @@ export const createCheckout = async (
 ) => {
   try {
     const userSession = req.session!;
+
+    if (ENV.CARD_PAYMENTS_ENABLED !== "true") {
+      throw new ApiError(
+        503,
+        "Card payments are not available. Pay with QR instead.",
+      );
+    }
     if (!ENV.POLAR_ACCESS_TOKEN) {
-      throw new ApiError(503, "Payments are not configured");
+      throw new ApiError(503, "Payments are not configured.");
     }
     const { shippingAddress } = checkoutBodySchema.parse(req.body);
     const { lines, totalCents, currencies } = await buildCheckoutFromCart(req);
     if (
       [...currencies].some((currency) => {
-        return currency !== "usd";
+        return currency !== STORE_CURRENCY;
       })
     ) {
-      throw new ApiError(
-        409,
-        "Card payments require every product to be priced in USD ",
-      );
+      throw new ApiError(409, "Every product must be priced in BOB");
     }
-    if (totalCents < 10) {
+    if (totalCents < POLAR_MIN_CENTS) {
       throw new ApiError(
         400,
-        "Total below Polar minimum (e.g. USD requires at least 10 cents)",
+        "Card payments require an order total of at least Bs. 5.00",
       );
     }
 
@@ -113,7 +121,7 @@ export const createCheckout = async (
         paymentProvider: POLAR,
         lines: lines,
         totalCents: totalCents,
-        currency: "usd",
+        currency: STORE_CURRENCY,
         ...shippingValues(shippingAddress),
       })
       .returning();
@@ -127,7 +135,7 @@ export const createCheckout = async (
         [ENV.POLAR_CHECKOUT_PRODUCT_ID]: [
           {
             amount_type: "fixed",
-            price_currency: "usd",
+            price_currency: STORE_CURRENCY,
             price_amount: totalCents,
           },
         ],
@@ -181,7 +189,7 @@ export const createQrCheckout = async (
     }
 
     const { lines, totalCents, currencies } = await buildCheckoutFromCart(req);
-    if (currencies.size !== 1 || !currencies.has("bob")) {
+    if (currencies.size !== 1 || !currencies.has(STORE_CURRENCY)) {
       throw new ApiError(
         409,
         "QR payments require every product in the cart to be priced in BOB",
@@ -196,7 +204,7 @@ export const createQrCheckout = async (
         paymentProvider: QR,
         lines: lines,
         totalCents: totalCents,
-        currency: "bob",
+        currency: STORE_CURRENCY,
         expiresAt: expiresAt,
         ...shippingValues(shippingAddress),
       })
@@ -219,7 +227,7 @@ export const createQrCheckout = async (
         qrImage: qr.qrImageBase64,
         expiresAt: expiresAt.toISOString(),
         totalCents: totalCents,
-        currency: "bob",
+        currency: STORE_CURRENCY,
       });
     } catch (err) {
       console.error("BNB QR generation failed", err);
@@ -315,4 +323,14 @@ export const getQrCheckoutStatus = async (
   } catch (err) {
     next(err);
   }
+};
+
+// GET /api/checkout/methods
+export const getCheckoutMethods = (req: Request, res: Response) => {
+  const isAdmin = req.session!.user.role === "admin";
+  res.json({
+    card:
+      ENV.CARD_PAYMENTS_ENABLED === "true" && Boolean(ENV.POLAR_ACCESS_TOKEN),
+    qr: isBnbEnabled && (ENV.BNB_QR_ADMIN_ONLY !== "true" || isAdmin),
+  });
 };

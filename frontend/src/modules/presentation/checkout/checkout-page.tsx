@@ -1,30 +1,57 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCartQuery } from "@/hooks/use-cart-query";
+import { useAddresses } from "@/hooks/use-addresses";
+import { useCheckoutMethods } from "@/hooks/use-checkout-method";
+import { useCheckout, useQrCheckout } from "@/hooks/use-checkout";
+import { PaymentMethod } from "@/config/type-schemas";
+
+import Link from "next/link";
+import { routes } from "@/config/routes";
 import ErrorCard from "@/components/shared/error-card";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Spinner } from "@/components/ui/spinner";
-import { routes } from "@/config/routes";
-import { useAddresses } from "@/hooks/use-addresses";
-import { useCartQuery } from "@/hooks/use-cart-query";
-import { useCheckout } from "@/hooks/use-checkout";
 import { formatPrice } from "@/lib/utils";
 import EmptyCart from "@/modules/components/cart/empty-cart";
 import SavedAddressPicker from "@/modules/components/checkout/saved-address-picker";
 import ShippingForm from "@/modules/components/checkout/shipping-form";
-import { toShippingPayload } from "@/schemas/address-schemas";
-import { LockIcon, TruckIcon } from "lucide-react";
-import Link from "next/link";
-import { useState } from "react";
+import {
+  ShippingAddressValues,
+  toShippingPayload,
+} from "@/schemas/address-schemas";
+import { LockIcon, QrCodeIcon, TruckIcon } from "lucide-react";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
+import QrPayment from "@/modules/components/checkout/qr-payment";
+import PaymentMethodPicker from "@/modules/components/checkout/payment-method-picker";
 
 const CheckoutPage = () => {
+  const router = useRouter();
+  const qrId = useSearchParams().get("qr");
   const { data, isLoading, isError } = useCartQuery();
   const { data: addressData, isLoading: loadingAddresses } = useAddresses();
-  const checkout = useCheckout();
-  // null = the customer hasn't chosen yet, so we fall back to the default address
+  const { data: methods, isLoading: loadingMethods } = useCheckoutMethods();
+  const cardCheckout = useCheckout();
+  const qrCheckout = useQrCheckout();
+  // null = the customer hasn't chosen yet, so we fall back to the default
   const [choice, setChoice] = useState<string | null>(null);
+  const [methodChoice, setMethodChoice] = useState<PaymentMethod | null>(null);
 
-  if (isLoading || loadingAddresses) {
+  // once a QR exists, this page is just the QR screen (the cart empties when it is paid)
+  if (qrId) {
+    return (
+      <div className="p-4">
+        <QrPayment
+          qrId={qrId}
+          onRestart={() => router.replace(routes.checkout)}
+        />
+      </div>
+    );
+  }
+
+  if (isLoading || loadingAddresses || loadingMethods) {
     return (
       <div className="flex h-full w-full items-center justify-center py-24">
         <Spinner className="text-primary size-12" />
@@ -59,17 +86,37 @@ const CheckoutPage = () => {
     return address.id === selectedId;
   });
 
-  // after success the browser is navigatin to Polar - keep the button locked until it leaves
-  const busy = checkout.isPending || checkout.isSuccess;
+  const available: PaymentMethod[] = [];
+  if (methods?.qr) available.push("qr");
+  if (methods?.card) available.push("card");
+  const method =
+    methodChoice && available.includes(methodChoice)
+      ? methodChoice
+      : (available[0] ?? null);
+
+  // after a card checkout succeeds the browser is navigating to Polar: keep the button locked until it leaves
+  const busy =
+    qrCheckout.isPending || cardCheckout.isPending || cardCheckout.isSuccess;
+
+  const startPayment = (address: ShippingAddressValues, save: boolean) => {
+    if (method === "qr") {
+      qrCheckout.mutate(
+        { address, save },
+        {
+          onSuccess: (qr) => {
+            router.replace(`${routes.checkout}?qr=${qr.qrId}`);
+          },
+        },
+      );
+    } else if (method === "card") {
+      cardCheckout.mutate({ address, save });
+    }
+  };
 
   const submitProps = selectedAddress
     ? {
         type: "button" as const,
-        onClick: () =>
-          checkout.mutate({
-            address: toShippingPayload(selectedAddress),
-            save: false,
-          }),
+        onClick: () => startPayment(toShippingPayload(selectedAddress), false),
       }
     : { type: "submit" as const, form: "shipping-form" };
 
@@ -77,40 +124,54 @@ const CheckoutPage = () => {
     <div className="space-y-8 p-4">
       <h1 className="text-foreground flex items-center gap-2 text-3xl font-semibold">
         <TruckIcon className="text-primary size-8" />
-        <span>Shipping</span>
+        <span>Checkout</span>
       </h1>
       <div className="grid gap-10 lg:grid-cols-[1fr_360px]">
-        <Card>
-          <CardHeader>
-            <CardTitle>Where should we deliver?</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {saved.length > 0 && (
-              // <Link
-              //   href={routes.addresses}
-              //   className={buttonVariants({ variant: "link", size: "sm" })}
-              // >
-              //   Manage saved addresses
-              // </Link>
-              <SavedAddressPicker
-                addresses={saved}
-                selectedId={selectedId}
-                onSelect={setChoice}
-              />
-            )}
-            {!selectedAddress && (
-              <ShippingForm
-                canSave={saved.length < maxAddresses}
-                onSubmit={(values, save) => {
-                  return checkout.mutate({
-                    address: toShippingPayload(values),
-                    save: save,
-                  });
-                }}
-              />
-            )}
-          </CardContent>
-        </Card>
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Where should we deliver?</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {saved.length > 0 && (
+                <>
+                  <SavedAddressPicker
+                    addresses={saved}
+                    selectedId={selectedId}
+                    onSelect={setChoice}
+                  />
+                </>
+              )}
+              {!selectedAddress && (
+                <ShippingForm
+                  canSave={saved.length < maxAddresses}
+                  onSubmit={(values, save) => {
+                    return startPayment(toShippingPayload(values), save);
+                  }}
+                />
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Payment method</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {method && methods ? (
+                <PaymentMethodPicker
+                  methods={methods}
+                  selected={method}
+                  onSelect={setMethodChoice}
+                />
+              ) : (
+                <p className="text-muted-foreground text-sm">
+                  Payments are temporarily unavailable. Please try again later.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
         <Card className="h-fit">
           <CardHeader>
@@ -140,25 +201,34 @@ const CheckoutPage = () => {
               <span className="tabular-nums">
                 {formatPrice(
                   data?.cart.itemsPriceCents ?? 0,
-                  items[0]?.currency ?? "usd",
+                  items[0]?.currency,
                 )}
               </span>
             </div>
             <Button
               size="lg"
               className="w-full"
-              disabled={busy}
+              disabled={busy || !method}
               {...submitProps}
             >
               {busy ? (
                 <>
                   <Spinner />
-                  <span>Opening secure payment...</span>
+                  <span>
+                    {method === "qr"
+                      ? "Generating QR..."
+                      : "Opening secure payment..."}
+                  </span>
+                </>
+              ) : method === "qr" ? (
+                <>
+                  <QrCodeIcon className="size-4" />
+                  <span>Generate QR pay</span>
                 </>
               ) : (
                 <>
                   <LockIcon className="size-4" />
-                  <span>Continue to payment</span>
+                  <span>Continue to card payment</span>
                 </>
               )}
             </Button>

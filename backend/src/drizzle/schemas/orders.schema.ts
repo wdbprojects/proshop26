@@ -40,7 +40,7 @@ export const orders = pgTable(
     /* Anything provider-specific worth keeping (raw webhook payload, bank reference number, QR payment id) without adding a new column every time a new provider ships. */
     providerReference: jsonb("provider_reference"),
     totalCents: integer("total_cents").notNull().default(0),
-    currency: text("currency").notNull().default("usd"),
+    currency: text("currency").notNull().default("bob"),
     fulfillmentStatus: text("fulfillment_status")
       .$type<FulfillmentStatus>()
       .notNull()
