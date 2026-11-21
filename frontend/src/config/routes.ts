@@ -16,6 +16,7 @@ export const routes = {
   addresses: "/dashboard/addresses",
   adminCategories: "/dashboard/admin/categories",
   adminUsers: "/dashboard/admin/users",
+  wishlist: "/dashboard/wishlist",
 
   /* AUTH */
   login: "/auth/login",

@@ -14,6 +14,7 @@ import {
   MapPinIcon,
   TagsIcon,
   UsersIcon,
+  HeartIcon,
 } from "lucide-react";
 
 export type DashboardNavItem = {
@@ -63,6 +64,13 @@ export const dashboardNav: DashboardNavGroup[] = [
         title: "Addresses",
         url: routes.addresses,
         icon: MapPinIcon,
+        roles: All_ROLES,
+      },
+      {
+        id: "wishlist",
+        title: "Wishlist",
+        url: routes.wishlist,
+        icon: HeartIcon,
         roles: All_ROLES,
       },
     ],
@@ -137,7 +145,7 @@ export const homeTrustStrip = [
 export const HIGHLIGHTS = [
   "Secure checkout",
   "Support from order after payment",
-  "Specs listed for this catalog",
+  "QR and credit/debit cards payment methods accepted",
 ];
 
 export const USER_ROLES: { value: UserRole; label: string }[] = [
@@ -155,5 +163,12 @@ export const accountLinks = [
     title: "Addresses",
     url: routes.addresses,
     icon: MapPinIcon,
+  },
+  {
+    id: "wishlist",
+    title: "Wishlist",
+    url: routes.wishlist,
+    icon: HeartIcon,
+    roles: All_ROLES,
   },
 ];

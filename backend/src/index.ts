@@ -27,6 +27,7 @@ import reviewRouter from "./routes/review.router";
 import profileRouter from "./routes/profile.router";
 import addressRouter from "./routes/address.router";
 import devBnbRouter from "./routes/dev-bnb.router";
+import wishlistRouter from "./routes/wishlist.router";
 
 // app.set("trust proxy", 1);
 
@@ -100,9 +101,9 @@ app.use("/api/cart", cartRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/orders", orderRouter);
 app.use("/api/reviews", reviewRouter);
-
 app.use("/api/profile", profileRouter);
 app.use("/api/addresses", addressRouter);
+app.use("/api/wishlist", wishlistRouter);
 
 // DEV ONLY: the env schema forbids BNB_MODE=fake in production
 if (ENV.BNB_MODE === "fake") {

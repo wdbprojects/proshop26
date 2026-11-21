@@ -2,114 +2,137 @@
 
 import { routes } from "@/config/routes";
 import { IK_PRESETS, imageKitOptimizedUrl } from "@/lib/image-kit-url";
-import { formatPrice } from "@/lib/utils";
-import { Ban, PlusIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { PackageIcon, PlusIcon, TruckIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { ProductType } from "@/config/type-schemas";
-
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardAction,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { useAddToCart } from "@/hooks/use-add-to-cart";
 import { Spinner } from "@/components/ui/spinner";
-import { Separator } from "@/components/ui/separator";
+import { onlinePriceCents } from "@/lib/pricing";
+import { DELIVERY_SHORT, ONLINE_DISCOUNT_PERCENT } from "@/config/store";
+import ProductRatings from "@/modules/components/products/product-ratings";
+import PriceBlock from "@/modules/components/products/price-block";
+import WishlistButton from "@/modules/components/wishlist/wishlist-button";
+
+const LOW_STOCK = 5;
 
 const CatalogProductCard = ({ product }: { product: ProductType }) => {
   const addToCart = useAddToCart();
 
-  const primaryImage = product.images?.find((img) => {
-    return img?.isPrimary ?? product.images?.[0] ?? null;
-  });
-
+  const image =
+    product.images?.find((img) => {
+      return img.isPrimary;
+    }) ?? product.images?.[0];
   const outOfStock = product.stock <= 0;
+  const lowStock = product.stock > 0 && product.stock <= LOW_STOCK;
+  const rating = Number(product.rating);
+  const discounted = onlinePriceCents(product.priceCents) < product.priceCents;
+  const href = routes.productDetails(product.slug);
 
   return (
-    <Card className="bg-muted relative mx-auto h-full w-full gap-2 rounded-md px-0 pt-0 pb-2 ring-0 transition-all hover:shadow-xl">
-      <div className="p-0">
-        <Link
-          href={routes.productDetails(product.slug)}
-          className="overflow-hidden"
-        >
-          <figure className="bg-background aspect-5/3">
-            {primaryImage ? (
-              <Image
-                src={imageKitOptimizedUrl(
-                  primaryImage.url,
-                  IK_PRESETS.catalogCard,
-                )}
-                width={IK_PRESETS.catalogCard.w}
-                height={IK_PRESETS.catalogCard.h}
-                alt={product.name}
-                className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
-                loading="eager"
-                decoding="async"
-              />
-            ) : null}
-          </figure>
-          <Badge className="absolute top-3 left-3" variant="secondary">
-            {product?.category?.name ?? "General"}
-          </Badge>
+    <article className="group bg-card flex h-full flex-col overflow-hidden rounded-xl border transition hover:shadow-lg">
+      <div className="relative">
+        <Link href={href} className="relative block aspect-4/5 bg-white">
+          {image ? (
+            <Image
+              src={
+                imageKitOptimizedUrl(image.url, IK_PRESETS.catalogCard) ??
+                image.url
+              }
+              alt={image.alt || product.name}
+              fill
+              sizes="(min-width: 1536px) 16vw, (min-width: 1280px) 20vw, (min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
+              className={cn(
+                "object-contain p-3 transition duration-300 group-hover:scale-[1.03]",
+                outOfStock && "opacity-40",
+              )}
+            />
+          ) : (
+            <div className="text-muted-foreground flex h-full items-center justify-center">
+              <PackageIcon className="size-12" aria-hidden />
+            </div>
+          )}
         </Link>
-      </div>
-      <div className="flex h-full flex-col items-center justify-between">
-        <div className="w-full">
-          <CardHeader className="mb-0 w-full p-0 px-2 pb-0">
-            <CardTitle className="px-0 text-sm font-bold">
-              <Link
-                href={routes.productDetails(product.slug)}
-                className="hover:text-primary line-clamp-2 leading-4.5 transition-all"
-              >
-                {product.name}
-              </Link>
-            </CardTitle>
-          </CardHeader>
-          <CardDescription className="text-muted-foreground mt-1 line-clamp-3 px-2 text-xs leading-tight">
-            {product?.description}
-          </CardDescription>
-        </div>
-        <Separator className="my-2" />
-        <CardAction className="mt-0 flex w-full flex-row items-center justify-between px-2">
-          <span className="text-lg font-bold tabular-nums">
-            {formatPrice(Number(product.priceCents), product.currency)}
+
+        {discounted && !outOfStock && (
+          <span className="absolute top-2 left-2 rounded-md bg-red-600 px-1.5 py-0.5 text-[11px] font-bold text-white">
+            -{ONLINE_DISCOUNT_PERCENT}% online
           </span>
+        )}
+        {outOfStock && (
+          <span className="bg-background/90 absolute inset-x-0 top-1/2 -translate-y-1 py-1 text-center text-sm font-semibold">
+            Sold out
+          </span>
+        )}
+        <WishlistButton
+          productId={product.id}
+          className="absolute top-0.5 right-0.5"
+        />
+      </div>
+
+      <div className="flex flex-1 flex-col gap-1.5 p-3">
+        <Link
+          href={href}
+          className="hover:text-primary line-clamp-2 min-h-10 text-sm leading-5 font-medium transition-colors"
+        >
+          {product.name}
+        </Link>
+        {product.numReviews > 0 ? (
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-semibold tabular-nums">
+              {rating.toFixed(1)}
+            </span>
+            <ProductRatings value={rating} size={13} showCount={false} />
+            <span className="text-muted-foreground text-xs tabular-nums">
+              ({product.numReviews})
+            </span>
+          </div>
+        ) : (
+          <span className="text-muted-foreground text-xs">No ratings yet</span>
+        )}
+
+        <PriceBlock
+          listCents={product.priceCents}
+          currency={product.currency}
+        />
+
+        <p className="text-muted-foreground flex items-center gap-1 text-[11px]">
+          <TruckIcon className="size-3 shrink-0" aria-hidden />
+          <span>{DELIVERY_SHORT}</span>
+        </p>
+
+        {lowStock && (
+          <p className="text-xs font-medium text-orange-600 dark:text-orange-400">
+            Only {product.stock} left
+          </p>
+        )}
+
+        <div className="mt-auto pt-2">
           <Button
-            onClick={() => {
-              addToCart.mutate({ productId: product.id, quantity: 1 });
-              // toast.success(
-              //   `Product "${product.name}" added to cart successfully`,
-              // );
-            }}
-            variant={outOfStock ? "destructive" : "default"}
             size="sm"
+            className="w-full"
             disabled={addToCart.isPending || outOfStock}
+            onClick={() => {
+              return addToCart.mutate({ productId: product.id, quantity: 1 });
+            }}
           >
             {outOfStock ? (
-              <div className="flex min-w-18 items-center justify-center gap-1">
-                <Ban className="size-3" aria-hidden />
-                <span className="font-bold">Out of stock</span>
-              </div>
-            ) : addToCart.isPending ? (
-              <div className="flex min-w-18 items-center justify-center gap-1">
-                <Spinner />
-                <span className="font-bold">Adding...</span>
-              </div>
+              <>
+                <Spinner className="size-3" />
+                <span>Adding...</span>
+              </>
             ) : (
-              <div className="flex min-w-18 items-center justify-center gap-1">
-                <PlusIcon className="size-3" aria-hidden />
-                <span className="font-bold">Add</span>
-              </div>
+              <>
+                <PlusIcon className="size-3.5" />
+                <span>Add to cart</span>
+              </>
             )}
           </Button>
-        </CardAction>
+        </div>
       </div>
-    </Card>
+    </article>
   );
 };
 

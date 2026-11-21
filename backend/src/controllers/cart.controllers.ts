@@ -8,6 +8,7 @@ import {
   addCartItemsSchema,
   updateCartItemsSchema,
 } from "../validators/cart.validators";
+import { onlinePriceCents } from "../lib/pricing";
 
 import z from "zod";
 
@@ -44,7 +45,7 @@ const recalculateCartTotals = async (cartId: string) => {
     .innerJoin(products, eq(cartItems.productId, products.id))
     .where(eq(cartItems.cartId, cartId));
   const itemsPriceCents = rows.reduce((sum, row) => {
-    return sum + row.quantity * row.priceCents;
+    return sum + row.quantity * onlinePriceCents(row.priceCents);
   }, 0);
   // shipping/tax belong to checkout, not the cart --left at 0 here
   const totalPriceCents = itemsPriceCents;
@@ -79,10 +80,10 @@ const getHydratedCart = async (cartId: string) => {
       id: row.id,
       productId: row.productId,
       quantity: row.quantity,
-      priceCentsAtAdd: row.priceCentsAtAdd,
+      priceCentsAtAdd: onlinePriceCents(row.priceCentsAtAdd),
       name: row.product.name,
       slug: row.product.slug,
-      priceCents: row.product.priceCents,
+      priceCents: onlinePriceCents(row.product.priceCents),
       currency: row.product.currency,
       stock: row.product.stock,
       image: row.product.images[0]?.url ?? null,
@@ -115,7 +116,9 @@ export const getCartItemsForCheckout = async (cartId: string) => {
     .from(cartItems)
     .innerJoin(products, eq(cartItems.productId, products.id))
     .where(eq(cartItems.cartId, cartId));
-  return rows;
+  return rows.map((row) => {
+    return { ...row, priceCents: onlinePriceCents(row.priceCents) };
+  });
 };
 
 /* Empties a user's cart after their order has been paid, so React Query's ["cart"] cache (once refetched/invalidated on the frontend) stops showing items they already bought. Looked up by userId, not cartId, because the webhook handler only ever knows the checkout session's userId. No-op if the user has no cart row (shouldn't happen for a completed checkout, but defensive) */

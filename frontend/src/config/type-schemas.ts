@@ -376,3 +376,7 @@ export type QrStatusResponse =
   | { status: "paid"; orderId: string | null }
   | { status: "expired" }
   | { status: "error" };
+
+// WISHLIST
+export type WishlistResponse = { products: ProductType[] };
+export type WishlistIdsResponse = { ids: string[] };

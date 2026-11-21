@@ -12,6 +12,7 @@ import Link from "next/link";
 import { cn } from "cn";
 import { IK_PRESETS, imageKitOptimizedUrl } from "@/lib/image-kit-url";
 import { formatPrice } from "@/lib/utils";
+import { onlinePriceCents } from "@/lib/pricing";
 
 const SearchBar = ({ autoFocus = false }: { autoFocus?: boolean }) => {
   const [value, setValue] = useState("");
@@ -142,7 +143,10 @@ const SearchBar = ({ autoFocus = false }: { autoFocus?: boolean }) => {
                         </p>
                       </div>
                       <span className="text-sm font-semibold tabular-nums">
-                        {formatPrice(item.priceCents, item.currency)}
+                        {formatPrice(
+                          onlinePriceCents(item.priceCents),
+                          item.currency,
+                        )}
                       </span>
                     </Link>
                   </li>

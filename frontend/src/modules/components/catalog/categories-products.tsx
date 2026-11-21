@@ -3,6 +3,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ProductType } from "@/config/type-schemas";
 import CatalogProductCard from "@/modules/components/catalog/catalog-product-card";
 
+const GRID =
+  "grid auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6";
+
 const CategoriesProducts = ({
   loadingProducts,
   error,
@@ -13,11 +16,13 @@ const CategoriesProducts = ({
   products: ProductType[];
 }) => {
   return loadingProducts ? (
-    <ul className="grid auto-rows-fr gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => {
+    <ul className={GRID}>
+      {Array.from({ length: 12 }).map((_, index) => {
         return (
-          <li key={item}>
-            <Skeleton className="h-64 w-full rounded-md" />
+          <li key={index} className="space-y-2">
+            <Skeleton className="aspect-4/5 w-full rounded-xl" />
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
           </li>
         );
       })}
@@ -29,7 +34,7 @@ const CategoriesProducts = ({
       No products in this category yet!
     </div>
   ) : (
-    <ul className="grid auto-rows-fr gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <ul className={GRID}>
       {products.map((product) => {
         return (
           <li key={product.id}>

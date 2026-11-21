@@ -118,7 +118,7 @@ export const columns: ColumnDef<ProductType>[] = [
   {
     accessorKey: "priceCents",
     header: () => {
-      return <div className="text-right">Amount</div>;
+      return <div className="text-right">List price</div>;
     },
     cell: ({ row }) => {
       const amount: number = row.getValue("priceCents");

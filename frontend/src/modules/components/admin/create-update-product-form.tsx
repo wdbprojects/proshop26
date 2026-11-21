@@ -52,6 +52,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Spinner } from "@/components/ui/spinner";
+import { ONLINE_DISCOUNT_PERCENT } from "@/config/store";
 
 const MAX_IMAGES = 6;
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; //5MB
@@ -652,7 +653,7 @@ const CreateUpdateProductForm = ({ product }: { product?: ProductType }) => {
                             htmlFor="price-product-admin"
                             className="text-foreground"
                           >
-                            Price (BOB)
+                            List price (BOB)
                             <span className="text-destructive">*</span>
                           </FieldLabel>
                           <Input
@@ -677,6 +678,10 @@ const CreateUpdateProductForm = ({ product }: { product?: ProductType }) => {
                               );
                             }}
                           />
+                          <FieldDescription>
+                            Customers who pay online get{" "}
+                            {ONLINE_DISCOUNT_PERCENT}% off automatically.
+                          </FieldDescription>
                           {fieldState.invalid && (
                             <FieldError errors={[fieldState.error]} />
                           )}

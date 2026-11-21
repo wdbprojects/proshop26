@@ -18,7 +18,7 @@ const EmptyCart = () => {
       </CardContent>
       <CardAction className="flex w-full items-center justify-between gap-4 px-4">
         <Link
-          href={routes.home}
+          href={routes.catalog}
           className={cn(
             buttonVariants({ variant: "default", size: "sm" }),
             "w-full flex-1",

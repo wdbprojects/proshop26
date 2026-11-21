@@ -29,7 +29,7 @@ const FooterMain = () => {
             <ul className="mt-3 space-y-2 text-sm">
               <li>
                 <Link
-                  href={routes.home}
+                  href={routes.catalog}
                   className={`link link-hover text-base-content/80 w-full ${buttonVariants(
                     {
                       size: "sm",
@@ -37,7 +37,7 @@ const FooterMain = () => {
                     },
                   )}`}
                 >
-                  All products
+                  Catalog
                 </Link>
               </li>
               <li>

@@ -17,19 +17,7 @@ const ProductDetailsPage = ({ slug }: { slug: string }) => {
     return <ErrorCard />;
   }
 
-  const primaryImage = product.images?.find((img) => img?.isPrimary) ??
-    product.images?.[0] ?? {
-      id: "placeholder",
-      url: "https://placehold.co/600x600/png",
-      alt: null,
-      order: 0,
-      isPrimary: true,
-      imageKitFileId: null,
-    };
-
-  return (
-    <ProductDetailsContent product={product} primaryImage={primaryImage} />
-  );
+  return <ProductDetailsContent product={product} />;
 };
 
 export default ProductDetailsPage;

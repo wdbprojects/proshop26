@@ -10,3 +10,4 @@ export * from "./schemas/cart.items.schema";
 export * from "./schemas/reviews.schema";
 export * from "./schemas/shipping.columns";
 export * from "./schemas/addresses.schema";
+export * from "./schemas/wishlist.schema";

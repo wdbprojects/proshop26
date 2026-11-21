@@ -171,19 +171,22 @@ export function imageKitWatermarkedUrl(url: string, opts = {}) {
 
 /** Presets aligned to layout (2× for retina where useful). */
 export const IK_PRESETS = {
-  /** Catalog cards ~4:3, max column ~400px */
-  catalogCard: { w: 800, h: 600, q: 80, f: "auto" },
-  /** Product detail hero */
+  // Catalog cards ~4:3, max column ~400px */
+  // catalogCard: { w: 800, h: 600, q: 80, f: "auto" },
+  catalogCard: { w: 600, h: 750, q: 80, f: "auto" },
+  // Product detail hero */
   productHero: { w: 1200, h: 1200, q: 82, f: "auto" },
-  /** Admin table ~56–72px boxes */
+  // Admin table ~56–72px boxes */
   adminThumb: { w: 144, h: 144, q: 80, f: "auto" },
-  /** Cart line h-24 w-24 */
+  // Cart line h-24 w-24 */
   cartThumb: { w: 192, h: 192, q: 80, f: "auto" },
-  /** Order summary thumbs */
+  // Order summary thumbs */
   orderLineThumb: { w: 224, h: 224, q: 80, f: "auto" },
-  /** Order list mosaic */
+  // Order list mosaic */
   orderPreviewMd: { w: 176, h: 176, q: 80, f: "auto" },
   orderPreviewLg: { w: 288, h: 288, q: 80, f: "auto" },
-  /** Admin modal image preview (max-h-32) */
+  // Admin modal image preview (max-h-32) */
   formPreview: { w: 640, h: 320, q: 80, f: "auto" },
+  // Lightbox: full image, no crop
+  lightbox: { w: 1600, h: 1600, q: 85, f: "auto" },
 };
